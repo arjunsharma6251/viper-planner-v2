@@ -229,7 +229,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
       {chatOpen && (
         <aside
-          className="no-print animate-fade fixed top-0 right-0 bottom-0 z-30 hidden w-[26rem] border-l border-hairline bg-cream shadow-[var(--shadow-pop)] lg:block"
+          className="no-print animate-fade fixed top-0 right-0 bottom-0 z-30 w-full border-l border-hairline bg-cream shadow-[var(--shadow-pop)] sm:w-[26rem]"
           aria-label="Plan chat"
         >
           <ChatPanel mode={isAdminMode() ? 'admin' : 'student'} ctx={store.toolContext} />
