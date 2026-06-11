@@ -10,8 +10,30 @@ import type { SemesterKey } from '../data/semesters'
 /** Where a course's CU counts: BA (sas), BSE (seas), both, VIPER program, gen-ed. */
 export type CourseCategory = 'sas' | 'seas' | 'both' | 'viper' | 'gened'
 
-/** Marker tags attached to a planned course by edits ('MOVED', 'EXCEEDS-MAX'). */
-export type CourseTag = 'MOVED' | 'EXCEEDS-MAX'
+/**
+ * Marker tags attached to a planned course.
+ * 'MOVED' / 'EXCEEDS-MAX' / 'USER-ADDED' come from user edits; the rest are
+ * attached by the scheduler when it seeds a plan (old SECTION 2:
+ * addCoreCourseToSemester, placeVIPER, placeGenEd, placeOneElective,
+ * ensureEnergyMinimum, fillToMinimumCU). Widened union — never narrow.
+ */
+export type CourseTag =
+  | 'MOVED'
+  | 'EXCEEDS-MAX'
+  | 'USER-ADDED'
+  | 'VIPER'
+  | 'VIPER-req'
+  | 'DC'
+  | 'SAS'
+  | 'SEAS'
+  | 'SEAS SS/H'
+  | 'ENERGY'
+  | 'Gen-Ed'
+  | 'CUSTOM'
+  | 'TIGHT'
+  | 'FREE'
+  | `FA:${string}`
+  | `SEC:${string}`
 
 /** NCC Foundation ids. */
 export type FoundationId =
@@ -76,6 +98,27 @@ export interface PlannedCourse {
   fixed?: boolean
   tags?: CourseTag[]
   note?: string | null
+  // ---- Optional fields carried over from the old app's course objects ----
+  /** Catalog FA/Sector attributes flattened onto the course by the scheduler.
+   *  augmentPlan reads `c.fa || c.fulfills?.fa || intent?.fa` (and same for sec). */
+  fa?: FaId | null
+  sec?: SectorId | null
+  /** Slot display label (e.g. "MSE Elective / Energy Course"). */
+  slotLabel?: string
+  /** Pre-screened candidate codes for this slot (drives the swap picker). */
+  pool?: readonly string[]
+  /** Human-readable description of what a placeholder slot fulfills. */
+  fulfillsDesc?: string
+  suggests?: readonly string[]
+  /** True when the user added this course via Add Course (tags get 'USER-ADDED'). */
+  isUserAdded?: boolean
+  /** True when code differs from originalCode after a rename. */
+  isRenamed?: boolean
+  isGenEd?: boolean
+  /** Unique key for placeholder rows ("— gened-writ") so duplicates don't collapse. */
+  placeholderCode?: string
+  /** Advisory warning attached by the scheduler (force-placed, over-cap, ...). */
+  warning?: string
 }
 
 /** A planned course after augmentPlan adds display-layer computed fields. */
@@ -132,6 +175,13 @@ export interface Plan {
   meta: PlanMeta
   notes: string[]
   summary?: PlanSummary
+  /**
+   * Course key (originalCode || code) → user-marked fulfillment tags.
+   * The old app kept this beside the plan (`userPlanFulfillments` state);
+   * the mutation API stores it ON the plan so tag_fulfillment can be a pure
+   * Plan → Plan function. augmentPlan merges it with ctx.userPlanFulfillments.
+   */
+  fulfillments?: Record<string, FulfillmentTag[]>
 }
 
 /** An augmented plan (augmentPlan output) — always has summary + placement. */
