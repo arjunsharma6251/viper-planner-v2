@@ -163,6 +163,50 @@ export function buildToolDefinitions(): ToolDefinition[] {
   }))
 }
 
+/** Human-readable one-liner for a tool call, shown in the chat transcript. */
+export function describeToolCall(name: string, input: unknown): string {
+  const arg = (key: string): string => {
+    if (input && typeof input === 'object' && key in input) {
+      const v = (input as Record<string, unknown>)[key]
+      if (typeof v === 'string' || typeof v === 'number') return String(v)
+    }
+    return ''
+  }
+  switch (name) {
+    case 'get_plan':
+      return 'Reading your plan'
+    case 'get_requirements':
+      return 'Checking requirement status'
+    case 'get_course_info':
+      return `Looking up ${arg('code') || 'a course'}`
+    case 'analyze_plan':
+      return 'Analyzing your plan'
+    case 'simulate_change': {
+      const n =
+        input && typeof input === 'object' && Array.isArray((input as { mutations?: unknown[] }).mutations)
+          ? (input as { mutations: unknown[] }).mutations.length
+          : 0
+      return `Simulating ${n} change${n === 1 ? '' : 's'} (dry run)`
+    }
+    case 'add_course': {
+      const course = (input as { course?: { code?: string } } | null)?.course
+      return `Adding ${course?.code ?? 'a course'} to ${arg('semester')}`
+    }
+    case 'remove_course':
+      return `Removing ${arg('courseId')} from ${arg('semester')}`
+    case 'move_course':
+      return `Moving ${arg('courseId')}: ${arg('from')} → ${arg('to')}`
+    case 'tag_fulfillment':
+      return `Tagging ${arg('courseId')} (${arg('fulfillmentId')})`
+    case 'swap_elective':
+      return `Swapping slot ${arg('slotId')} to ${arg('newCode')}`
+    case 'rename_course':
+      return `Renaming ${arg('courseId')} to ${arg('newCode')}`
+    default:
+      return name
+  }
+}
+
 /**
  * The surface the chat loop executes tools against. Implemented by the
  * plan store — the same functions the UI calls, so LLM and direct user

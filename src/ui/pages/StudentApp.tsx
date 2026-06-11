@@ -6,6 +6,7 @@ import { PlanSetup } from '../components/PlanSetup'
 import { ScheduleGrid } from '../components/ScheduleGrid'
 import { RequirementTracker } from '../components/RequirementTracker'
 import { ReferencePanels } from '../components/ReferencePanels'
+import { Legend } from '../components/Legend'
 import { ProgressHeadline } from '../components/ProgressHeadline'
 import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
@@ -162,6 +163,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               <RequirementTracker summary={store.augmented.summary} />
               {renderExtras?.(store)}
               <ReferencePanels />
+              <Legend />
               <button
                 type="button"
                 onClick={() => {
