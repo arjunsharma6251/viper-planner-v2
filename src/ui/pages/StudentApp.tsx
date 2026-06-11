@@ -12,9 +12,10 @@ import { ExportMenu } from '../components/ExportMenu'
 import { CourseDetailModal } from '../components/CourseDetailModal'
 import { AddCourseModal } from '../components/AddCourseModal'
 import { ToastProvider, useToast } from '../components/Toasts'
+import { MajorSelects } from '../components/MajorSelects'
+import { LoadSkyline } from '../components/LoadSkyline'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
-import { MAJORS } from '../../data/majors'
 
 interface OpenCourseRef {
   courseId: string
@@ -66,8 +67,6 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
     return result
   }
 
-  const sasName = store.config ? (MAJORS[store.config.sasMajorKey]?.fullName ?? '') : ''
-  const seasName = store.config ? (MAJORS[store.config.seasMajorKey]?.fullName ?? '') : ''
 
   return (
     <div className="min-h-screen font-sans">
@@ -97,13 +96,32 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                 <span className="text-penn-red">.</span>
               </h1>
               {store.config && (
-                <p className="mt-2.5 text-[0.875rem] text-ink-soft">
-                  {sasName} <span className="smallcaps mx-0.5 !text-[0.5625rem]">BA</span> +{' '}
-                  {seasName} <span className="smallcaps mx-0.5 !text-[0.5625rem]">BSE</span> · Class
-                  of {gradYear}
-                </p>
+                <div className="no-print mt-2.5">
+                  <MajorSelects
+                    config={store.config}
+                    onChange={(next) => {
+                      if (
+                        !window.confirm(
+                          'Switching majors rebuilds your starting plan from the scheduler template — manual edits will be replaced. Continue?',
+                        )
+                      )
+                        return
+                      if (store.setup(next)) toast('Plan rebuilt for the new combination.')
+                      else toast('Could not build a plan for that combination.')
+                    }}
+                  />
+                </div>
               )}
             </div>
+            {store.augmented && (
+              <div
+                className="rise no-print hidden items-end gap-3 pb-1 sm:flex"
+                style={{ '--i': 2 } as React.CSSProperties}
+              >
+                <span className="smallcaps mb-0.5">Load</span>
+                <LoadSkyline plan={store.augmented} gradYear={gradYear} />
+              </div>
+            )}
           </div>
 
           <div className="rise mt-5" style={{ '--i': 3 } as React.CSSProperties}>
@@ -171,7 +189,12 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               VIPER Planner is a student-built tool, not an official University of
               Pennsylvania application.
             </p>
-            <p className="smallcaps !text-[0.5625rem]">University of Pennsylvania</p>
+            <div className="text-right">
+              <p className="smallcaps !text-[0.5625rem]">University of Pennsylvania</p>
+              <p className="mt-0.5 text-[0.625rem] text-ink/30">
+                Developed by Arjun Sharma, VIPER '28
+              </p>
+            </div>
           </div>
         </footer>
       </div>

@@ -96,7 +96,7 @@ export function SemesterCard({
       aria-label={`${yearLabel} ${seasonLabel}`}
       style={{ '--i': riseIndex } as React.CSSProperties}
       className={[
-        'rise print-block rounded-lg transition-all duration-200',
+        'rise print-block flex h-full flex-col rounded-lg transition-all duration-200',
         summer
           ? 'border border-dashed border-rule/70 bg-cream/40 px-5 py-4'
           : 'border border-hairline bg-paper px-6 py-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]',
@@ -123,10 +123,39 @@ export function SemesterCard({
       </header>
       <div className={`mb-1 h-px ${summer ? 'bg-rule/50' : 'bg-rule/80'}`} aria-hidden />
 
+      {/* ── Load meter: CU against the 5.5 / 6.5 / 7.5 thresholds ──
+          Academic-year terms only; summers are judged differently. */}
+      {!summer && (
+        <div
+          className="relative mt-1 mb-2 h-[3px] rounded-full bg-ink/6"
+          role="img"
+          aria-label={`${load} CU of 7.5 CU hard cap`}
+        >
+          <div
+            className={[
+              'absolute inset-y-0 left-0 rounded-full transition-[width,background-color] duration-300 ease-out',
+              load > 6.5 ? 'bg-penn-red' : load > 5.5 ? 'bg-[#b8860b]' : 'bg-penn-blue/70',
+            ].join(' ')}
+            style={{ width: `${Math.min(load / 7.5, 1) * 100}%` }}
+          />
+          <span
+            className="absolute -top-[2px] h-[7px] w-px bg-ink/20"
+            style={{ left: `${(5.5 / 7.5) * 100}%` }}
+            aria-hidden
+          />
+          <span
+            className="absolute -top-[2px] h-[7px] w-px bg-ink/20"
+            style={{ left: `${(6.5 / 7.5) * 100}%` }}
+            aria-hidden
+          />
+        </div>
+      )}
+
       <div
-        className={
-          crowded ? 'rounded-sm shadow-[inset_0_0_0_1px_rgba(154,106,0,0.45)]' : ''
-        }
+        className={[
+          'flex-1', // stretches so the add button sits flush with the row baseline
+          crowded ? 'rounded-sm shadow-[inset_0_0_0_1px_rgba(154,106,0,0.45)]' : '',
+        ].join(' ')}
       >
         {courses.map((c, i) => (
           <div key={`${c.placeholderCode ?? c.originalCode ?? c.code}-${i}`} data-course-row>
