@@ -4,6 +4,7 @@ import type { SemesterKey } from '../../data/semesters'
 import { usePlanStore } from '../store/use-plan-store'
 import { PlanSetup } from '../components/PlanSetup'
 import { ScheduleGrid } from '../components/ScheduleGrid'
+import { FocusView } from '../components/FocusView'
 import { RequirementTracker } from '../components/RequirementTracker'
 import { ReferencePanels } from '../components/ReferencePanels'
 import { Legend } from '../components/Legend'
@@ -31,6 +32,9 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   const [openRef, setOpenRef] = useState<OpenCourseRef | null>(null)
   const [addTo, setAddTo] = useState<SemesterKey | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
+  const [view, setView] = useState<'grid' | 'focus'>('grid')
+  const [focusSem, setFocusSem] = useState<SemesterKey>('fall-y1')
+  const [editingSetup, setEditingSetup] = useState(false)
 
   // Cmd/Ctrl-Z undoes the last action (Jakob's Law).
   useEffect(() => {
@@ -97,7 +101,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                 <span className="text-penn-red">.</span>
               </h1>
               {store.config && (
-                <div className="no-print mt-2.5">
+                <div className="no-print mt-2.5 flex flex-wrap items-baseline gap-x-3">
                   <MajorSelects
                     config={store.config}
                     onChange={(next) => {
@@ -111,6 +115,13 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       else toast('Could not build a plan for that combination.')
                     }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setEditingSetup(true)}
+                    className="smallcaps !text-[0.5625rem] !text-ink/35 transition-colors hover:!text-penn-blue"
+                  >
+                    ↺ Edit setup
+                  </button>
                 </div>
               )}
             </div>
@@ -128,17 +139,51 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           <div className="rise mt-5" style={{ '--i': 3 } as React.CSSProperties}>
             <hr className="double-rule draw-rule" />
             {store.augmented && (
-              <div className="mt-3.5">
+              <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
                 <ProgressHeadline summary={store.augmented.summary} />
+                {!editingSetup && (
+                  <div
+                    className="no-print flex rounded-md border border-hairline bg-paper p-0.5 shadow-[var(--shadow-card)]"
+                    role="tablist"
+                    aria-label="Schedule view"
+                  >
+                    {(['grid', 'focus'] as const).map((v) => (
+                      <button
+                        key={v}
+                        role="tab"
+                        aria-selected={view === v}
+                        onClick={() => setView(v)}
+                        className={[
+                          'smallcaps rounded-[0.25rem] px-3 py-1 !text-[0.5625rem] transition-colors duration-150',
+                          view === v
+                            ? 'bg-penn-blue !text-white'
+                            : '!text-ink/45 hover:!text-ink',
+                        ].join(' ')}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </header>
 
-        {!store.plan || !store.augmented ? (
+        {!store.plan || !store.augmented || editingSetup ? (
           <PlanSetup
+            initial={store.config}
+            onCancel={store.plan ? () => setEditingSetup(false) : undefined}
             onDone={(config) => {
+              if (
+                store.plan &&
+                !window.confirm(
+                  'Build a fresh plan from this setup? Your current edits will be replaced.',
+                )
+              )
+                return
               if (store.setup(config)) {
+                setEditingSetup(false)
                 toast('Starting plan built — it’s yours to edit now.')
               } else {
                 toast('Could not build a plan for that combination.')
@@ -147,18 +192,35 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           />
         ) : (
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_21rem]">
-            <ScheduleGrid
-              plan={store.augmented}
-              gradYear={gradYear}
-              colorOverrides={store.colorOverrides}
-              onOpenCourse={(course, semKey) =>
-                setOpenRef({ courseId: course.originalCode ?? course.code, semKey })
-              }
-              onAddCourse={setAddTo}
-              onMove={(from, to, courseId, targetIndex) => {
-                applyToast({ kind: 'move_course', from, to, courseId, targetIndex })
-              }}
-            />
+            {view === 'grid' ? (
+              <ScheduleGrid
+                plan={store.augmented}
+                gradYear={gradYear}
+                colorOverrides={store.colorOverrides}
+                onOpenCourse={(course, semKey) =>
+                  setOpenRef({ courseId: course.originalCode ?? course.code, semKey })
+                }
+                onAddCourse={setAddTo}
+                onMove={(from, to, courseId, targetIndex) => {
+                  applyToast({ kind: 'move_course', from, to, courseId, targetIndex })
+                }}
+              />
+            ) : (
+              <FocusView
+                plan={store.augmented}
+                gradYear={gradYear}
+                selected={focusSem}
+                onSelect={setFocusSem}
+                colorOverrides={store.colorOverrides}
+                onOpenCourse={(course, semKey) =>
+                  setOpenRef({ courseId: course.originalCode ?? course.code, semKey })
+                }
+                onAddCourse={setAddTo}
+                onMove={(from, to, courseId, targetIndex) => {
+                  applyToast({ kind: 'move_course', from, to, courseId, targetIndex })
+                }}
+              />
+            )}
             <div className="flex flex-col gap-6 self-start lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-1">
               <RequirementTracker summary={store.augmented.summary} />
               {renderExtras?.(store)}

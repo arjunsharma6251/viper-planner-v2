@@ -5,6 +5,10 @@ import type { PlanConfig } from '../store/use-plan-store'
 
 export interface PlanSetupProps {
   onDone: (config: PlanConfig) => void
+  /** Prefill from the current config when re-entering setup. */
+  initial?: PlanConfig | null
+  /** Present when setup was opened from an existing plan — shows a way back. */
+  onCancel?: () => void
 }
 
 const GRAD_YEARS = [2027, 2028, 2029, 2030]
@@ -14,14 +18,16 @@ const GRAD_YEARS = [2027, 2028, 2029, 2030]
  * This is the first thing a student ever sees — it should feel like
  * opening a beautifully printed program booklet.
  */
-export function PlanSetup({ onDone }: PlanSetupProps) {
+export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   const [step, setStep] = useState<'year' | 'majors'>('year')
-  const [gradYear, setGradYear] = useState<number>(2028)
-  const [sasMajorKey, setSasMajorKey] = useState('CHEM')
-  const [seasMajorKey, setSeasMajorKey] = useState('CBE')
-  const [sasConcKey, setSasConcKey] = useState<string | null>(null)
-  const [seasConcKey, setSeasConcKey] = useState<string | null>(null)
-  const [apCreditIds, setApCreditIds] = useState<string[]>(['ap-calc-bc'])
+  const [gradYear, setGradYear] = useState<number>(initial?.gradYear ?? 2028)
+  const [sasMajorKey, setSasMajorKey] = useState(initial?.sasMajorKey ?? 'CHEM')
+  const [seasMajorKey, setSeasMajorKey] = useState(initial?.seasMajorKey ?? 'CBE')
+  const [sasConcKey, setSasConcKey] = useState<string | null>(initial?.sasConcKey ?? null)
+  const [seasConcKey, setSeasConcKey] = useState<string | null>(initial?.seasConcKey ?? null)
+  const [apCreditIds, setApCreditIds] = useState<string[]>(
+    initial?.apCreditIds ?? ['ap-calc-bc'],
+  )
 
   const sasConcs = useMemo(
     () => Object.entries(MAJORS[sasMajorKey]?.concentrations ?? {}),
@@ -79,6 +85,16 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
             </button>
           ))}
         </div>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rise mt-8 text-xs text-ink/45 transition-colors hover:text-ink"
+            style={{ '--i': 3 } as React.CSSProperties}
+          >
+            ← Back to my plan
+          </button>
+        )}
       </div>
     )
   }
@@ -203,13 +219,24 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
         >
           Build my starting plan
         </button>
-        <button
-          type="button"
-          onClick={() => setStep('year')}
-          className="text-center text-xs text-ink/45 hover:text-ink"
-        >
-          ← Class of {gradYear}
-        </button>
+        <div className="flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => setStep('year')}
+            className="text-xs text-ink/45 transition-colors hover:text-ink"
+          >
+            ← Class of {gradYear}
+          </button>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-xs text-ink/45 transition-colors hover:text-ink"
+            >
+              Cancel — back to my plan
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
