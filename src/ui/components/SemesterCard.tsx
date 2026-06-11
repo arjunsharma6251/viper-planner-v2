@@ -96,7 +96,7 @@ export function SemesterCard({
       aria-label={`${yearLabel} ${seasonLabel}`}
       style={{ '--i': riseIndex } as React.CSSProperties}
       className={[
-        'rise print-block flex h-full flex-col rounded-lg transition-all duration-200',
+        'rise print-block group/card flex h-full flex-col rounded-lg transition-all duration-200',
         summer
           ? 'border border-dashed border-rule/70 bg-cream/40 px-5 py-4'
           : 'border border-hairline bg-paper px-6 py-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]',
@@ -110,8 +110,8 @@ export function SemesterCard({
       <header className="mb-1 flex items-baseline justify-between gap-2">
         <h3
           className={[
-            'font-display font-semibold',
-            summer ? 'text-[1.0625rem] text-ink/70 italic' : 'text-[1.25rem] text-ink',
+            'font-display font-semibold whitespace-nowrap',
+            summer ? 'text-[1.0625rem] text-ink/70 italic' : 'text-[1.1875rem] text-ink',
           ].join(' ')}
         >
           {seasonLabel}
@@ -185,10 +185,12 @@ export function SemesterCard({
         )}
       </div>
 
+      {/* Quiet until the card is engaged — 11 always-on dashed buttons read
+          as noise. Hover/focus reveals it; coarse pointers (touch) keep it. */}
       <button
         type="button"
         onClick={() => onAddCourse(semKey)}
-        className="no-print mt-3 w-full rounded-md border border-dashed border-rule py-2 text-[0.75rem] tracking-wide text-ink/45 transition-colors duration-150 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue"
+        className="no-print mt-3 w-full rounded-md border border-dashed border-rule py-1.5 text-[0.71875rem] tracking-wide text-ink/45 opacity-0 transition-all duration-200 group-hover/card:opacity-100 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue focus-visible:opacity-100 pointer-coarse:opacity-100"
       >
         + Add course
       </button>

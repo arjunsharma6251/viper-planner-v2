@@ -46,7 +46,7 @@ export function Sandbox({
   return (
     <section
       aria-label="NCC sandbox"
-      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
       style={{ '--i': 2 } as React.CSSProperties}
     >
       <p className="smallcaps mb-1 !text-penn-red">Admin · NCC sandbox</p>

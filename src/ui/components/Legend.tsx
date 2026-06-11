@@ -1,19 +1,33 @@
+import { useState } from 'react'
+
 /**
- * The legend: every mark the schedule uses, explained once. Color is never
- * the only signal elsewhere (tooltips/text carry the meaning), but the
- * legend makes the system learnable at a glance.
+ * The legend: every mark the schedule uses, explained once. Collapsed by
+ * default — it's a lookup, not a dashboard. Color is never the only signal
+ * elsewhere (tooltips/text carry the meaning).
  */
 export function Legend() {
+  const [open, setOpen] = useState(false)
   const row = 'flex items-center gap-2.5 py-1 text-[0.75rem] text-ink-soft'
   return (
     <aside
-      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
       aria-label="Legend"
       style={{ '--i': 4 } as React.CSSProperties}
     >
-      <p className="smallcaps mb-1">Legend</p>
-      <hr className="double-rule mb-3" />
-      <div className="flex flex-col">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-baseline justify-between text-left"
+      >
+        <span className="smallcaps">Legend</span>
+        <span className="text-[0.625rem] text-ink/35" aria-hidden>
+          {open ? '▾' : '▸'}
+        </span>
+      </button>
+      {open && <hr className="double-rule mt-1 mb-3" />}
+      {open && (
+      <div className="animate-fade flex flex-col">
         <div className={row}>
           <span className="w-9 shrink-0 text-[0.625rem] tracking-[0.15em] text-[#b8860b]">
             ★★
@@ -66,6 +80,7 @@ export function Legend() {
           <span>Your cluster color (set in course detail)</span>
         </div>
       </div>
+      )}
     </aside>
   )
 }

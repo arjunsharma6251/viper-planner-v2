@@ -159,7 +159,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                 applyToast({ kind: 'move_course', from, to, courseId, targetIndex })
               }}
             />
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 self-start lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-1">
               <RequirementTracker summary={store.augmented.summary} />
               {renderExtras?.(store)}
               <ReferencePanels />

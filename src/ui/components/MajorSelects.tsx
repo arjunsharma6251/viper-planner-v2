@@ -13,9 +13,11 @@ function defaultConcKey(majorKey: string): string | null {
   return def?.[0] ?? concs[0]?.[0] ?? null
 }
 
+// Reads as typeset text until engaged: no underline at rest, a quiet chevron,
+// dotted rule surfacing on hover/focus.
 const ghostSelect =
-  'cursor-pointer appearance-none rounded-sm border-b border-dotted border-rule bg-transparent py-0.5 pr-4 font-medium text-penn-blue transition-colors duration-150 hover:border-penn-blue focus:border-penn-blue ' +
-  "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23011F5B' fill-opacity='0.45'/%3E%3C/svg%3E\")] bg-right bg-no-repeat"
+  'cursor-pointer appearance-none rounded-sm border-b border-dotted border-transparent bg-transparent py-0.5 pr-4 font-medium text-penn-blue transition-colors duration-150 hover:border-penn-blue/60 focus:border-penn-blue ' +
+  "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23011F5B' fill-opacity='0.35'/%3E%3C/svg%3E\")] bg-right bg-no-repeat"
 
 /**
  * Inline ghost dropdowns in the masthead byline — change either degree (or

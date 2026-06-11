@@ -21,7 +21,7 @@ export function VIPRtoNCCPanel({ plan, viperMods }: VIPRtoNCCPanelProps) {
 
   return (
     <aside
-      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
       aria-label="VIPER to NCC translation"
       style={{ '--i': 3 } as React.CSSProperties}
     >

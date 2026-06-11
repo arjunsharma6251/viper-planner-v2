@@ -44,7 +44,7 @@ export function CourseRow({
       }}
       className={[
         'group relative flex min-h-10 cursor-pointer items-center gap-2 py-2 pr-0.5 pl-3',
-        'border-b border-dotted border-hairline last:border-b-0',
+        'border-b border-dotted border-hairline/70 last:border-b-0',
         'transition-colors duration-150 ease-out hover:bg-[#fbf8f0]',
         attention ? 'shadow-[inset_2px_0_0_var(--color-penn-red)]' : '',
         course.isPlaceholder ? 'opacity-65' : '',

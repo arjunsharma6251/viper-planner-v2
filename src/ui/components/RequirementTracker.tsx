@@ -86,7 +86,7 @@ export function RequirementTracker({ summary }: { summary: PlanSummary }) {
 
   return (
     <aside
-      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
       aria-label="Degree audit"
       style={{ '--i': 2 } as React.CSSProperties}
     >
