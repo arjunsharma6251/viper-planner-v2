@@ -1,17 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk'
 
 /**
- * Anthropic API client for the chat sidekick.
+ * Anthropic API client for the chat sidekick. Two modes:
  *
- * Pilot-phase wiring: the key comes from localStorage (maintainer pastes it
- * in via the chat settings) and calls go straight from the browser.
- * BEFORE PILOT LAUNCH this must move behind a thin Vercel edge-function
- * proxy so the key is never shipped or stored client-side — see CLAUDE.md
- * "LLM costs". The proxy swap only changes this file.
+ * - PROXY (production / pilot): VITE_LLM_PROXY=1 at build time routes all
+ *   calls through /api/anthropic (Vercel edge function), which injects the
+ *   real key server-side. Students never see or paste a key.
+ * - DIRECT (local dev): the maintainer pastes a key into the chat panel;
+ *   it lives in this browser's localStorage only.
  */
 const API_KEY_STORAGE = 'viper-planner:anthropic-key'
 
 export const CHAT_MODEL = 'claude-sonnet-4-6'
+
+export const USES_PROXY = import.meta.env.VITE_LLM_PROXY === '1'
 
 export function getStoredApiKey(): string | null {
   try {
@@ -29,7 +31,19 @@ export function setStoredApiKey(key: string): void {
   }
 }
 
+/** True when the chat can talk to the API without asking for a key. */
+export function chatIsReady(): boolean {
+  return USES_PROXY || !!getStoredApiKey()
+}
+
 export function createClient(): Anthropic | null {
+  if (USES_PROXY) {
+    return new Anthropic({
+      apiKey: 'proxy', // placeholder; the edge function injects the real key
+      baseURL: `${window.location.origin}/api/anthropic`,
+      dangerouslyAllowBrowser: true,
+    })
+  }
   const apiKey = getStoredApiKey()
   if (!apiKey) return null
   return new Anthropic({ apiKey, dangerouslyAllowBrowser: true })

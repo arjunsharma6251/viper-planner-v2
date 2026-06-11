@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MessageParam } from '@anthropic-ai/sdk/resources/messages'
-import { CHAT_MODEL, createClient, getStoredApiKey, setStoredApiKey } from './client'
+import { CHAT_MODEL, USES_PROXY, chatIsReady, createClient, setStoredApiKey } from './client'
 import { runChatTurn } from './chat-loop'
 import type { PlanToolContext } from './tools'
 import { MarkdownLite } from './MarkdownLite'
@@ -69,7 +69,7 @@ export function ChatPanel({ mode, ctx }: ChatPanelProps) {
   const [entries, setEntries] = useState<DisplayEntry[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  const [hasKey, setHasKey] = useState(() => !!getStoredApiKey())
+  const [hasKey, setHasKey] = useState(chatIsReady)
   const [keyInput, setKeyInput] = useState('')
   const history = useRef<MessageParam[]>([])
   const nextId = useRef(1)
@@ -213,16 +213,18 @@ export function ChatPanel({ mode, ctx }: ChatPanelProps) {
             >
               Clear
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setHasKey(false)
-                setKeyInput('')
-              }}
-              className="smallcaps !text-[0.5625rem] !text-ink/40 transition-colors hover:!text-ink"
-            >
-              Key
-            </button>
+            {!USES_PROXY && (
+              <button
+                type="button"
+                onClick={() => {
+                  setHasKey(false)
+                  setKeyInput('')
+                }}
+                className="smallcaps !text-[0.5625rem] !text-ink/40 transition-colors hover:!text-ink"
+              >
+                Key
+              </button>
+            )}
           </div>
         </div>
         <hr className="double-rule mt-3" />

@@ -67,7 +67,10 @@ export function CourseRow({
       <span className="w-[4.5rem] shrink-0 font-mono text-[0.6875rem] font-medium tracking-tight text-penn-blue">
         {code}
       </span>
-      <span className="min-w-0 flex-1 truncate text-[0.84375rem] leading-snug text-ink/85">
+      <span
+        className="min-w-0 flex-1 truncate text-[0.84375rem] leading-snug text-ink/85"
+        title={`${code} — ${course.title}`}
+      >
         {course.title}
       </span>
       <Stars course={course} />
