@@ -68,7 +68,7 @@ export function Modal({ title, eyebrow, onClose, children }: ModalProps) {
         <header className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
             {eyebrow && <p className="smallcaps mb-1">{eyebrow}</p>}
-            <h2 className="font-display text-[22px] leading-tight font-semibold text-ink">
+            <h2 className="font-display text-[1.375rem] leading-tight font-semibold text-ink">
               {title}
             </h2>
           </div>

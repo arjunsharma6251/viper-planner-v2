@@ -43,7 +43,7 @@ export function CourseRow({
         }
       }}
       className={[
-        'group relative flex min-h-9 cursor-pointer items-center gap-2 py-2 pr-0.5 pl-2.5',
+        'group relative flex min-h-10 cursor-pointer items-center gap-2 py-2 pr-0.5 pl-3',
         'border-b border-dotted border-hairline last:border-b-0',
         'transition-colors duration-150 ease-out hover:bg-[#fbf8f0]',
         attention ? 'shadow-[inset_2px_0_0_var(--color-penn-red)]' : '',
@@ -59,22 +59,22 @@ export function CourseRow({
       {!course.fixed && (
         <span
           aria-hidden
-          className="-ml-1.5 w-2 cursor-grab font-mono text-[9px] leading-none text-ink/0 transition-colors duration-150 select-none group-hover:text-ink/35"
+          className="-ml-1.5 w-2 cursor-grab font-mono text-[0.5625rem] leading-none text-ink/0 transition-colors duration-150 select-none group-hover:text-ink/35"
         >
           ⠿
         </span>
       )}
-      <span className="w-[4.1rem] shrink-0 font-mono text-[10.5px] font-medium tracking-tight text-penn-blue">
+      <span className="w-[4.5rem] shrink-0 font-mono text-[0.6875rem] font-medium tracking-tight text-penn-blue">
         {code}
       </span>
-      <span className="min-w-0 flex-1 truncate text-[12.5px] leading-snug text-ink/85">
+      <span className="min-w-0 flex-1 truncate text-[0.84375rem] leading-snug text-ink/85">
         {course.title}
       </span>
       <Stars course={course} />
       {course.tags?.includes('MOVED') && (
-        <span className="smallcaps shrink-0 !text-[8px] text-ink/40">moved</span>
+        <span className="smallcaps shrink-0 !text-[0.5rem] text-ink/40">moved</span>
       )}
-      <span className="tnum w-7 shrink-0 text-right font-mono text-[11px] text-ink-soft">
+      <span className="tnum w-7 shrink-0 text-right font-mono text-[0.6875rem] text-ink-soft">
         {course.cu}
       </span>
     </div>

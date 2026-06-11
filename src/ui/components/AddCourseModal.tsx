@@ -56,13 +56,13 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
                 onAdd(code, c.title, c.cu)
                 onClose()
               }}
-              className="flex items-baseline gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[13px] last:border-b-0 hover:bg-[#fbf8f0]"
+              className="flex items-baseline gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[0.8125rem] last:border-b-0 hover:bg-[#fbf8f0]"
             >
-              <span className="w-[4.6rem] shrink-0 font-mono text-[11px] font-medium text-penn-blue">
+              <span className="w-[4.6rem] shrink-0 font-mono text-[0.6875rem] font-medium text-penn-blue">
                 {code}
               </span>
               <span className="min-w-0 flex-1 truncate text-ink/85">{c.title}</span>
-              <span className="tnum font-mono text-[11px] text-ink-soft">{c.cu}</span>
+              <span className="tnum font-mono text-[0.6875rem] text-ink-soft">{c.cu}</span>
             </button>
           ))}
         </div>
@@ -70,8 +70,8 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
 
       {query.trim().length >= 2 && matches.length === 0 && (
         <div className="rounded-sm border border-dashed border-rule bg-cream/50 p-3.5">
-          <p className="text-[13px] text-ink/75">
-            Not in the catalog. Add <span className="font-mono text-[12px]">{customCode}</span>{' '}
+          <p className="text-[0.8125rem] text-ink/75">
+            Not in the catalog. Add <span className="font-mono text-[0.75rem]">{customCode}</span>{' '}
             as a custom course?
           </p>
           <div className="mt-2.5 flex items-center gap-2">
@@ -82,7 +82,7 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
               id="custom-cu"
               value={customCu}
               onChange={(e) => setCustomCu(e.target.value)}
-              className="w-16 rounded-sm border border-hairline bg-paper px-2 py-1.5 font-mono text-[12px]"
+              className="w-16 rounded-sm border border-hairline bg-paper px-2 py-1.5 font-mono text-[0.75rem]"
             />
             <button
               type="button"
@@ -91,13 +91,13 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
                 onAdd(customCode, customCode, cuValue)
                 onClose()
               }}
-              className="rounded-sm bg-penn-blue px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-penn-blue-soft disabled:opacity-40"
+              className="rounded-sm bg-penn-blue px-3.5 py-1.5 text-[0.75rem] font-medium text-white transition-colors hover:bg-penn-blue-soft disabled:opacity-40"
             >
               Add custom course
             </button>
           </div>
           {!customValid && (
-            <p className="mt-2 text-[11px] text-ink/45 italic">
+            <p className="mt-2 text-[0.6875rem] text-ink/45 italic">
               Use a real Penn course code format, like "EESC 2300".
             </p>
           )}

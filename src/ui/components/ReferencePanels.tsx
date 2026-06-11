@@ -13,8 +13,8 @@ function Disclosure({ title, children }: { title: string; children: ReactNode })
         aria-expanded={open}
         className="flex w-full items-center justify-between px-1 py-2.5 text-left transition-colors duration-150 hover:bg-[#fbf8f0]"
       >
-        <span className="text-[13px] font-medium text-ink/85">{title}</span>
-        <span className="text-[10px] text-ink/35" aria-hidden>
+        <span className="text-[0.8125rem] font-medium text-ink/85">{title}</span>
+        <span className="text-[0.625rem] text-ink/35" aria-hidden>
           {open ? '▾' : '▸'}
         </span>
       </button>
@@ -39,17 +39,17 @@ export function ReferencePanels() {
       <hr className="double-rule mb-2" />
 
       <Disclosure title="VIPER program rules">
-        <ul className="flex flex-col gap-1.5 text-[12px] leading-relaxed text-ink-soft">
+        <ul className="flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-ink-soft">
           <li>
             Dual-degree minimum:{' '}
-            <span className="tnum font-mono text-[11px] text-ink">
+            <span className="tnum font-mono text-[0.6875rem] text-ink">
               {VIPER_PROGRAM.minTotalCU} CU
             </span>{' '}
             total (BA 36 + BSE 40 with overlap).
           </li>
           <li>
             Energy electives:{' '}
-            <span className="tnum font-mono text-[11px] text-ink">
+            <span className="tnum font-mono text-[0.6875rem] text-ink">
               {VIPER_PROGRAM.minEnergyCourses}
             </span>{' '}
             VIPER-approved courses.
@@ -60,13 +60,13 @@ export function ReferencePanels() {
           </li>
           <li>
             Thermodynamics requirement — one of:{' '}
-            <span className="font-mono text-[11px] text-ink">
+            <span className="font-mono text-[0.6875rem] text-ink">
               {VIPER_PROGRAM.thermoOptions.join(', ')}
             </span>
           </li>
           <li>
             Fixed program courses:{' '}
-            <span className="font-mono text-[11px] text-ink">
+            <span className="font-mono text-[0.6875rem] text-ink">
               VIPR 1200, VIPR 1210, VIPR 1300×{VIPER_PROGRAM.minSummerResearch}+
             </span>
           </li>
@@ -74,7 +74,7 @@ export function ReferencePanels() {
       </Disclosure>
 
       <Disclosure title="Common double-counts">
-        <p className="mb-2 text-[11px] text-ink/45 italic">
+        <p className="mb-2 text-[0.6875rem] text-ink/45 italic">
           Courses VIPER students routinely double-count. Click through to PCR before
           committing.
         </p>
@@ -91,16 +91,16 @@ export function ReferencePanels() {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-[4.6rem] shrink-0 font-mono text-[11px] font-medium text-penn-blue hover:underline"
+                    className="w-[4.6rem] shrink-0 font-mono text-[0.6875rem] font-medium text-penn-blue hover:underline"
                   >
                     {dc.code}
                   </a>
                 ) : (
-                  <span className="w-[4.6rem] shrink-0 font-mono text-[11px] text-ink">
+                  <span className="w-[4.6rem] shrink-0 font-mono text-[0.6875rem] text-ink">
                     {dc.code}
                   </span>
                 )}
-                <span className="text-[11px] leading-relaxed text-ink-soft">
+                <span className="text-[0.6875rem] leading-relaxed text-ink-soft">
                   {dc.fulfills.join(' · ')}
                 </span>
               </li>

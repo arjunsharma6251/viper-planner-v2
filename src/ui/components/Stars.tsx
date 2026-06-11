@@ -13,7 +13,7 @@ export function Stars({ course }: { course: AugmentedCourse }) {
   return (
     <span
       className={[
-        'shrink-0 text-[10px] tracking-[0.15em]',
+        'shrink-0 text-[0.625rem] tracking-[0.15em]',
         gold ? 'text-[#b8860b]' : 'text-penn-red',
       ].join(' ')}
       title={

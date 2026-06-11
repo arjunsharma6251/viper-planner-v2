@@ -31,7 +31,7 @@ export function ExportMenu({ onExportJson, onExportCsv, onPrint }: ExportMenuPro
   }, [open])
 
   const item =
-    'block w-full rounded-sm px-3 py-1.5 text-left text-[13px] text-ink/85 hover:bg-[#fbf8f0]'
+    'block w-full rounded-sm px-3 py-1.5 text-left text-[0.8125rem] text-ink/85 hover:bg-[#fbf8f0]'
 
   return (
     <div ref={ref} className="relative">
@@ -40,7 +40,7 @@ export function ExportMenu({ onExportJson, onExportCsv, onPrint }: ExportMenuPro
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="rounded-sm border border-hairline bg-paper px-4 py-2 text-[12px] font-medium tracking-[0.06em] text-ink/75 uppercase shadow-[var(--shadow-card)] transition-colors duration-150 hover:border-rule hover:text-ink"
+        className="rounded-full px-4 py-2 text-[0.71875rem] font-semibold tracking-[0.08em] text-ink/70 uppercase transition-colors duration-150 hover:bg-ink/5 hover:text-ink"
       >
         Export ▾
       </button>

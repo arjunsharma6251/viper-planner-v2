@@ -58,6 +58,10 @@ html {
   font-family: var(--font-sans);
   font-feature-settings: 'ss01';
   -webkit-font-smoothing: antialiased;
+  /* One knob scales the whole document: every size in the app is rem-based,
+     so the design grows with the viewport — 16px at laptop widths, ~19.5px
+     on a 27" display. The layout never feels like a postcard on a desk. */
+  font-size: clamp(16px, 12.4px + 0.28vw, 20px);
 }
 
 /* Layered paper atmosphere: warm glow at the masthead, fine grain over all. */

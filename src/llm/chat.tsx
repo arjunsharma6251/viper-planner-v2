@@ -111,7 +111,7 @@ export function ChatPanel({ mode, ctx }: ChatPanelProps) {
           {entries.map((e) => {
             if (e.role === 'tool') {
               return (
-                <div key={e.id} className="font-mono text-[11px] text-ink/40">
+                <div key={e.id} className="font-mono text-[0.6875rem] text-ink/40">
                   {e.text}
                   {e.pending && '…'}
                 </div>

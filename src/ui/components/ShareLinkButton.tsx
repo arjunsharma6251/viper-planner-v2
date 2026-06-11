@@ -23,14 +23,14 @@ export function ShareLinkButton({ getLink }: { getLink: () => string }) {
       <button
         type="button"
         onClick={() => void copy()}
-        className="rounded-sm bg-penn-red px-4 py-2 text-[12px] font-semibold tracking-[0.08em] text-white uppercase shadow-[var(--shadow-card)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[#7e0000] hover:shadow-[var(--shadow-card-hover)] active:translate-y-0"
+        className="rounded-full bg-penn-red px-4.5 py-2 text-[0.71875rem] font-semibold tracking-[0.08em] text-white uppercase shadow-[var(--shadow-card)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[#7e0000] hover:shadow-[var(--shadow-card-hover)] active:translate-y-0"
       >
         Share plan ↗
       </button>
       {copied && (
         <div className="animate-rise absolute top-full right-0 z-40 mt-2 w-72 rounded-md border border-hairline bg-paper p-3.5 shadow-[var(--shadow-pop)]">
           <p className="smallcaps !text-[#1e6b38]">✓ Link copied</p>
-          <p className="mt-1.5 truncate font-mono text-[10px] text-ink-soft">{copied}</p>
+          <p className="mt-1.5 truncate font-mono text-[0.625rem] text-ink-soft">{copied}</p>
           <p className="mt-1.5 text-xs leading-relaxed text-ink-soft">
             Send it to your advisor — they'll see exactly this plan, no login needed.
           </p>

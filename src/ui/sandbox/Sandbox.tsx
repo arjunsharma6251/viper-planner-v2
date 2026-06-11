@@ -74,17 +74,17 @@ export function Sandbox({
           {workload.foundations.map((f) => (
             <li key={f.id} className="flex items-baseline py-[3px]">
               <span
-                className={`text-[12px] ${f.status === 'in-term' ? 'text-ink/85' : 'text-ink/45'}`}
+                className={`text-[0.75rem] ${f.status === 'in-term' ? 'text-ink/85' : 'text-ink/45'}`}
               >
                 {f.label}
                 {f.waivedBy && (
-                  <span className="ml-1 text-[10px] text-ink/35 italic">— {f.waivedBy}</span>
+                  <span className="ml-1 text-[0.625rem] text-ink/35 italic">— {f.waivedBy}</span>
                 )}
               </span>
               <span className="leader" aria-hidden />
               <span
                 className={[
-                  'tnum font-mono text-[10px] tracking-wide uppercase',
+                  'tnum font-mono text-[0.625rem] tracking-wide uppercase',
                   f.status === 'waived'
                     ? 'text-[#1e6b38]'
                     : f.status === 'summer'
@@ -103,17 +103,17 @@ export function Sandbox({
         type="button"
         onClick={() => setAdvanced((v) => !v)}
         aria-expanded={advanced}
-        className="mt-3.5 text-[11px] tracking-wide text-ink/45 transition-colors hover:text-ink"
+        className="mt-3.5 text-[0.6875rem] tracking-wide text-ink/45 transition-colors hover:text-ink"
       >
         {advanced ? '▾ Hide advanced toggles' : '▸ Advanced: individual mods + distribution profile'}
       </button>
 
       {advanced && (
         <div className="animate-fade mt-3 flex flex-col gap-4 border-t border-hairline pt-3.5">
-          <div className="flex items-center gap-3 text-[12px]">
+          <div className="flex items-center gap-3 text-[0.75rem]">
             <span className="smallcaps">Distribution</span>
             {(['SS', 'H'] as const).map((k) => (
-              <label key={k} className="flex items-center gap-1.5 font-mono text-[11px]">
+              <label key={k} className="flex items-center gap-1.5 font-mono text-[0.6875rem]">
                 {k}
                 <input
                   type="number"
@@ -131,7 +131,7 @@ export function Sandbox({
                 />
               </label>
             ))}
-            <span className="font-mono text-[11px] text-ink/40">
+            <span className="font-mono text-[0.6875rem] text-ink/40">
               N {distributionTargets.N} fixed
             </span>
           </div>
@@ -142,7 +142,7 @@ export function Sandbox({
               return (
                 <label
                   key={key}
-                  className="flex cursor-pointer items-start gap-2.5 rounded-sm px-1 py-1 text-[12px] hover:bg-[#fbf8f0]"
+                  className="flex cursor-pointer items-start gap-2.5 rounded-sm px-1 py-1 text-[0.75rem] hover:bg-[#fbf8f0]"
                   title={def.desc}
                 >
                   <input
@@ -154,7 +154,7 @@ export function Sandbox({
                   <span className="text-ink/80">
                     {def.label}
                     {def.saves > 0 && (
-                      <span className="tnum ml-1.5 font-mono text-[10px] text-ink/40">
+                      <span className="tnum ml-1.5 font-mono text-[0.625rem] text-ink/40">
                         −{def.saves} CU
                       </span>
                     )}

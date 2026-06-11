@@ -27,18 +27,18 @@ function TrackerRow({ label, done, total, missing }: TrackerRowProps) {
         aria-expanded={open}
         className="flex w-full items-baseline rounded-sm px-1 py-1.5 text-left transition-colors duration-150 hover:bg-[#fbf8f0]"
       >
-        <span className="text-[13px] text-ink/85">{label}</span>
+        <span className="text-[0.8125rem] text-ink/85">{label}</span>
         <span className="leader" aria-hidden />
         <span
           className={[
-            'tnum font-mono text-[12px]',
+            'tnum font-mono text-[0.75rem]',
             complete ? 'font-semibold text-penn-red' : pct > 0 ? 'text-ink/75' : 'text-ink/40',
           ].join(' ')}
         >
           {done}/{total}
         </span>
         <span
-          className={`ml-2 w-3 text-center text-[10px] ${complete ? 'text-[#1e6b38]' : 'text-ink/30'}`}
+          className={`ml-2 w-3 text-center text-[0.625rem] ${complete ? 'text-[#1e6b38]' : 'text-ink/30'}`}
           aria-hidden
         >
           {complete ? '✓' : open ? '▾' : '▸'}
@@ -111,20 +111,20 @@ export function RequirementTracker({ summary }: { summary: PlanSummary }) {
           total={3}
           missing={summary.meetsEnergyReq ? [] : ['VIPER-approved energy courses']}
         />
-        <div className="mt-1 flex items-baseline px-1 text-[13px]">
+        <div className="mt-1 flex items-baseline px-1 text-[0.8125rem]">
           <span className="text-ink/85">Total CU</span>
           <span className="leader" aria-hidden />
           <span
             className={
               summary.meetsDualMin
-                ? 'tnum font-mono text-[12px] font-semibold text-penn-red'
-                : 'tnum font-mono text-[12px] text-ink/75'
+                ? 'tnum font-mono text-[0.75rem] font-semibold text-penn-red'
+                : 'tnum font-mono text-[0.75rem] text-ink/75'
             }
           >
             {summary.totalCU} / 40
           </span>
           <span
-            className={`ml-2 w-3 text-center text-[10px] ${summary.meetsDualMin ? 'text-[#1e6b38]' : 'text-ink/30'}`}
+            className={`ml-2 w-3 text-center text-[0.625rem] ${summary.meetsDualMin ? 'text-[#1e6b38]' : 'text-ink/30'}`}
             aria-hidden
           >
             {summary.meetsDualMin ? '✓' : ''}
@@ -132,7 +132,7 @@ export function RequirementTracker({ summary }: { summary: PlanSummary }) {
         </div>
       </div>
       {allGreen && (
-        <p className="animate-fade mt-4 rounded-sm border border-[#1e6b38]/25 bg-[#f2f7f0] px-3 py-2 text-[12px] leading-relaxed text-[#1e5230]">
+        <p className="animate-fade mt-4 rounded-sm border border-[#1e6b38]/25 bg-[#f2f7f0] px-3 py-2 text-[0.75rem] leading-relaxed text-[#1e5230]">
           ✓ Every tracked requirement is satisfied — this plan graduates on time.
         </p>
       )}

@@ -24,25 +24,25 @@ export function StrategyToggle({ strategy, on, onToggle }: StrategyToggleProps) 
         aria-label={strategy.label}
         onClick={onToggle}
         className={[
-          'relative h-[18px] w-[34px] shrink-0 rounded-full transition-colors duration-200',
+          'relative h-[1.125rem] w-[2.125rem] shrink-0 rounded-full transition-colors duration-200',
           on ? 'bg-penn-blue' : 'bg-ink/15',
         ].join(' ')}
       >
         <span
           className={[
-            'absolute top-[2px] h-[14px] w-[14px] rounded-full bg-paper shadow-sm transition-[left] duration-200 ease-out',
-            on ? 'left-[18px]' : 'left-[2px]',
+            'absolute top-[2px] h-[0.875rem] w-[0.875rem] rounded-full bg-paper shadow-sm transition-[left] duration-200 ease-out',
+            on ? 'left-[1.125rem]' : 'left-[2px]',
           ].join(' ')}
         />
       </button>
       <div className="min-w-0 flex-1">
-        <div className={`text-[13px] font-medium ${on ? 'text-ink' : 'text-ink/70'}`}>
+        <div className={`text-[0.8125rem] font-medium ${on ? 'text-ink' : 'text-ink/70'}`}>
           {strategy.label}
         </div>
-        <div className="truncate text-[11px] text-ink/45">{strategy.desc}</div>
+        <div className="truncate text-[0.6875rem] text-ink/45">{strategy.desc}</div>
       </div>
       <span
-        className={`smallcaps shrink-0 rounded-full border px-2 py-0.5 !text-[8px] ${ASK_BADGE[strategy.ask]}`}
+        className={`smallcaps shrink-0 rounded-full border px-2 py-0.5 !text-[0.5rem] ${ASK_BADGE[strategy.ask]}`}
       >
         {strategy.ask === 'confirmed' ? 'confirmed' : `${strategy.ask} ask`}
       </span>

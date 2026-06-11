@@ -73,8 +73,8 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
     <div className="min-h-screen font-sans">
       <div
         className={[
-          'mx-auto max-w-[1480px] px-8 pt-9 pb-12 transition-[padding] duration-200 sm:px-12',
-          chatOpen ? 'lg:pr-[420px]' : '',
+          'mx-auto w-full max-w-[122rem] px-[clamp(1.5rem,4vw,6rem)] pt-9 pb-14 transition-[padding] duration-200',
+          chatOpen ? 'lg:pr-[28.5rem]' : '',
         ].join(' ')}
       >
         {/* ── Masthead ── */}
@@ -90,41 +90,20 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             <span className="h-px flex-1 bg-rule/70" aria-hidden />
           </div>
 
-          <div className="mt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
+          <div className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
             <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
-              <h1 className="font-display text-[50px] leading-[1.02] font-semibold tracking-tight text-ink">
+              <h1 className="font-display text-[clamp(3rem,2.1rem+1.9vw,4.75rem)] leading-[1.02] font-semibold tracking-tight text-ink">
                 Four-Year <span className="text-penn-blue italic">Planner</span>
                 <span className="text-penn-red">.</span>
               </h1>
               {store.config && (
-                <p className="mt-2 text-[13px] text-ink-soft">
-                  {sasName} <span className="smallcaps mx-0.5 !text-[9px]">BA</span> +{' '}
-                  {seasName} <span className="smallcaps mx-0.5 !text-[9px]">BSE</span> · Class
+                <p className="mt-2.5 text-[0.875rem] text-ink-soft">
+                  {sasName} <span className="smallcaps mx-0.5 !text-[0.5625rem]">BA</span> +{' '}
+                  {seasName} <span className="smallcaps mx-0.5 !text-[0.5625rem]">BSE</span> · Class
                   of {gradYear}
                 </p>
               )}
             </div>
-            {store.plan && (
-              <div
-                className="rise no-print flex items-center gap-2.5"
-                style={{ '--i': 2 } as React.CSSProperties}
-              >
-                <ExportMenu
-                  onExportJson={store.exportJson}
-                  onExportCsv={store.exportCsv}
-                  onPrint={() => window.print()}
-                />
-                <button
-                  type="button"
-                  onClick={() => setChatOpen((v) => !v)}
-                  aria-pressed={chatOpen}
-                  className="rounded-sm border border-hairline bg-paper px-4 py-2 text-[12px] font-medium tracking-[0.06em] text-ink/75 uppercase shadow-[var(--shadow-card)] transition-colors duration-150 hover:border-rule hover:text-ink"
-                >
-                  {chatOpen ? 'Close chat' : 'Chat'}
-                </button>
-                <ShareLinkButton getLink={store.shareLink} />
-              </div>
-            )}
           </div>
 
           <div className="rise mt-5" style={{ '--i': 3 } as React.CSSProperties}>
@@ -148,7 +127,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_21rem]">
             <ScheduleGrid
               plan={store.augmented}
               gradYear={gradYear}
@@ -177,7 +156,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                     toast('Reset to template complete')
                   }
                 }}
-                className="no-print self-start px-1 text-[11px] tracking-wide text-ink/35 transition-colors hover:text-penn-red"
+                className="no-print self-start px-1 text-[0.6875rem] tracking-wide text-ink/35 transition-colors hover:text-penn-red"
               >
                 Reset to template
               </button>
@@ -188,18 +167,44 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
         <footer className="mt-20">
           <hr className="double-rule" />
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
-            <p className="text-[11px] text-ink/45">
+            <p className="text-[0.6875rem] text-ink/45">
               VIPER Planner is a student-built tool, not an official University of
               Pennsylvania application.
             </p>
-            <p className="smallcaps !text-[9px]">University of Pennsylvania</p>
+            <p className="smallcaps !text-[0.5625rem]">University of Pennsylvania</p>
           </div>
         </footer>
       </div>
 
+      {store.plan && (
+        <div
+          className={[
+            'no-print animate-fade fixed top-5 z-30 flex items-center gap-1.5',
+            'rounded-full border border-white/70 bg-paper/75 p-1.5 shadow-[var(--shadow-pop)] backdrop-blur-xl',
+            'transition-[right] duration-200',
+            chatOpen ? 'right-[27.5rem]' : 'right-[clamp(1.5rem,3vw,4rem)]',
+          ].join(' ')}
+        >
+          <ExportMenu
+            onExportJson={store.exportJson}
+            onExportCsv={store.exportCsv}
+            onPrint={() => window.print()}
+          />
+          <button
+            type="button"
+            onClick={() => setChatOpen((v) => !v)}
+            aria-pressed={chatOpen}
+            className="rounded-full px-4 py-2 text-[0.71875rem] font-semibold tracking-[0.08em] text-ink/70 uppercase transition-colors duration-150 hover:bg-ink/5 hover:text-ink"
+          >
+            {chatOpen ? 'Close chat' : 'Chat'}
+          </button>
+          <ShareLinkButton getLink={store.shareLink} />
+        </div>
+      )}
+
       {chatOpen && (
         <aside
-          className="no-print animate-fade fixed top-0 right-0 bottom-0 z-30 hidden w-[400px] border-l border-hairline bg-cream shadow-[var(--shadow-pop)] lg:block"
+          className="no-print animate-fade fixed top-0 right-0 bottom-0 z-30 hidden w-[26rem] border-l border-hairline bg-cream shadow-[var(--shadow-pop)] lg:block"
           aria-label="Plan chat"
         >
           <ChatPanel mode={isAdminMode() ? 'admin' : 'student'} ctx={store.toolContext} />

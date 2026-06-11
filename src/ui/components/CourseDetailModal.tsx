@@ -74,7 +74,7 @@ export function CourseDetailModal({
 
   return (
     <Modal eyebrow={`Course detail · ${course.cu} CU`} title={`${course.code} — ${course.title}`} onClose={onClose}>
-      <div className="mb-4 flex items-center gap-4 text-[12px]">
+      <div className="mb-4 flex items-center gap-4 text-[0.75rem]">
         {pcr && (
           <a
             href={pcr}
@@ -98,7 +98,7 @@ export function CourseDetailModal({
               aria-selected={tab === t}
               onClick={() => setTab(t)}
               className={[
-                'smallcaps -mb-px px-3 py-2 !text-[10px] transition-colors duration-150',
+                'smallcaps -mb-px px-3 py-2 !text-[0.625rem] transition-colors duration-150',
                 tab === t
                   ? 'border-b-2 border-penn-blue !text-penn-blue'
                   : 'border-b-2 border-transparent hover:!text-ink',
@@ -117,7 +117,7 @@ export function CourseDetailModal({
             return (
               <label
                 key={tag}
-                className="flex cursor-pointer items-center gap-2.5 border-b border-dotted border-hairline px-1 py-1.5 text-[13px] last:border-b-0 hover:bg-[#fbf8f0]"
+                className="flex cursor-pointer items-center gap-2.5 border-b border-dotted border-hairline px-1 py-1.5 text-[0.8125rem] last:border-b-0 hover:bg-[#fbf8f0]"
               >
                 <input
                   type="checkbox"
@@ -143,13 +143,13 @@ export function CourseDetailModal({
                 if (course.slotId) onSwap(course.slotId, code)
                 onClose()
               }}
-              className="flex items-center gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[13px] last:border-b-0 hover:bg-[#fbf8f0]"
+              className="flex items-center gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[0.8125rem] last:border-b-0 hover:bg-[#fbf8f0]"
             >
-              <span className="w-[4.6rem] font-mono text-[11px] font-medium text-penn-blue">
+              <span className="w-[4.6rem] font-mono text-[0.6875rem] font-medium text-penn-blue">
                 {code}
               </span>
               {code === course.code && (
-                <span className="smallcaps !text-[8px] !text-[#1e6b38]">current</span>
+                <span className="smallcaps !text-[0.5rem] !text-[#1e6b38]">current</span>
               )}
             </button>
           ))}
@@ -169,7 +169,7 @@ export function CourseDetailModal({
                 onMoveTo(e.target.value as SemesterKey)
                 onClose()
               }}
-              className="w-full rounded-sm border border-hairline bg-paper px-2.5 py-2 text-[13px]"
+              className="w-full rounded-sm border border-hairline bg-paper px-2.5 py-2 text-[0.8125rem]"
             >
               {ALL_SEMESTER_KEYS.map((k) => {
                 const l = semesterLabel(k, gradYear ?? undefined)
@@ -203,7 +203,7 @@ export function CourseDetailModal({
                 <button
                   type="button"
                   onClick={() => onSetColor(courseId, null)}
-                  className="ml-1 text-[11px] text-ink/45 hover:text-ink"
+                  className="ml-1 text-[0.6875rem] text-ink/45 hover:text-ink"
                 >
                   Clear
                 </button>
@@ -220,7 +220,7 @@ export function CourseDetailModal({
                 id="rename-input"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
-                className="flex-1 rounded-sm border border-hairline bg-paper px-2.5 py-2 font-mono text-[12px]"
+                className="flex-1 rounded-sm border border-hairline bg-paper px-2.5 py-2 font-mono text-[0.75rem]"
               />
               <button
                 type="button"
@@ -229,7 +229,7 @@ export function CourseDetailModal({
                   onRename(courseId, renameValue.trim())
                   onClose()
                 }}
-                className="rounded-sm border border-penn-blue px-3 py-2 text-[12px] font-medium text-penn-blue transition-colors hover:bg-penn-blue/5 disabled:opacity-40"
+                className="rounded-sm border border-penn-blue px-3 py-2 text-[0.75rem] font-medium text-penn-blue transition-colors hover:bg-penn-blue/5 disabled:opacity-40"
               >
                 Rename
               </button>
@@ -248,7 +248,7 @@ export function CourseDetailModal({
                   onDelete()
                   onClose()
                 }}
-                className="rounded-sm px-3 py-1.5 text-[12px] font-medium text-penn-red transition-colors hover:bg-penn-red/5"
+                className="rounded-sm px-3 py-1.5 text-[0.75rem] font-medium text-penn-red transition-colors hover:bg-penn-red/5"
               >
                 Remove from plan
               </button>

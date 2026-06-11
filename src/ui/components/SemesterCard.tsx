@@ -96,10 +96,10 @@ export function SemesterCard({
       aria-label={`${yearLabel} ${seasonLabel}`}
       style={{ '--i': riseIndex } as React.CSSProperties}
       className={[
-        'rise print-block rounded-md transition-all duration-200',
+        'rise print-block rounded-lg transition-all duration-200',
         summer
-          ? 'border border-dashed border-rule/70 bg-cream/40 px-4 py-3.5'
-          : 'border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]',
+          ? 'border border-dashed border-rule/70 bg-cream/40 px-5 py-4'
+          : 'border border-hairline bg-paper px-6 py-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]',
         dragging ? 'outline-1 outline-penn-blue/25 outline-dashed' : '',
         insertAt !== null && dragging ? 'bg-[#f4f6fb] outline-penn-blue/60' : '',
       ].join(' ')}
@@ -111,14 +111,14 @@ export function SemesterCard({
         <h3
           className={[
             'font-display font-semibold',
-            summer ? 'text-[15px] text-ink/70 italic' : 'text-[17px] text-ink',
+            summer ? 'text-[1.0625rem] text-ink/70 italic' : 'text-[1.25rem] text-ink',
           ].join(' ')}
         >
           {seasonLabel}
         </h3>
-        <div className={`tnum font-mono text-[11px] ${tone.cls}`}>
+        <div className={`tnum font-mono text-[0.6875rem] ${tone.cls}`}>
           {load > 0 && <span>{load.toFixed(1)} CU</span>}
-          {tone.word && <span className="smallcaps ml-1.5 !text-[8px] !text-current">{tone.word}</span>}
+          {tone.word && <span className="smallcaps ml-1.5 !text-[0.5rem] !text-current">{tone.word}</span>}
         </div>
       </header>
       <div className={`mb-1 h-px ${summer ? 'bg-rule/50' : 'bg-rule/80'}`} aria-hidden />
@@ -159,7 +159,7 @@ export function SemesterCard({
       <button
         type="button"
         onClick={() => onAddCourse(semKey)}
-        className="no-print mt-2.5 w-full rounded-sm border border-dashed border-rule py-1.5 text-[11px] tracking-wide text-ink/45 transition-colors duration-150 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue"
+        className="no-print mt-3 w-full rounded-md border border-dashed border-rule py-2 text-[0.75rem] tracking-wide text-ink/45 transition-colors duration-150 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue"
       >
         + Add course
       </button>

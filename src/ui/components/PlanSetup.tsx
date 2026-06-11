@@ -47,7 +47,7 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
           Let's begin with the year you'll graduate
         </p>
         <h2
-          className="rise mt-3 font-display text-[56px] leading-none font-semibold tracking-tight text-ink"
+          className="rise mt-3 font-display text-[3.5rem] leading-none font-semibold tracking-tight text-ink"
           style={{ '--i': 1 } as React.CSSProperties}
         >
           Class of<span className="text-penn-red">?</span>
@@ -70,10 +70,10 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
                 y === gradYear ? 'border-rule' : 'border-hairline',
               ].join(' ')}
             >
-              <span className="tnum font-display text-[26px] font-semibold text-penn-blue transition-colors group-hover:text-penn-blue">
+              <span className="tnum font-display text-[1.625rem] font-semibold text-penn-blue transition-colors group-hover:text-penn-blue">
                 {y}
               </span>
-              <span className="smallcaps mt-1 block !text-[8px] text-ink/35">
+              <span className="smallcaps mt-1 block !text-[0.5rem] text-ink/35">
                 VIPER '{String(y).slice(2)}
               </span>
             </button>
@@ -89,7 +89,7 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
         Class of {gradYear} · dual degree
       </p>
       <h2
-        className="rise mt-2 mb-8 text-center font-display text-[40px] leading-tight font-semibold text-ink"
+        className="rise mt-2 mb-8 text-center font-display text-[2.5rem] leading-tight font-semibold text-ink"
         style={{ '--i': 1 } as React.CSSProperties}
       >
         Your majors
@@ -168,7 +168,7 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
               return (
                 <label
                   key={ap.id}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-0.5 text-[13px] hover:bg-[#fbf8f0]"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-0.5 text-[0.8125rem] hover:bg-[#fbf8f0]"
                 >
                   <input
                     type="checkbox"
@@ -199,7 +199,7 @@ export function PlanSetup({ onDone }: PlanSetupProps) {
               gradYear,
             })
           }
-          className="mt-2 rounded-sm bg-penn-blue py-3 text-[13px] font-semibold tracking-[0.08em] text-white uppercase shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-penn-blue-soft hover:shadow-[var(--shadow-card-hover)]"
+          className="mt-2 rounded-sm bg-penn-blue py-3 text-[0.8125rem] font-semibold tracking-[0.08em] text-white uppercase shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-penn-blue-soft hover:shadow-[var(--shadow-card-hover)]"
         >
           Build my starting plan
         </button>

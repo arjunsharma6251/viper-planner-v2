@@ -52,7 +52,7 @@ export function ScheduleGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-7 gap-y-10 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 xl:grid-cols-4">
       {years.map((y, yi) => {
         const fall = SEMESTER_KEYS[(y - 1) * 2]
         const spring = SEMESTER_KEYS[(y - 1) * 2 + 1]
@@ -63,7 +63,7 @@ export function ScheduleGrid({
               className="rise flex items-baseline gap-3"
               style={{ '--i': yi } as React.CSSProperties}
             >
-              <span className="font-display text-[22px] leading-none font-semibold text-penn-blue/90">
+              <span className="font-display text-[1.625rem] leading-none font-semibold text-penn-blue/90">
                 {String(y).padStart(2, '0')}
               </span>
               <span className="smallcaps">Year {y}</span>

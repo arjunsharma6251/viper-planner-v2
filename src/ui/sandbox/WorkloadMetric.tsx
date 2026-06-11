@@ -11,16 +11,16 @@ export function WorkloadMetric({ workload }: { workload: WorkloadResult }) {
     <div>
       <p className="smallcaps">In-term workload</p>
       <div className="flex items-baseline">
-        <span className="tnum font-display text-[68px] leading-[0.95] font-semibold tracking-tight text-penn-blue">
+        <span className="tnum font-display text-[4.25rem] leading-[0.95] font-semibold tracking-tight text-penn-blue">
           {workload.inTermTotalCU}
         </span>
-        <span className="ml-2 font-display text-[18px] text-ink/35 italic">
+        <span className="ml-2 font-display text-[1.125rem] text-ink/35 italic">
           / {workload.baselineCU} CU
         </span>
       </div>
       <p
         className={[
-          'mt-1.5 text-[12px] font-medium',
+          'mt-1.5 text-[0.75rem] font-medium',
           workload.meetsGoal ? 'text-[#1e6b38]' : 'text-ink-soft',
         ].join(' ')}
       >
@@ -39,9 +39,9 @@ export function WorkloadMetric({ workload }: { workload: WorkloadResult }) {
           ] as const
         ).map(([label, value]) => (
           <div key={label} className="flex items-baseline py-[3px]">
-            <dt className="text-[12px] text-ink-soft">{label}</dt>
+            <dt className="text-[0.75rem] text-ink-soft">{label}</dt>
             <span className="leader" aria-hidden />
-            <dd className="tnum font-mono text-[11px] text-ink">{value}</dd>
+            <dd className="tnum font-mono text-[0.6875rem] text-ink">{value}</dd>
           </div>
         ))}
       </dl>

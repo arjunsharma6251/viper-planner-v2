@@ -25,10 +25,10 @@ export function ProgressHeadline({ summary }: { summary: PlanSummary }) {
             i > 0 ? 'ml-5 border-l border-rule/70 pl-5' : '',
           ].join(' ')}
         >
-          <span className="tnum font-display text-[19px] leading-none font-semibold text-penn-blue">
+          <span className="tnum font-display text-[1.4375rem] leading-none font-semibold text-penn-blue">
             {s.value}
           </span>
-          <span className="smallcaps !text-[9px]">{s.label}</span>
+          <span className="smallcaps !text-[0.625rem]">{s.label}</span>
         </div>
       ))}
     </div>
