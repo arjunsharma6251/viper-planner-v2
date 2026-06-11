@@ -57,6 +57,13 @@ For a 10-student pilot where the use cases are "view my own plan" and "share my 
 
 Anthropic API key (Sonnet) used directly from the browser for now. **This will change.** Plan to move LLM calls behind a thin proxy on Vercel edge functions before pilot launches, so the API key is never shipped in the bundle. The proxy can be five lines of code — just forward the request. But it needs to exist before real users touch this.
 
+**Token-cost conventions (implemented in `src/llm/chat-loop.ts` — keep these invariants):**
+
+1. **The system prompt is frozen and cached.** Tools + the static system block carry a `cache_control` breakpoint; repeat turns read that prefix at ~10% of input price. Never interpolate anything volatile (plan state, dates, mode flags) into the system prompt — one changed byte invalidates the whole cache.
+2. **Plan state goes in the user turn as a compact digest**, not in system, and never as raw `JSON.stringify(plan)`. `buildPlanContext()` (src/llm/plan-context.ts) renders ~1-2K tokens vs ~15K for the raw plan; the model calls `get_plan` / `get_course_info` when it needs full detail. The digest is stored in history so earlier turns stay byte-stable for caching.
+3. **Conversation history is cached incrementally** — a send-time breakpoint on the final message block, added per-request (never persisted into history).
+4. Model is `claude-sonnet-4-6` (settled decision). Haiku 4.5 is the cheap fallback if pilot costs surprise; change `CHAT_MODEL` in src/llm/client.ts only.
+
 ---
 
 ## What to port from the old app (and what to leave behind)
