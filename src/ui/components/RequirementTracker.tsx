@@ -11,9 +11,9 @@ interface TrackerRowProps {
 }
 
 /**
- * One tracker row. Shows "5/7 satisfied" by default; click to expand into
- * which specific requirements are missing. Saturation grows with progress —
- * empty is dim, partial is muted, complete is solid Penn red.
+ * One audit line: label, leader dots, count — like a table of contents.
+ * Click expands into exactly which requirements are missing. The thin
+ * progress rule beneath saturates as it fills; complete is solid Penn red.
  */
 function TrackerRow({ label, done, total, missing }: TrackerRowProps) {
   const [open, setOpen] = useState(false)
@@ -25,33 +25,40 @@ function TrackerRow({ label, done, total, missing }: TrackerRowProps) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors duration-150 hover:bg-white/70"
+        className="flex w-full items-baseline rounded-sm px-1 py-1.5 text-left transition-colors duration-150 hover:bg-[#fbf8f0]"
       >
-        <span className="flex-1 text-sm">{label}</span>
+        <span className="text-[13px] text-ink/85">{label}</span>
+        <span className="leader" aria-hidden />
         <span
           className={[
-            'font-mono text-xs',
-            complete ? 'font-semibold text-penn-red' : pct > 0 ? 'text-ink/70' : 'text-ink/40',
+            'tnum font-mono text-[12px]',
+            complete ? 'font-semibold text-penn-red' : pct > 0 ? 'text-ink/75' : 'text-ink/40',
           ].join(' ')}
         >
           {done}/{total}
         </span>
-        <span className={complete ? 'text-green-700' : 'text-ink/30'} aria-hidden>
-          {complete ? '✓' : '▾'}
+        <span
+          className={`ml-2 w-3 text-center text-[10px] ${complete ? 'text-[#1e6b38]' : 'text-ink/30'}`}
+          aria-hidden
+        >
+          {complete ? '✓' : open ? '▾' : '▸'}
         </span>
         {complete && <span className="sr-only">satisfied</span>}
       </button>
-      <div className="ml-2 h-0.5 rounded bg-ink/10" aria-hidden>
+      <div className="mx-1 h-[2px] overflow-hidden rounded bg-ink/8" aria-hidden>
         <div
-          className={complete ? 'h-0.5 rounded bg-penn-red' : 'h-0.5 rounded bg-penn-red/40'}
+          className={[
+            'h-full rounded transition-[width] duration-300 ease-out',
+            complete ? 'bg-penn-red' : 'bg-penn-red/35',
+          ].join(' ')}
           style={{ width: `${Math.min(pct, 1) * 100}%` }}
         />
       </div>
       {open && !complete && (
-        <ul className="mt-1 ml-2 list-none text-xs text-ink/60">
+        <ul className="mt-1.5 ml-1 list-none border-l border-rule/60 pl-3 text-xs text-ink-soft">
           {missing.map((m) => (
             <li key={m} className="py-0.5">
-              · {m} <span className="text-ink/40">— not yet satisfied</span>
+              {m} <span className="text-ink/35 italic">— not yet satisfied</span>
             </li>
           ))}
         </ul>
@@ -61,8 +68,8 @@ function TrackerRow({ label, done, total, missing }: TrackerRowProps) {
 }
 
 /**
- * The trackers panel — a single visual region with subtle background tone.
- * FA, Sectors, energy, dual-CU minimum.
+ * The Degree Audit panel — a single document region opened with a double
+ * rule, set like an official audit summary.
  */
 export function RequirementTracker({ summary }: { summary: PlanSummary }) {
   const faMissing = FA_REQUIREMENTS.filter((fa) => summary.unfulfilledFA.includes(fa.id)).map(
@@ -78,9 +85,14 @@ export function RequirementTracker({ summary }: { summary: PlanSummary }) {
     summary.unfulfilledSec.length === 0
 
   return (
-    <aside className="rounded-xl bg-ink/3 p-5" aria-label="Requirement trackers">
-      <h2 className="mb-3 font-display text-lg font-semibold">Requirements</h2>
-      <div className="flex flex-col gap-2">
+    <aside
+      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      aria-label="Degree audit"
+      style={{ '--i': 2 } as React.CSSProperties}
+    >
+      <p className="smallcaps mb-1">Degree audit</p>
+      <hr className="double-rule mb-4" />
+      <div className="flex flex-col gap-2.5">
         <TrackerRow
           label="Foundational Approaches"
           done={summary.fulfilledFA.length}
@@ -99,22 +111,29 @@ export function RequirementTracker({ summary }: { summary: PlanSummary }) {
           total={3}
           missing={summary.meetsEnergyReq ? [] : ['VIPER-approved energy courses']}
         />
-        <div className="mt-1 flex items-baseline justify-between px-2 text-sm">
-          <span>Total CU</span>
+        <div className="mt-1 flex items-baseline px-1 text-[13px]">
+          <span className="text-ink/85">Total CU</span>
+          <span className="leader" aria-hidden />
           <span
             className={
               summary.meetsDualMin
-                ? 'font-mono text-xs font-semibold text-penn-red'
-                : 'font-mono text-xs text-ink/70'
+                ? 'tnum font-mono text-[12px] font-semibold text-penn-red'
+                : 'tnum font-mono text-[12px] text-ink/75'
             }
           >
-            {summary.totalCU} / 40 {summary.meetsDualMin && '✓'}
+            {summary.totalCU} / 40
+          </span>
+          <span
+            className={`ml-2 w-3 text-center text-[10px] ${summary.meetsDualMin ? 'text-[#1e6b38]' : 'text-ink/30'}`}
+            aria-hidden
+          >
+            {summary.meetsDualMin ? '✓' : ''}
           </span>
         </div>
       </div>
       {allGreen && (
-        <p className="mt-4 animate-[fadeIn_400ms_ease-out] rounded-md bg-white px-3 py-2 text-sm text-green-800">
-          ✓ Your plan satisfies every tracked requirement — you'll graduate on time.
+        <p className="animate-fade mt-4 rounded-sm border border-[#1e6b38]/25 bg-[#f2f7f0] px-3 py-2 text-[12px] leading-relaxed text-[#1e5230]">
+          ✓ Every tracked requirement is satisfied — this plan graduates on time.
         </p>
       )}
     </aside>

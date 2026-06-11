@@ -36,18 +36,18 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
     /^[A-Z]{2,5} \d{4}$/.test(customCode) && Number.isFinite(cuValue) && cuValue > 0 && cuValue <= 2
 
   return (
-    <Modal title={`Add a course — ${label.season}`} onClose={onClose}>
+    <Modal eyebrow={`${label.year} · ${label.season}`} title="Add a course" onClose={onClose}>
       <input
         autoFocus
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search by code or title (e.g. CHEM 2410)"
-        className="mb-3 w-full rounded-md border border-hairline px-3 py-2 text-sm"
+        className="mb-3 w-full rounded-sm border border-hairline bg-paper px-3 py-2.5 text-sm placeholder:text-ink/30"
         aria-label="Search courses"
       />
 
       {matches.length > 0 && (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col">
           {matches.map(([code, c]) => (
             <button
               key={code}
@@ -56,31 +56,33 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
                 onAdd(code, c.title, c.cu)
                 onClose()
               }}
-              className="flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm hover:bg-cream"
+              className="flex items-baseline gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[13px] last:border-b-0 hover:bg-[#fbf8f0]"
             >
-              <span className="w-24 shrink-0 font-mono text-xs text-penn-blue">{code}</span>
-              <span className="min-w-0 flex-1 truncate">{c.title}</span>
-              <span className="font-mono text-xs text-ink/50">{c.cu}</span>
+              <span className="w-[4.6rem] shrink-0 font-mono text-[11px] font-medium text-penn-blue">
+                {code}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-ink/85">{c.title}</span>
+              <span className="tnum font-mono text-[11px] text-ink-soft">{c.cu}</span>
             </button>
           ))}
         </div>
       )}
 
       {query.trim().length >= 2 && matches.length === 0 && (
-        <div className="rounded-md bg-cream p-3">
-          <p className="text-sm text-ink/70">
-            Not in the catalog. Add <span className="font-mono text-xs">{customCode}</span> as a
-            custom course?
+        <div className="rounded-sm border border-dashed border-rule bg-cream/50 p-3.5">
+          <p className="text-[13px] text-ink/75">
+            Not in the catalog. Add <span className="font-mono text-[12px]">{customCode}</span>{' '}
+            as a custom course?
           </p>
-          <div className="mt-2 flex items-center gap-2">
-            <label className="text-xs text-ink/60" htmlFor="custom-cu">
+          <div className="mt-2.5 flex items-center gap-2">
+            <label className="smallcaps" htmlFor="custom-cu">
               CU
             </label>
             <input
               id="custom-cu"
               value={customCu}
               onChange={(e) => setCustomCu(e.target.value)}
-              className="w-16 rounded-md border border-hairline px-2 py-1 font-mono text-sm"
+              className="w-16 rounded-sm border border-hairline bg-paper px-2 py-1.5 font-mono text-[12px]"
             />
             <button
               type="button"
@@ -89,13 +91,13 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
                 onAdd(customCode, customCode, cuValue)
                 onClose()
               }}
-              className="rounded-md bg-penn-blue px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40"
+              className="rounded-sm bg-penn-blue px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-penn-blue-soft disabled:opacity-40"
             >
               Add custom course
             </button>
           </div>
           {!customValid && (
-            <p className="mt-1.5 text-xs text-ink/50">
+            <p className="mt-2 text-[11px] text-ink/45 italic">
               Use a real Penn course code format, like "EESC 2300".
             </p>
           )}

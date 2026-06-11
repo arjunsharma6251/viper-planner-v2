@@ -20,21 +20,35 @@ export function VIPRtoNCCPanel({ plan, viperMods }: VIPRtoNCCPanelProps) {
   )
 
   return (
-    <section aria-label="VIPER to NCC translation" className="rounded-xl bg-ink/3 p-6">
-      <h3 className="mb-1 text-sm font-medium">SEAS gen-ed coverage</h3>
-      <p className="mb-3 font-mono text-xs text-ink/50">
+    <aside
+      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      aria-label="VIPER to NCC translation"
+      style={{ '--i': 3 } as React.CSSProperties}
+    >
+      <p className="smallcaps mb-1">SEAS gen-ed coverage</p>
+      <hr className="double-rule mb-3" />
+      <p className="tnum mb-2.5 font-mono text-[11px] text-ink-soft">
         {result.satisfied} of {result.total} slots covered · {result.remaining} remaining
       </p>
-      <ul className="flex flex-col gap-1 text-xs">
+      <ul className="flex flex-col">
         {result.requirements.map((slot) => (
-          <li key={slot.id} className="flex items-center justify-between gap-2 py-0.5">
-            <span className={slot.satisfied ? 'text-ink/50' : ''}>{slot.label}</span>
-            <span className={slot.satisfied ? 'font-mono text-green-700' : 'font-mono text-ink/40'}>
+          <li key={slot.id} className="flex items-baseline py-[3px]">
+            <span className={`text-[12px] ${slot.satisfied ? 'text-ink/45' : 'text-ink/85'}`}>
+              {slot.label}
+            </span>
+            <span className="leader" aria-hidden />
+            <span
+              className={
+                slot.satisfied
+                  ? 'font-mono text-[10px] text-[#1e6b38]'
+                  : 'font-mono text-[10px] tracking-wide text-ink/40 uppercase'
+              }
+            >
               {slot.satisfied ? `✓ ${slot.filledBy ?? 'covered'}` : 'open'}
             </span>
           </li>
         ))}
       </ul>
-    </section>
+    </aside>
   )
 }

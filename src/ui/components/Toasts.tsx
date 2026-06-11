@@ -82,7 +82,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               if (timer) clearTimeout(timer)
             }}
             onMouseLeave={() => schedule(t.id)}
-            className="flex items-center gap-3 rounded-lg bg-ink px-4 py-2.5 text-sm text-white shadow-lg"
+            className="animate-rise flex items-center gap-3 rounded-md bg-ink px-4 py-2.5 text-[13px] text-[#f7f3ea] shadow-[var(--shadow-pop)]"
           >
             <span>{t.message}</span>
             {t.onUndo && (

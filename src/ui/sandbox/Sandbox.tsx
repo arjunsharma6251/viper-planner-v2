@@ -24,7 +24,8 @@ function toRecord(mods: ViperMods): Record<string, boolean> {
 }
 
 /**
- * The NCC sandbox — the policy-advocacy surface. Headline metric on top,
+ * The NCC sandbox — the policy-advocacy surface. A red-ruled document
+ * region (the one place Penn red frames a panel): headline numeral on top,
  * one row per strategy, mod-level toggles and the distribution profile in
  * an "advanced" disclosure underneath.
  */
@@ -45,14 +46,14 @@ export function Sandbox({
   return (
     <section
       aria-label="NCC sandbox"
-      className="rounded-xl bg-ink/3 p-6"
+      className="rise print-block rounded-md border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
+      style={{ '--i': 2 } as React.CSSProperties}
     >
-      <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-penn-red">
-        Admin · NCC sandbox
-      </div>
+      <p className="smallcaps mb-1 !text-penn-red">Admin · NCC sandbox</p>
+      <hr className="double-rule mb-4 !border-penn-red/70" />
       <WorkloadMetric workload={workload} />
 
-      <div className="mt-5 flex flex-col gap-0.5">
+      <div className="mt-4 flex flex-col">
         {STRATEGIES.map((s) => (
           <StrategyToggle
             key={s.id}
@@ -67,22 +68,27 @@ export function Sandbox({
         ))}
       </div>
 
-      <div className="mt-4 border-t border-hairline pt-3">
-        <h3 className="mb-1 text-sm font-medium">Foundations</h3>
-        <ul className="grid grid-cols-2 gap-x-4 text-xs">
+      <div className="mt-4">
+        <p className="smallcaps mb-1.5">Foundations</p>
+        <ul className="flex flex-col">
           {workload.foundations.map((f) => (
-            <li key={f.id} className="flex justify-between py-0.5">
-              <span className={f.status === 'in-term' ? '' : 'text-ink/40'}>
+            <li key={f.id} className="flex items-baseline py-[3px]">
+              <span
+                className={`text-[12px] ${f.status === 'in-term' ? 'text-ink/85' : 'text-ink/45'}`}
+              >
                 {f.label}
-                {f.waivedBy && <span className="text-ink/30"> — {f.waivedBy}</span>}
+                {f.waivedBy && (
+                  <span className="ml-1 text-[10px] text-ink/35 italic">— {f.waivedBy}</span>
+                )}
               </span>
+              <span className="leader" aria-hidden />
               <span
                 className={[
-                  'font-mono',
+                  'tnum font-mono text-[10px] tracking-wide uppercase',
                   f.status === 'waived'
-                    ? 'text-green-700'
+                    ? 'text-[#1e6b38]'
                     : f.status === 'summer'
-                      ? 'text-amber-600'
+                      ? 'text-[#9a6a00]'
                       : 'text-ink/70',
                 ].join(' ')}
               >
@@ -97,17 +103,17 @@ export function Sandbox({
         type="button"
         onClick={() => setAdvanced((v) => !v)}
         aria-expanded={advanced}
-        className="mt-3 text-xs text-ink/50 hover:text-ink"
+        className="mt-3.5 text-[11px] tracking-wide text-ink/45 transition-colors hover:text-ink"
       >
         {advanced ? '▾ Hide advanced toggles' : '▸ Advanced: individual mods + distribution profile'}
       </button>
 
       {advanced && (
-        <div className="mt-3 flex flex-col gap-4">
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-ink/60">Distribution profile</span>
+        <div className="animate-fade mt-3 flex flex-col gap-4 border-t border-hairline pt-3.5">
+          <div className="flex items-center gap-3 text-[12px]">
+            <span className="smallcaps">Distribution</span>
             {(['SS', 'H'] as const).map((k) => (
-              <label key={k} className="flex items-center gap-1 font-mono text-xs">
+              <label key={k} className="flex items-center gap-1.5 font-mono text-[11px]">
                 {k}
                 <input
                   type="number"
@@ -120,21 +126,23 @@ export function Sandbox({
                       [k]: Math.max(0, Number(e.target.value) || 0),
                     })
                   }
-                  className="w-14 rounded border border-hairline bg-white px-1.5 py-0.5"
+                  className="tnum w-14 rounded-sm border border-hairline bg-paper px-1.5 py-1"
                   aria-label={`${k} target CU`}
                 />
               </label>
             ))}
-            <span className="font-mono text-xs text-ink/40">N {distributionTargets.N} (fixed)</span>
+            <span className="font-mono text-[11px] text-ink/40">
+              N {distributionTargets.N} fixed
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-1 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-0.5">
             {(Object.keys(MOD_DEFINITIONS) as ViperModKey[]).map((key) => {
               const def = MOD_DEFINITIONS[key]
               return (
                 <label
                   key={key}
-                  className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1 text-xs hover:bg-white/70"
+                  className="flex cursor-pointer items-start gap-2.5 rounded-sm px-1 py-1 text-[12px] hover:bg-[#fbf8f0]"
                   title={def.desc}
                 >
                   <input
@@ -143,10 +151,10 @@ export function Sandbox({
                     className="mt-0.5 accent-penn-blue"
                     onChange={() => onModsChange({ ...toRecord(mods), [key]: !mods[key] })}
                   />
-                  <span>
+                  <span className="text-ink/80">
                     {def.label}
                     {def.saves > 0 && (
-                      <span className="ml-1 font-mono text-[10px] text-ink/40">
+                      <span className="tnum ml-1.5 font-mono text-[10px] text-ink/40">
                         −{def.saves} CU
                       </span>
                     )}

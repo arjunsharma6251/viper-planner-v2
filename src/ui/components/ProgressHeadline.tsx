@@ -2,19 +2,35 @@ import type { PlanSummary } from '../../plan/types'
 import { SECTORS, FA_REQUIREMENTS } from '../../data/requirements'
 
 /**
- * Goal-gradient strip near the top: "38 of 40 CU placed · 6 of 7 sectors
- * satisfied". Numbers speak; no prose.
+ * The stat strip under the masthead: serif numerals with small-caps
+ * labels, separated by hairline columns — numbers speak, no prose.
  */
 export function ProgressHeadline({ summary }: { summary: PlanSummary }) {
-  const items = [
-    `${summary.totalCU} of 40 CU placed`,
-    `${summary.fulfilledSec.length} of ${SECTORS.length} sectors satisfied`,
-    `${summary.fulfilledFA.length} of ${FA_REQUIREMENTS.length} foundational approaches`,
-    `${Math.min(summary.energyCoursesCount, 3)} of 3 energy courses`,
+  const stats: Array<{ value: string; label: string }> = [
+    { value: `${summary.totalCU}`, label: 'of 40 CU placed' },
+    { value: `${summary.fulfilledSec.length}`, label: `of ${SECTORS.length} sectors` },
+    {
+      value: `${summary.fulfilledFA.length}`,
+      label: `of ${FA_REQUIREMENTS.length} approaches`,
+    },
+    { value: `${Math.min(summary.energyCoursesCount, 3)}`, label: 'of 3 energy' },
   ]
   return (
-    <p className="font-mono text-xs text-ink/60">
-      {items.join(' · ')}
-    </p>
+    <div className="flex items-baseline">
+      {stats.map((s, i) => (
+        <div
+          key={s.label}
+          className={[
+            'flex items-baseline gap-1.5',
+            i > 0 ? 'ml-5 border-l border-rule/70 pl-5' : '',
+          ].join(' ')}
+        >
+          <span className="tnum font-display text-[19px] leading-none font-semibold text-penn-blue">
+            {s.value}
+          </span>
+          <span className="smallcaps !text-[9px]">{s.label}</span>
+        </div>
+      ))}
+    </div>
   )
 }

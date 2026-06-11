@@ -83,6 +83,8 @@ interface BootState {
   plan: Plan | null
   viperMods: Record<string, boolean>
   distributionTargets: DistributionTargets
+  /** Course key → user-picked accent color (the "my Chem cluster" mental map). */
+  colorOverrides: Record<string, string>
   fromShareLink: boolean
 }
 
@@ -96,6 +98,7 @@ function boot(): BootState {
     plan: plan ?? (config ? seedPlan(config) : null),
     viperMods: state?.viperMods ?? { ...DEFAULT_VIPER_MODS },
     distributionTargets: state?.distributionTargets ?? { N: 12, SS: 5, H: 3 },
+    colorOverrides: state?.userColorOverrides ?? {},
     fromShareLink: !!shared,
   }
 }
@@ -109,6 +112,8 @@ export interface PlanStore {
   distributionTargets: DistributionTargets
   setViperMods: (mods: Record<string, boolean>) => void
   setDistributionTargets: (t: DistributionTargets) => void
+  colorOverrides: Record<string, string>
+  setCourseColor: (courseKey: string, color: string | null) => void
   /** Pick majors → scheduler seeds the starting plan. */
   setup: (config: PlanConfig) => boolean
   /** Discard edits, re-seed from the major template (confirm first in UI). */
@@ -140,6 +145,7 @@ export function usePlanStore(): PlanStore {
   const [plan, setPlan] = useState<Plan | null>(initial.plan)
   const [viperMods, setViperMods] = useState(initial.viperMods)
   const [distributionTargets, setDistributionTargets] = useState(initial.distributionTargets)
+  const [colorOverrides, setColorOverrides] = useState(initial.colorOverrides)
   const undoStack = useRef<Plan[]>([])
   const [undoSize, setUndoSize] = useState(0)
 
@@ -164,13 +170,14 @@ export function usePlanStore(): PlanStore {
       distributionTargets,
       userPlan: p ? { semesters: p.semesters as Record<string, PlannedCourse[]> } : null,
       userPlanFulfillments: p?.fulfillments,
+      userColorOverrides: colorOverrides,
     }
-  }, [viperMods, distributionTargets])
+  }, [viperMods, distributionTargets, colorOverrides])
 
   // Persistence is a side effect, never a step the user waits on.
   useEffect(() => {
     if (config || plan) saveAppState(toAppState())
-  }, [config, plan, viperMods, distributionTargets, toAppState])
+  }, [config, plan, viperMods, distributionTargets, colorOverrides, toAppState])
 
   const augmented = useMemo(
     () =>
@@ -226,6 +233,15 @@ export function usePlanStore(): PlanStore {
     if (configRef.current) setup(configRef.current)
   }, [setup])
 
+  const setCourseColor = useCallback((courseKey: string, color: string | null) => {
+    setColorOverrides((prev) => {
+      const next = { ...prev }
+      if (color) next[courseKey] = color
+      else delete next[courseKey]
+      return next
+    })
+  }, [])
+
   const shareLink = useCallback(() => buildShareLink(toAppState()), [toAppState])
 
   const exportJson = useCallback(() => {
@@ -268,6 +284,7 @@ export function usePlanStore(): PlanStore {
     setPlan(nextPlan ?? (nextConfig ? seedPlan(nextConfig) : null))
     if (state.viperMods) setViperMods(state.viperMods)
     if (state.distributionTargets) setDistributionTargets(state.distributionTargets)
+    if (state.userColorOverrides) setColorOverrides(state.userColorOverrides)
     return true
   }, [])
 
@@ -339,6 +356,8 @@ export function usePlanStore(): PlanStore {
     distributionTargets,
     setViperMods,
     setDistributionTargets,
+    colorOverrides,
+    setCourseColor,
     setup,
     resetToTemplate,
     apply,

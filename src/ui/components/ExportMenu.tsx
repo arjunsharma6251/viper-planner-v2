@@ -31,7 +31,7 @@ export function ExportMenu({ onExportJson, onExportCsv, onPrint }: ExportMenuPro
   }, [open])
 
   const item =
-    'block w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-cream'
+    'block w-full rounded-sm px-3 py-1.5 text-left text-[13px] text-ink/85 hover:bg-[#fbf8f0]'
 
   return (
     <div ref={ref} className="relative">
@@ -40,23 +40,23 @@ export function ExportMenu({ onExportJson, onExportCsv, onPrint }: ExportMenuPro
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="rounded-lg border border-hairline bg-white px-4 py-2 text-sm text-ink/80 hover:border-ink/30"
+        className="rounded-sm border border-hairline bg-paper px-4 py-2 text-[12px] font-medium tracking-[0.06em] text-ink/75 uppercase shadow-[var(--shadow-card)] transition-colors duration-150 hover:border-rule hover:text-ink"
       >
         Export ▾
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute top-full right-0 z-40 mt-1 w-40 rounded-lg bg-white p-1 shadow-xl ring-1 ring-hairline"
+          className="animate-rise absolute top-full right-0 z-40 mt-1.5 w-40 rounded-md border border-hairline bg-paper p-1 shadow-[var(--shadow-pop)]"
         >
           <button type="button" role="menuitem" className={item} onClick={() => { onExportJson(); setOpen(false) }}>
-            JSON
+            Download JSON
           </button>
           <button type="button" role="menuitem" className={item} onClick={() => { onExportCsv(); setOpen(false) }}>
-            CSV
+            Download CSV
           </button>
           <button type="button" role="menuitem" className={item} onClick={() => { onPrint(); setOpen(false) }}>
-            Print
+            Print view
           </button>
         </div>
       )}

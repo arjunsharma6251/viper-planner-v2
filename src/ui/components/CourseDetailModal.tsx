@@ -20,18 +20,23 @@ const FULFILLMENT_LABELS: Record<FulfillmentTag, string> = {
   'seas-ethics': 'SEAS Ethics',
 }
 
+/** The cluster palette — muted, paper-compatible tones. */
+const CLUSTER_COLORS = ['#011F5B', '#990000', '#1e6b38', '#b8860b', '#0f6b66', '#5b3a86']
+
 type Tab = 'tags' | 'pick' | 'actions'
 
 export interface CourseDetailModalProps {
   course: AugmentedCourse
   semKey: SemesterKey
   gradYear: number | null
+  color?: string
   onClose: () => void
   onToggleFulfillment: (courseId: string, tag: FulfillmentTag, on: boolean) => void
   onSwap: (slotId: string, newCode: string) => void
   onRename: (courseId: string, newCode: string) => void
   onMoveTo: (to: SemesterKey) => void
   onDelete: () => void
+  onSetColor: (courseId: string, color: string | null) => void
 }
 
 /**
@@ -42,12 +47,14 @@ export function CourseDetailModal({
   course,
   semKey,
   gradYear,
+  color,
   onClose,
   onToggleFulfillment,
   onSwap,
   onRename,
   onMoveTo,
   onDelete,
+  onSetColor,
 }: CourseDetailModalProps) {
   const [tab, setTab] = useState<Tab>('tags')
   const [renameValue, setRenameValue] = useState(course.code)
@@ -66,21 +73,20 @@ export function CourseDetailModal({
     .join(' · ')
 
   return (
-    <Modal title={`${course.code} — ${course.title}`} onClose={onClose}>
-      <div className="mb-4 flex items-center gap-3 text-sm text-ink/60">
-        <span className="font-mono text-xs">{course.cu} CU</span>
+    <Modal eyebrow={`Course detail · ${course.cu} CU`} title={`${course.code} — ${course.title}`} onClose={onClose}>
+      <div className="mb-4 flex items-center gap-4 text-[12px]">
         {pcr && (
           <a
             href={pcr}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-penn-blue hover:underline"
+            className="font-medium text-penn-blue hover:underline"
           >
             Penn Course Review ↗
           </a>
         )}
+        {contextLine && <span className="truncate text-ink/45">{contextLine}</span>}
       </div>
-      {contextLine && <p className="mb-4 text-xs text-ink/50">{contextLine}</p>}
 
       <div role="tablist" className="mb-4 flex gap-1 border-b border-hairline">
         {(['tags', 'pick', 'actions'] as const).map((t) => {
@@ -92,10 +98,10 @@ export function CourseDetailModal({
               aria-selected={tab === t}
               onClick={() => setTab(t)}
               className={[
-                'rounded-t-md px-3 py-1.5 text-sm capitalize',
+                'smallcaps -mb-px px-3 py-2 !text-[10px] transition-colors duration-150',
                 tab === t
-                  ? 'border-b-2 border-penn-blue font-medium text-penn-blue'
-                  : 'text-ink/50 hover:text-ink',
+                  ? 'border-b-2 border-penn-blue !text-penn-blue'
+                  : 'border-b-2 border-transparent hover:!text-ink',
               ].join(' ')}
             >
               {t === 'pick' ? 'Pick course' : t}
@@ -105,13 +111,13 @@ export function CourseDetailModal({
       </div>
 
       {tab === 'tags' && (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           {(Object.keys(FULFILLMENT_LABELS) as FulfillmentTag[]).map((tag) => {
             const on = course.userFulfills.includes(tag)
             return (
               <label
                 key={tag}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm hover:bg-cream"
+                className="flex cursor-pointer items-center gap-2.5 border-b border-dotted border-hairline px-1 py-1.5 text-[13px] last:border-b-0 hover:bg-[#fbf8f0]"
               >
                 <input
                   type="checkbox"
@@ -119,7 +125,7 @@ export function CourseDetailModal({
                   onChange={() => onToggleFulfillment(courseId, tag, !on)}
                   className="accent-penn-blue"
                 />
-                {FULFILLMENT_LABELS[tag]}
+                <span className={on ? 'text-ink' : 'text-ink/70'}>{FULFILLMENT_LABELS[tag]}</span>
               </label>
             )
           })}
@@ -127,8 +133,8 @@ export function CourseDetailModal({
       )}
 
       {tab === 'pick' && hasPool && (
-        <div className="flex flex-col gap-1">
-          <p className="mb-1 text-xs text-ink/50">Pre-screened picks for this slot:</p>
+        <div className="flex flex-col">
+          <p className="smallcaps mb-2">Pre-screened picks for this slot</p>
           {pool.map((code) => (
             <button
               key={code}
@@ -137,19 +143,23 @@ export function CourseDetailModal({
                 if (course.slotId) onSwap(course.slotId, code)
                 onClose()
               }}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-cream"
+              className="flex items-center gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[13px] last:border-b-0 hover:bg-[#fbf8f0]"
             >
-              <span className="font-mono text-xs text-penn-blue">{code}</span>
-              {code === course.code && <span className="text-xs text-green-700">current</span>}
+              <span className="w-[4.6rem] font-mono text-[11px] font-medium text-penn-blue">
+                {code}
+              </span>
+              {code === course.code && (
+                <span className="smallcaps !text-[8px] !text-[#1e6b38]">current</span>
+              )}
             </button>
           ))}
         </div>
       )}
 
       {tab === 'actions' && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60" htmlFor="move-select">
+            <label className="smallcaps mb-1.5 block" htmlFor="move-select">
               Move to semester
             </label>
             <select
@@ -159,7 +169,7 @@ export function CourseDetailModal({
                 onMoveTo(e.target.value as SemesterKey)
                 onClose()
               }}
-              className="w-full rounded-md border border-hairline bg-white px-2 py-1.5 text-sm"
+              className="w-full rounded-sm border border-hairline bg-paper px-2.5 py-2 text-[13px]"
             >
               {ALL_SEMESTER_KEYS.map((k) => {
                 const l = semesterLabel(k, gradYear ?? undefined)
@@ -173,7 +183,36 @@ export function CourseDetailModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60" htmlFor="rename-input">
+            <p className="smallcaps mb-1.5">Cluster color</p>
+            <div className="flex items-center gap-2">
+              {CLUSTER_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={`Set color ${c}`}
+                  aria-pressed={color === c}
+                  onClick={() => onSetColor(courseId, color === c ? null : c)}
+                  className={[
+                    'h-6 w-6 rounded-full transition-transform duration-150 hover:scale-110',
+                    color === c ? 'ring-2 ring-ink/60 ring-offset-2 ring-offset-paper' : '',
+                  ].join(' ')}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+              {color && (
+                <button
+                  type="button"
+                  onClick={() => onSetColor(courseId, null)}
+                  className="ml-1 text-[11px] text-ink/45 hover:text-ink"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="smallcaps mb-1.5 block" htmlFor="rename-input">
               Rename course ✎
             </label>
             <div className="flex gap-2">
@@ -181,7 +220,7 @@ export function CourseDetailModal({
                 id="rename-input"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
-                className="flex-1 rounded-md border border-hairline px-2 py-1.5 font-mono text-sm"
+                className="flex-1 rounded-sm border border-hairline bg-paper px-2.5 py-2 font-mono text-[12px]"
               />
               <button
                 type="button"
@@ -190,16 +229,16 @@ export function CourseDetailModal({
                   onRename(courseId, renameValue.trim())
                   onClose()
                 }}
-                className="rounded-md border border-penn-blue px-3 py-1.5 text-sm text-penn-blue disabled:opacity-40"
+                className="rounded-sm border border-penn-blue px-3 py-2 text-[12px] font-medium text-penn-blue transition-colors hover:bg-penn-blue/5 disabled:opacity-40"
               >
                 Rename
               </button>
             </div>
           </div>
 
-          <div className="border-t border-hairline pt-3">
+          <div className="border-t border-hairline pt-4">
             {course.fixed ? (
-              <p className="text-xs text-ink/50">
+              <p className="text-xs text-ink/45 italic">
                 This course is a fixed VIPER requirement and can't be deleted.
               </p>
             ) : (
@@ -209,7 +248,7 @@ export function CourseDetailModal({
                   onDelete()
                   onClose()
                 }}
-                className="rounded-md px-3 py-1.5 text-sm text-penn-red hover:bg-penn-red/5"
+                className="rounded-sm px-3 py-1.5 text-[12px] font-medium text-penn-red transition-colors hover:bg-penn-red/5"
               >
                 Remove from plan
               </button>

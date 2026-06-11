@@ -5,6 +5,7 @@ import { usePlanStore } from '../store/use-plan-store'
 import { PlanSetup } from '../components/PlanSetup'
 import { ScheduleGrid } from '../components/ScheduleGrid'
 import { RequirementTracker } from '../components/RequirementTracker'
+import { ReferencePanels } from '../components/ReferencePanels'
 import { ProgressHeadline } from '../components/ProgressHeadline'
 import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
@@ -13,6 +14,7 @@ import { AddCourseModal } from '../components/AddCourseModal'
 import { ToastProvider, useToast } from '../components/Toasts'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
+import { MAJORS } from '../../data/majors'
 
 interface OpenCourseRef {
   courseId: string
@@ -64,43 +66,75 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
     return result
   }
 
+  const sasName = store.config ? (MAJORS[store.config.sasMajorKey]?.fullName ?? '') : ''
+  const seasName = store.config ? (MAJORS[store.config.seasMajorKey]?.fullName ?? '') : ''
+
   return (
     <div className="min-h-screen font-sans">
       <div
         className={[
-          'mx-auto max-w-[1400px] px-8 py-10 transition-[padding] duration-200',
-          chatOpen ? 'lg:pr-[400px]' : '',
+          'mx-auto max-w-[1480px] px-8 pt-9 pb-12 transition-[padding] duration-200 sm:px-12',
+          chatOpen ? 'lg:pr-[420px]' : '',
         ].join(' ')}
       >
-        <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-4xl font-semibold text-penn-blue">
-              VIPER Four-Year Planner
-            </h1>
+        {/* ── Masthead ── */}
+        <header className="mb-9">
+          <div
+            className="rise flex items-center gap-4"
+            style={{ '--i': 0 } as React.CSSProperties}
+          >
+            <span className="h-px flex-1 bg-rule/70" aria-hidden />
+            <p className="smallcaps text-center">
+              University of Pennsylvania · Vagelos Integrated Program in Energy Research
+            </p>
+            <span className="h-px flex-1 bg-rule/70" aria-hidden />
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
+            <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
+              <h1 className="font-display text-[50px] leading-[1.02] font-semibold tracking-tight text-ink">
+                Four-Year <span className="text-penn-blue italic">Planner</span>
+                <span className="text-penn-red">.</span>
+              </h1>
+              {store.config && (
+                <p className="mt-2 text-[13px] text-ink-soft">
+                  {sasName} <span className="smallcaps mx-0.5 !text-[9px]">BA</span> +{' '}
+                  {seasName} <span className="smallcaps mx-0.5 !text-[9px]">BSE</span> · Class
+                  of {gradYear}
+                </p>
+              )}
+            </div>
+            {store.plan && (
+              <div
+                className="rise no-print flex items-center gap-2.5"
+                style={{ '--i': 2 } as React.CSSProperties}
+              >
+                <ExportMenu
+                  onExportJson={store.exportJson}
+                  onExportCsv={store.exportCsv}
+                  onPrint={() => window.print()}
+                />
+                <button
+                  type="button"
+                  onClick={() => setChatOpen((v) => !v)}
+                  aria-pressed={chatOpen}
+                  className="rounded-sm border border-hairline bg-paper px-4 py-2 text-[12px] font-medium tracking-[0.06em] text-ink/75 uppercase shadow-[var(--shadow-card)] transition-colors duration-150 hover:border-rule hover:text-ink"
+                >
+                  {chatOpen ? 'Close chat' : 'Chat'}
+                </button>
+                <ShareLinkButton getLink={store.shareLink} />
+              </div>
+            )}
+          </div>
+
+          <div className="rise mt-5" style={{ '--i': 3 } as React.CSSProperties}>
+            <hr className="double-rule draw-rule" />
             {store.augmented && (
-              <div className="mt-2">
+              <div className="mt-3.5">
                 <ProgressHeadline summary={store.augmented.summary} />
               </div>
             )}
           </div>
-          {store.plan && (
-            <div className="flex items-center gap-3">
-              <ExportMenu
-                onExportJson={store.exportJson}
-                onExportCsv={store.exportCsv}
-                onPrint={() => window.print()}
-              />
-              <button
-                type="button"
-                onClick={() => setChatOpen((v) => !v)}
-                aria-pressed={chatOpen}
-                className="rounded-lg border border-hairline bg-white px-4 py-2 text-sm text-ink/80 hover:border-ink/30"
-              >
-                {chatOpen ? 'Close chat' : 'Chat'}
-              </button>
-              <ShareLinkButton getLink={store.shareLink} />
-            </div>
-          )}
         </header>
 
         {!store.plan || !store.augmented ? (
@@ -114,52 +148,58 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             }}
           />
         ) : (
-          <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_280px]">
-              <ScheduleGrid
-                plan={store.augmented}
-                gradYear={gradYear}
-                onOpenCourse={(course, semKey) =>
-                  setOpenRef({ courseId: course.originalCode ?? course.code, semKey })
-                }
-                onAddCourse={setAddTo}
-                onMove={(from, to, courseId, targetIndex) => {
-                  applyToast({ kind: 'move_course', from, to, courseId, targetIndex })
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
+            <ScheduleGrid
+              plan={store.augmented}
+              gradYear={gradYear}
+              colorOverrides={store.colorOverrides}
+              onOpenCourse={(course, semKey) =>
+                setOpenRef({ courseId: course.originalCode ?? course.code, semKey })
+              }
+              onAddCourse={setAddTo}
+              onMove={(from, to, courseId, targetIndex) => {
+                applyToast({ kind: 'move_course', from, to, courseId, targetIndex })
+              }}
+            />
+            <div className="flex flex-col gap-6">
+              <RequirementTracker summary={store.augmented.summary} />
+              {renderExtras?.(store)}
+              <ReferencePanels />
+              <button
+                type="button"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      'Reset to the major template? Your edits will be replaced by a fresh scheduler seed.',
+                    )
+                  ) {
+                    store.resetToTemplate()
+                    toast('Reset to template complete')
+                  }
                 }}
-              />
-              <div className="flex flex-col gap-6">
-                <RequirementTracker summary={store.augmented.summary} />
-                {renderExtras?.(store)}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        'Reset to the major template? Your edits will be replaced by a fresh scheduler seed.',
-                      )
-                    ) {
-                      store.resetToTemplate()
-                      toast('Reset to template complete')
-                    }
-                  }}
-                  className="self-start text-xs text-ink/40 hover:text-penn-red"
-                >
-                  Reset to template
-                </button>
-              </div>
+                className="no-print self-start px-1 text-[11px] tracking-wide text-ink/35 transition-colors hover:text-penn-red"
+              >
+                Reset to template
+              </button>
             </div>
           </div>
         )}
 
-        <footer className="mt-16 border-t border-hairline pt-6 text-xs text-ink/50">
-          VIPER Planner is a student-built tool, not an official University of Pennsylvania
-          application. · University of Pennsylvania
+        <footer className="mt-20">
+          <hr className="double-rule" />
+          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-[11px] text-ink/45">
+              VIPER Planner is a student-built tool, not an official University of
+              Pennsylvania application.
+            </p>
+            <p className="smallcaps !text-[9px]">University of Pennsylvania</p>
+          </div>
         </footer>
       </div>
 
       {chatOpen && (
         <aside
-          className="fixed top-0 right-0 bottom-0 z-30 hidden w-[380px] border-l border-hairline bg-cream lg:block"
+          className="no-print animate-fade fixed top-0 right-0 bottom-0 z-30 hidden w-[400px] border-l border-hairline bg-cream shadow-[var(--shadow-pop)] lg:block"
           aria-label="Plan chat"
         >
           <ChatPanel mode={isAdminMode() ? 'admin' : 'student'} ctx={store.toolContext} />
@@ -171,6 +211,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           course={openCourse.course}
           semKey={openCourse.semKey}
           gradYear={gradYear}
+          color={store.colorOverrides[openCourse.course.originalCode ?? openCourse.course.code]}
           onClose={() => setOpenRef(null)}
           onToggleFulfillment={(courseId, tag, on) => {
             store.apply({ kind: 'tag_fulfillment', courseId, fulfillmentId: tag, on })
@@ -194,6 +235,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               courseId: openCourse.course.originalCode ?? openCourse.course.code,
             })
           }
+          onSetColor={store.setCourseColor}
         />
       )}
 

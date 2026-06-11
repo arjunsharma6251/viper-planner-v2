@@ -22,6 +22,9 @@ export interface SemesterCardProps {
   onMove: (from: SemesterKey, to: SemesterKey, courseId: string, targetIndex: number) => void
   dragging: DragPayload | null
   onDragChange: (payload: DragPayload | null) => void
+  colorOverrides?: Record<string, string>
+  /** Load-order index for the staggered page-load reveal. */
+  riseIndex?: number
 }
 
 /**
@@ -29,18 +32,17 @@ export interface SemesterCardProps {
  * differently and never get these labels).
  */
 function loadTone(load: number, summer: boolean): { cls: string; word: string | null } {
-  if (summer || load === 0) return { cls: 'text-ink/60', word: null }
+  if (summer || load === 0) return { cls: 'text-ink-soft', word: null }
   if (load > 7.5) return { cls: 'text-penn-red font-semibold', word: 'over hard cap' }
   if (load > 6.5) return { cls: 'text-penn-red', word: 'needs approval' }
-  if (load > 5.5) return { cls: 'text-amber-600', word: 'overload' }
-  return { cls: 'text-ink/60', word: null }
+  if (load > 5.5) return { cls: 'text-[#9a6a00]', word: 'overload' }
+  return { cls: 'text-ink-soft', word: null }
 }
 
 /**
- * A semester card: head (label + CU), body (course rows), foot (add button).
- * Self-contained without a border — background tone does the separation.
- * Drop targets light up during drag; an insertion indicator appears
- * immediately on drag-over.
+ * A semester panel of the ledger: season set in Fraunces over a hairline,
+ * CU in tabular numerals, course lines divided by dotted rules. Summers are
+ * quieter — tinted paper, no elevation. Drop targets glow during drag.
  */
 export function SemesterCard({
   semKey,
@@ -53,6 +55,8 @@ export function SemesterCard({
   onMove,
   dragging,
   onDragChange,
+  colorOverrides,
+  riseIndex = 0,
 }: SemesterCardProps) {
   const summer = isSummerSem(semKey)
   const [insertAt, setInsertAt] = useState<number | null>(null)
@@ -90,37 +94,48 @@ export function SemesterCard({
   return (
     <section
       aria-label={`${yearLabel} ${seasonLabel}`}
+      style={{ '--i': riseIndex } as React.CSSProperties}
       className={[
-        summer ? 'bg-cream' : 'bg-white/60',
-        'rounded-xl p-5 transition-colors duration-150',
-        dragging ? 'outline outline-1 outline-penn-blue/30' : '',
-        insertAt !== null && dragging ? 'bg-penn-blue/5' : '',
+        'rise print-block rounded-md transition-all duration-200',
+        summer
+          ? 'border border-dashed border-rule/70 bg-cream/40 px-4 py-3.5'
+          : 'border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]',
+        dragging ? 'outline-1 outline-penn-blue/25 outline-dashed' : '',
+        insertAt !== null && dragging ? 'bg-[#f4f6fb] outline-penn-blue/60' : '',
       ].join(' ')}
       onDragOver={handleDragOver}
       onDragLeave={() => setInsertAt(null)}
       onDrop={handleDrop}
     >
-      <header className="mb-2 flex items-baseline justify-between">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
-            {yearLabel}
-          </div>
-          <h3 className="text-sm font-semibold">{seasonLabel}</h3>
-        </div>
-        <div className={`font-mono text-xs ${tone.cls}`}>
-          {load > 0 ? `${load} CU` : ''}
-          {tone.word && <span className="ml-1">· {tone.word}</span>}
+      <header className="mb-1 flex items-baseline justify-between gap-2">
+        <h3
+          className={[
+            'font-display font-semibold',
+            summer ? 'text-[15px] text-ink/70 italic' : 'text-[17px] text-ink',
+          ].join(' ')}
+        >
+          {seasonLabel}
+        </h3>
+        <div className={`tnum font-mono text-[11px] ${tone.cls}`}>
+          {load > 0 && <span>{load.toFixed(1)} CU</span>}
+          {tone.word && <span className="smallcaps ml-1.5 !text-[8px] !text-current">{tone.word}</span>}
         </div>
       </header>
+      <div className={`mb-1 h-px ${summer ? 'bg-rule/50' : 'bg-rule/80'}`} aria-hidden />
 
-      <div className={crowded ? 'rounded-lg outline outline-1 outline-amber-400/60' : ''}>
+      <div
+        className={
+          crowded ? 'rounded-sm shadow-[inset_0_0_0_1px_rgba(154,106,0,0.45)]' : ''
+        }
+      >
         {courses.map((c, i) => (
           <div key={`${c.placeholderCode ?? c.originalCode ?? c.code}-${i}`} data-course-row>
             {insertAt === i && dragging && (
-              <div className="my-0.5 h-0.5 rounded bg-penn-blue" aria-hidden />
+              <div className="my-0.5 h-[2px] rounded bg-penn-blue" aria-hidden />
             )}
             <CourseRow
               course={c}
+              color={colorOverrides?.[c.originalCode ?? c.code]}
               onOpen={(course) => onOpenCourse(course, semKey)}
               onDragStart={(e) => {
                 e.dataTransfer.effectAllowed = 'move'
@@ -134,16 +149,19 @@ export function SemesterCard({
           </div>
         ))}
         {insertAt === courses.length && dragging && (
-          <div className="my-0.5 h-0.5 rounded bg-penn-blue" aria-hidden />
+          <div className="my-0.5 h-[2px] rounded bg-penn-blue" aria-hidden />
+        )}
+        {courses.length === 0 && !dragging && (
+          <p className="py-2 pl-3 text-xs text-ink/35 italic">Add a course to this semester</p>
         )}
       </div>
 
       <button
         type="button"
         onClick={() => onAddCourse(semKey)}
-        className="mt-2 w-full rounded-md border border-dashed border-ink/20 py-1.5 text-xs text-ink/50 transition-colors duration-150 hover:border-penn-blue hover:text-penn-blue"
+        className="no-print mt-2.5 w-full rounded-sm border border-dashed border-rule py-1.5 text-[11px] tracking-wide text-ink/45 transition-colors duration-150 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue"
       >
-        + Add a course
+        + Add course
       </button>
     </section>
   )

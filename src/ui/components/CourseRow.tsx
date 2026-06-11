@@ -10,14 +10,23 @@ export interface CourseRowProps {
   onDragEnd?: (event: DragEvent<HTMLDivElement>) => void
   /** Course needs attention (over-cap, prereq concern) — colored border. */
   attention?: boolean
+  /** User-picked cluster color (left edge chip). */
+  color?: string
 }
 
 /**
- * One course line in a semester card. Shows code, title, CU, star
- * indicator — everything else lives in the detail modal (progressive
- * disclosure). Hover previews the modal opening (slight elevation).
+ * One line of the ledger: code · title · stars · CU, divided from its
+ * neighbors by a dotted hairline. Hover warms the paper and reveals the
+ * grip — the row should read as typeset until touched.
  */
-export function CourseRow({ course, onOpen, onDragStart, onDragEnd, attention }: CourseRowProps) {
+export function CourseRow({
+  course,
+  onOpen,
+  onDragStart,
+  onDragEnd,
+  attention,
+  color,
+}: CourseRowProps) {
   const code = course.isPlaceholder ? (course.label ?? '—') : course.code
   return (
     <div
@@ -34,29 +43,40 @@ export function CourseRow({ course, onOpen, onDragStart, onDragEnd, attention }:
         }
       }}
       className={[
-        'group flex min-h-8 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5',
-        'transition-all duration-150 ease-out hover:-translate-y-px hover:bg-white hover:shadow-sm',
-        attention ? 'border border-penn-red' : 'border border-transparent',
-        course.isPlaceholder ? 'opacity-70' : '',
+        'group relative flex min-h-9 cursor-pointer items-center gap-2 py-2 pr-0.5 pl-2.5',
+        'border-b border-dotted border-hairline last:border-b-0',
+        'transition-colors duration-150 ease-out hover:bg-[#fbf8f0]',
+        attention ? 'shadow-[inset_2px_0_0_var(--color-penn-red)]' : '',
+        course.isPlaceholder ? 'opacity-65' : '',
       ].join(' ')}
     >
+      {/* cluster color chip / grip well */}
+      <span
+        aria-hidden
+        className="absolute top-1.5 bottom-1.5 left-0 w-[3px] rounded-full transition-colors duration-150"
+        style={color ? { backgroundColor: color } : undefined}
+      />
       {!course.fixed && (
         <span
           aria-hidden
-          className="-ml-1 w-3 select-none text-ink/0 transition-colors duration-150 group-hover:text-ink/30"
+          className="-ml-1.5 w-2 cursor-grab font-mono text-[9px] leading-none text-ink/0 transition-colors duration-150 select-none group-hover:text-ink/35"
         >
-          ⋮⋮
+          ⠿
         </span>
       )}
-      <span className="font-mono text-xs font-medium text-penn-blue">{code}</span>
-      <span className="min-w-0 flex-1 truncate text-sm">{course.title}</span>
+      <span className="w-[4.1rem] shrink-0 font-mono text-[10.5px] font-medium tracking-tight text-penn-blue">
+        {code}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-[12.5px] leading-snug text-ink/85">
+        {course.title}
+      </span>
       <Stars course={course} />
       {course.tags?.includes('MOVED') && (
-        <span className="rounded bg-ink/5 px-1 font-mono text-[10px] uppercase tracking-wide text-ink/50">
-          moved
-        </span>
+        <span className="smallcaps shrink-0 !text-[8px] text-ink/40">moved</span>
       )}
-      <span className="font-mono text-xs text-ink/60">{course.cu}</span>
+      <span className="tnum w-7 shrink-0 text-right font-mono text-[11px] text-ink-soft">
+        {course.cu}
+      </span>
     </div>
   )
 }

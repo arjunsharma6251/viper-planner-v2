@@ -12,7 +12,10 @@ export function Stars({ course }: { course: AugmentedCourse }) {
   const gold = course.overlapKind === 'overlap'
   return (
     <span
-      className={gold ? 'text-amber-500' : 'text-penn-red'}
+      className={[
+        'shrink-0 text-[10px] tracking-[0.15em]',
+        gold ? 'text-[#b8860b]' : 'text-penn-red',
+      ].join(' ')}
       title={
         gold
           ? `Counts toward both degrees (${course.requirementCount} requirements)`
