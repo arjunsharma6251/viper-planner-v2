@@ -58,6 +58,26 @@ const SUGGESTIONS = [
 export interface ChatPanelProps {
   mode: 'student' | 'admin'
   ctx: PlanToolContext
+  /** Closes the panel. Rendered as a visible control in the panel header. */
+  onClose?: () => void
+}
+
+/** The one way out of the panel — always in the top-right, always labeled. */
+function CloseButton({ onClose }: { onClose?: () => void }) {
+  if (!onClose) return null
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Close chat"
+      className="-mr-2 flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-3 text-[0.71875rem] font-medium text-ink/55 transition-colors duration-150 hover:bg-ink/6 hover:text-ink focus-visible:bg-ink/6 focus-visible:text-ink"
+    >
+      Close
+      <span aria-hidden className="text-[1rem] leading-none">
+        ×
+      </span>
+    </button>
+  )
 }
 
 /**
@@ -65,7 +85,7 @@ export interface ChatPanelProps {
  * Tool activity renders as ledger clusters (dotted rules, mono labels);
  * prose streams into paper cards. Chat is the sidekick, not the surface.
  */
-export function ChatPanel({ mode, ctx }: ChatPanelProps) {
+export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
   const [entries, setEntries] = useState<DisplayEntry[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
@@ -162,7 +182,10 @@ export function ChatPanel({ mode, ctx }: ChatPanelProps) {
   if (!hasKey) {
     return (
       <div className="flex h-full flex-col justify-center gap-3 px-6">
-        <p className="smallcaps">Plan assistant</p>
+        <div className="flex items-center justify-between">
+          <p className="smallcaps">Plan assistant</p>
+          <CloseButton onClose={onClose} />
+        </div>
         <hr className="double-rule" />
         <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-soft">
           Paste an Anthropic API key to enable the plan-review chat. It's stored only in
@@ -197,12 +220,12 @@ export function ChatPanel({ mode, ctx }: ChatPanelProps) {
     <div className="flex h-full flex-col">
       {/* ── Panel masthead ── */}
       <header className="px-5 pt-5 pb-3">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <p className="smallcaps">Plan assistant</p>
             <p className="tnum mt-0.5 font-mono text-[0.5625rem] text-ink/30">{CHAT_MODEL}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => {
@@ -225,6 +248,7 @@ export function ChatPanel({ mode, ctx }: ChatPanelProps) {
                 Key
               </button>
             )}
+            <CloseButton onClose={onClose} />
           </div>
         </div>
         <hr className="double-rule mt-3" />

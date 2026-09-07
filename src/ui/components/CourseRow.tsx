@@ -67,8 +67,11 @@ export function CourseRow({
       <span className="w-[4.5rem] shrink-0 font-mono text-[0.6875rem] font-medium tracking-tight text-penn-blue">
         {code}
       </span>
+      {/* Titles wrap to a second line rather than truncate — a placeholder
+          that reads "S." instead of "SS/H/TBS Elective" tells the student
+          nothing. */}
       <span
-        className="min-w-0 flex-1 truncate text-[0.84375rem] leading-snug text-ink/85"
+        className="line-clamp-2 min-w-0 flex-1 text-[0.84375rem] leading-snug text-ink/85"
         title={`${code} — ${course.title}`}
       >
         {course.title}

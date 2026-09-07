@@ -14,12 +14,12 @@ export interface ScheduleGridProps {
 }
 
 /**
- * The primary planning surface. At xl the four year columns share strict
- * rows — every Fall card top-aligned with the other Falls, Springs with
- * Springs, Summers with Summers — so the document reads as a true table.
- * Achieved with `xl:contents` on the year wrappers: below xl each year is
- * a self-contained stack; at xl the wrappers dissolve and each cell takes
- * an explicit grid position.
+ * The primary planning surface, read the way a student thinks about it:
+ * year by year. Each year is its own chapter — a heading, then Fall and
+ * Spring side by side, then the summer as a slim third term at the end
+ * of the row. Chronology runs left to right inside a year and top to
+ * bottom across years, so "Year 2, Spring" is found by reading, not by
+ * decoding a table.
  */
 export function ScheduleGrid({
   plan,
@@ -32,14 +32,11 @@ export function ScheduleGrid({
   const [dragging, setDragging] = useState<DragPayload | null>(null)
 
   const years = [1, 2, 3, 4] as const
-  // Literal class lists — Tailwind only generates classes it can see in source.
-  const COL = ['xl:col-start-1', 'xl:col-start-2', 'xl:col-start-3', 'xl:col-start-4']
-  const ROW = ['xl:row-start-1', 'xl:row-start-2', 'xl:row-start-3', 'xl:row-start-4']
 
-  function card(semKey: SemesterKey, y: number, row: number, riseIndex: number) {
+  function card(semKey: SemesterKey, riseIndex: number, extraClass = '') {
     const label = semesterLabel(semKey, gradYear ?? undefined)
     return (
-      <div key={semKey} className={`${COL[y - 1]} ${ROW[row - 1]}`}>
+      <div key={semKey} className={extraClass}>
         <SemesterCard
           semKey={semKey}
           seasonLabel={label.season}
@@ -59,40 +56,59 @@ export function ScheduleGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-8 gap-y-7 md:grid-cols-2 xl:grid-cols-4 xl:grid-rows-[auto_auto_auto_auto]">
+    <div className="flex flex-col gap-10">
       {years.map((y, yi) => {
         const fall = SEMESTER_KEYS[(y - 1) * 2]
         const spring = SEMESTER_KEYS[(y - 1) * 2 + 1]
         const summer = SUMMER_KEYS[y - 1] // year 4 has no summer
         const fallLabel = fall ? semesterLabel(fall, gradYear ?? undefined) : null
+        const startYear = fallLabel ? Number(fallLabel.season.split(' ')[1]) : null
+        const span = startYear ? `${startYear}–${String(startYear + 1).slice(2)}` : null
+        const base = yi * 3
+
         return (
-          <div key={y} className="flex flex-col gap-5 xl:contents">
-            {/* ── Year chapter head: ghost numeral + small caps ── */}
+          <section key={y} aria-label={`Year ${y}`} className="flex flex-col gap-4">
+            {/* ── Year chapter head ── */}
             <div
-              className={`rise flex items-end gap-3 ${COL[yi]} xl:row-start-1`}
-              style={{ '--i': yi } as React.CSSProperties}
+              className="rise flex items-baseline gap-4"
+              style={{ '--i': base } as React.CSSProperties}
             >
-              <span
-                aria-hidden
-                className="font-display text-[3.75rem] leading-[0.78] font-semibold tracking-tight text-penn-blue/12 select-none"
-              >
-                {String(y).padStart(2, '0')}
-              </span>
-              <div className="min-w-0 pb-0.5">
-                <span className="smallcaps block">Year {y}</span>
-                {fallLabel && (
-                  <span className="tnum block font-mono text-[0.625rem] text-ink/35">
-                    {fallLabel.season.split(' ')[1]}–
-                    {String(Number(fallLabel.season.split(' ')[1]) + 1).slice(2)}
-                  </span>
-                )}
-              </div>
-              <span className="mb-1.5 h-px flex-1 self-end bg-rule/70" aria-hidden />
+              <h2 className="font-display text-[1.625rem] leading-none font-semibold tracking-tight text-penn-blue">
+                Year {y}
+              </h2>
+              {span && (
+                <span className="tnum font-mono text-[0.6875rem] text-ink/45">{span}</span>
+              )}
+              <span className="h-px flex-1 self-center bg-rule/70" aria-hidden />
             </div>
-            {fall && card(fall, y, 2, yi + 1)}
-            {spring && card(spring, y, 3, yi + 2)}
-            {summer && card(summer, y, 4, yi + 3)}
-          </div>
+
+            {/* ── Fall · Spring · Summer, left to right ── */}
+            {/* Every year shares the same three-column rhythm so Fall and
+                Spring line up top to bottom. Year 4's third slot holds the
+                end of the road instead of a summer. */}
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2 xl:grid-cols-[1fr_1fr_minmax(11.5rem,0.55fr)]">
+              {fall && card(fall, base + 1)}
+              {spring && card(spring, base + 2)}
+              {summer ? (
+                card(summer, base + 3, 'md:col-span-2 xl:col-span-1 xl:self-start')
+              ) : (
+                <div
+                  className="rise hidden px-5 pt-5 xl:block"
+                  style={{ '--i': base + 3 } as React.CSSProperties}
+                  aria-hidden
+                >
+                  <p className="font-display text-[1.0625rem] text-ink/45 italic">
+                    Commencement
+                  </p>
+                  {gradYear && (
+                    <p className="tnum mt-1 font-mono text-[0.6875rem] text-ink/35">
+                      May {gradYear}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
         )
       })}
     </div>

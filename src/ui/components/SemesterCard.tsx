@@ -116,7 +116,7 @@ export function SemesterCard({
         >
           {seasonLabel}
         </h3>
-        <div className={`tnum font-mono text-[0.6875rem] ${tone.cls}`}>
+        <div className={`tnum font-mono text-[0.6875rem] whitespace-nowrap ${tone.cls}`}>
           {load > 0 && <span>{load.toFixed(1)} CU</span>}
           {tone.word && <span className="smallcaps ml-1.5 !text-[0.5rem] !text-current">{tone.word}</span>}
         </div>

@@ -36,9 +36,15 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   const [focusSem, setFocusSem] = useState<SemesterKey>('fall-y1')
   const [editingSetup, setEditingSetup] = useState(false)
 
-  // Cmd/Ctrl-Z undoes the last action (Jakob's Law).
+  // Cmd/Ctrl-Z undoes the last action (Jakob's Law). Escape closes the
+  // chat panel like any other overlay — but only when nothing else
+  // (a modal) is open above it, so one Escape never closes two things.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && chatOpen && !openRef && !addTo) {
+        setChatOpen(false)
+        return
+      }
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
         const target = e.target as HTMLElement
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
@@ -48,7 +54,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [store, toast])
+  }, [store, toast, chatOpen, openRef, addTo])
 
   const gradYear = store.config?.gradYear ?? null
 
@@ -191,7 +197,15 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_21rem]">
+          // The right edge holds one thing at a time: the chat, or the
+          // audit rail. With chat open the rail drops below the plan so
+          // the semesters keep their width instead of squeezing to slivers.
+          <div
+            className={[
+              'grid grid-cols-1 gap-12',
+              chatOpen ? '' : 'lg:grid-cols-[1fr_21rem]',
+            ].join(' ')}
+          >
             {view === 'grid' ? (
               <ScheduleGrid
                 plan={store.augmented}
@@ -221,7 +235,14 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                 }}
               />
             )}
-            <div className="flex flex-col gap-6 self-start lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-1">
+            <div
+              className={[
+                'flex flex-col gap-6 self-start',
+                chatOpen
+                  ? 'w-full md:grid md:grid-cols-2 md:items-start md:gap-x-8'
+                  : 'lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-1',
+              ].join(' ')}
+            >
               <RequirementTracker summary={store.augmented.summary} />
               {renderExtras?.(store)}
               <ReferencePanels />
@@ -238,7 +259,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                     toast('Reset to template complete')
                   }
                 }}
-                className="no-print self-start px-1 text-[0.6875rem] tracking-wide text-ink/35 transition-colors hover:text-penn-red"
+                className="no-print self-start px-1 text-[0.6875rem] tracking-wide text-ink/35 transition-colors hover:text-penn-red md:col-span-2"
               >
                 Reset to template
               </button>
@@ -294,7 +315,11 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           className="no-print animate-fade fixed top-0 right-0 bottom-0 z-30 w-full border-l border-hairline bg-cream shadow-[var(--shadow-pop)] sm:w-[26rem]"
           aria-label="Plan chat"
         >
-          <ChatPanel mode={isAdminMode() ? 'admin' : 'student'} ctx={store.toolContext} />
+          <ChatPanel
+            mode={isAdminMode() ? 'admin' : 'student'}
+            ctx={store.toolContext}
+            onClose={() => setChatOpen(false)}
+          />
         </aside>
       )}
 
