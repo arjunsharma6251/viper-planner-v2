@@ -259,6 +259,9 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
   //   6. Lightest semester anyway (over-cap, flag with EXCEEDS-MAX)
   const SOFT = TARGET_MAX; // 6.5
   const HARD = TARGET_HARD_CAP; // 7.5
+  // Verbatim port: initialised to null for readability even though every
+  // tier below assigns before the first read.
+  // eslint-disable-next-line no-useless-assignment
   let sem: SemesterKey | null = null;
   let exceedsMax = false;
 

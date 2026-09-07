@@ -13,7 +13,8 @@ import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
 import { CourseDetailModal } from '../components/CourseDetailModal'
 import { AddCourseModal } from '../components/AddCourseModal'
-import { ToastProvider, useToast } from '../components/Toasts'
+import { ToastProvider } from '../components/Toasts'
+import { useToast } from '../components/use-toast'
 import { MajorSelects } from '../components/MajorSelects'
 import { LoadSkyline } from '../components/LoadSkyline'
 import { ChatPanel } from '../../llm/chat'
@@ -246,8 +247,12 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             >
               <RequirementTracker summary={store.augmented.summary} />
               {renderExtras?.(store)}
-              <ReferencePanels />
-              <Legend />
+              {/* Collapsed disclosure panels print as empty boxes — leave
+                  them off paper; the audit above is what an advisor needs. */}
+              <div className="no-print contents">
+                <ReferencePanels />
+                <Legend />
+              </div>
               <button
                 type="button"
                 onClick={() => {

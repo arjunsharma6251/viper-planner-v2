@@ -1,30 +1,11 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ToastContext } from './use-toast'
 
 export interface Toast {
   id: number
   message: string
   /** Optional one-click undo (reversibility as default). */
   onUndo?: () => void
-}
-
-interface ToastApi {
-  toast: (message: string, onUndo?: () => void) => void
-}
-
-const ToastContext = createContext<ToastApi | null>(null)
-
-export function useToast(): ToastApi {
-  const api = useContext(ToastContext)
-  if (!api) throw new Error('useToast must be used inside <ToastProvider>')
-  return api
 }
 
 const AUTO_DISMISS_MS = 5000

@@ -150,11 +150,13 @@ export function usePlanStore(): PlanStore {
   const [undoSize, setUndoSize] = useState(0)
 
   // Refs so the stable toolContext always reads current state (the chat
-  // loop holds it across awaits).
+  // loop holds it across awaits). Synced after commit, never during render.
   const planRef = useRef(plan)
-  planRef.current = plan
   const configRef = useRef(config)
-  configRef.current = config
+  useEffect(() => {
+    planRef.current = plan
+    configRef.current = config
+  }, [plan, config])
 
   const toAppState = useCallback((): AppState => {
     const c = configRef.current

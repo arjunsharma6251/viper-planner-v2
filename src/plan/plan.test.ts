@@ -244,7 +244,7 @@ describe('moveCourse', () => {
 
 describe('tagFulfillment', () => {
   it('marks and unmarks a fulfillment, keyed by stable identity', () => {
-    let plan = addCourse(createEmptyPlan(), 'fall-y2', { code: 'PSYC 0001' }).plan
+    const plan = addCourse(createEmptyPlan(), 'fall-y2', { code: 'PSYC 0001' }).plan
     const on = tagFulfillment(plan, 'PSYC 0001', 'ncc-distrib-ss', true)
     expect(on.ok).toBe(true)
     expect(on.plan.fulfillments?.['PSYC 0001']).toEqual(['ncc-distrib-ss'])

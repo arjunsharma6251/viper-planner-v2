@@ -65,6 +65,9 @@ export function ScheduleGrid({
         const startYear = fallLabel ? Number(fallLabel.season.split(' ')[1]) : null
         const span = startYear ? `${startYear}–${String(startYear + 1).slice(2)}` : null
         const base = yi * 3
+        // Academic-year load (Fall + Spring) — the number an advisor asks
+        // about first. Summers are judged separately and stay out of it.
+        const inTerm = (fall ? (plan.loads[fall] ?? 0) : 0) + (spring ? (plan.loads[spring] ?? 0) : 0)
 
         return (
           <section key={y} aria-label={`Year ${y}`} className="flex flex-col gap-4">
@@ -80,6 +83,12 @@ export function ScheduleGrid({
                 <span className="tnum font-mono text-[0.6875rem] text-ink/45">{span}</span>
               )}
               <span className="h-px flex-1 self-center bg-rule/70" aria-hidden />
+              {inTerm > 0 && (
+                <span className="tnum font-mono text-[0.6875rem] whitespace-nowrap text-ink/45">
+                  {inTerm.toFixed(1)} CU
+                  <span className="smallcaps ml-1.5 !text-[0.5rem] !text-ink/40">in term</span>
+                </span>
+              )}
             </div>
 
             {/* ── Fall · Spring · Summer, left to right ── */}
