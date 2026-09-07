@@ -40,36 +40,55 @@ export function FocusView({
     'flex w-11 shrink-0 items-center justify-center rounded-lg border border-hairline bg-paper font-display text-[1.375rem] text-ink/45 shadow-[var(--shadow-card)] transition-all duration-150 hover:-translate-y-px hover:text-penn-blue hover:shadow-[var(--shadow-card-hover)] disabled:opacity-25 disabled:hover:translate-y-0 disabled:hover:text-ink/45'
 
   return (
-    <div className="mx-auto w-full max-w-[46rem]">
-      {/* ── Term navigator strip ── */}
+    <div className="mx-auto w-full max-w-[50rem]">
+      {/* ── Term navigator: the eleven terms grouped by year, matching the
+          grid's chapters, so "Year 2, Spring" is one glance away. ── */}
       <div
-        className="rise mb-5 flex flex-wrap justify-center gap-1.5"
+        className="rise mb-5 flex flex-wrap justify-center gap-x-4 gap-y-3"
         style={{ '--i': 0 } as React.CSSProperties}
         role="tablist"
         aria-label="Semesters"
       >
-        {ALL_SEMESTER_KEYS.map((k) => {
-          const l = semesterLabel(k, gradYear ?? undefined)
-          const active = k === selected
-          const count = (plan.semesters[k] ?? []).length
+        {([1, 2, 3, 4] as const).map((y) => {
+          const keys = ALL_SEMESTER_KEYS.filter((k) => k.endsWith(`-y${y}`))
+          const yearActive = keys.includes(selected)
           return (
-            <button
-              key={k}
-              role="tab"
-              aria-selected={active}
-              onClick={() => onSelect(k)}
-              className={[
-                'tnum rounded-md border px-2.5 py-1.5 font-mono text-[0.6875rem] transition-all duration-150',
-                isSummerSem(k) ? 'border-dashed' : '',
-                active
-                  ? 'border-penn-blue bg-penn-blue text-white shadow-[var(--shadow-card)]'
-                  : count > 0
-                    ? 'border-hairline bg-paper text-ink/70 hover:border-penn-blue/50 hover:text-penn-blue'
-                    : 'border-hairline bg-transparent text-ink/35 hover:border-penn-blue/50 hover:text-penn-blue',
-              ].join(' ')}
-            >
-              {l.short}
-            </button>
+            <div key={y} className="flex flex-col items-center gap-1.5">
+              <span
+                className={[
+                  'font-display text-[0.8125rem] leading-none font-semibold transition-colors duration-150',
+                  yearActive ? 'text-penn-blue' : 'text-ink/40',
+                ].join(' ')}
+              >
+                Year {y}
+              </span>
+              <div className="flex gap-1">
+                {keys.map((k) => {
+                  const l = semesterLabel(k, gradYear ?? undefined)
+                  const active = k === selected
+                  const count = (plan.semesters[k] ?? []).length
+                  return (
+                    <button
+                      key={k}
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => onSelect(k)}
+                      className={[
+                        'tnum rounded-md border px-2 py-1.5 font-mono text-[0.6875rem] whitespace-nowrap transition-all duration-150',
+                        isSummerSem(k) ? 'border-dashed' : '',
+                        active
+                          ? 'border-penn-blue bg-penn-blue text-white shadow-[var(--shadow-card)]'
+                          : count > 0
+                            ? 'border-hairline bg-paper text-ink/70 hover:border-penn-blue/50 hover:text-penn-blue'
+                            : 'border-hairline bg-transparent text-ink/35 hover:border-penn-blue/50 hover:text-penn-blue',
+                      ].join(' ')}
+                    >
+                      {l.short}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           )
         })}
       </div>

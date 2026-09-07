@@ -15,14 +15,16 @@ export function ProgressHeadline({ summary }: { summary: PlanSummary }) {
     },
     { value: `${Math.min(summary.energyCoursesCount, 3)}`, label: 'of 3 energy' },
   ]
+  // Phones get a 2×2 block; wider screens the single hairline-divided strip.
   return (
-    <div className="flex items-baseline">
+    <div className="grid grid-cols-2 gap-y-2 sm:flex sm:items-baseline">
       {stats.map((s, i) => (
         <div
           key={s.label}
           className={[
-            'flex items-baseline gap-1.5',
-            i > 0 ? 'ml-5 border-l border-rule/70 pl-5' : '',
+            'flex items-baseline gap-1.5 whitespace-nowrap',
+            i % 2 === 1 ? 'ml-4 border-l border-rule/70 pl-4' : '',
+            i > 0 ? 'sm:ml-5 sm:border-l sm:border-rule/70 sm:pl-5' : '',
           ].join(' ')}
         >
           <span className="tnum font-display text-[1.4375rem] leading-none font-semibold text-penn-blue">

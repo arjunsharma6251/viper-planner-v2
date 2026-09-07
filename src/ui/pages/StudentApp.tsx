@@ -240,7 +240,8 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                 'flex flex-col gap-6 self-start',
                 chatOpen
                   ? 'w-full md:grid md:grid-cols-2 md:items-start md:gap-x-8'
-                  : 'lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-1',
+                  : // top-20 clears the floating toolbar pill (fixed top-5, ~3.25rem tall)
+                    'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1',
               ].join(' ')}
             >
               <RequirementTracker summary={store.augmented.summary} />

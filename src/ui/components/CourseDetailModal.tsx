@@ -4,6 +4,7 @@ import type { SemesterKey } from '../../data/semesters'
 import { ALL_SEMESTER_KEYS, semesterLabel } from '../../data/semesters'
 import { pcrUrlFor } from '../../utils/pcr'
 import { Modal } from './Modal'
+import { isOpenSlot } from '../../plan/open-slot'
 
 const FULFILLMENT_LABELS: Record<FulfillmentTag, string> = {
   'ncc-kite': 'Kite Foundation',
@@ -56,11 +57,14 @@ export function CourseDetailModal({
   onDelete,
   onSetColor,
 }: CourseDetailModalProps) {
-  const [tab, setTab] = useState<Tab>('tags')
+  const hasPool = !!course.slotId && (course.pool?.length ?? course.suggests?.length ?? 0) > 0
+  const open = isOpenSlot(course)
+  // An open slot's one job is to get filled — land on the picker when
+  // there is one, otherwise on Actions (where a code can be typed in).
+  const [tab, setTab] = useState<Tab>(open ? (hasPool ? 'pick' : 'actions') : 'tags')
   const [renameValue, setRenameValue] = useState(course.code)
   const courseId = course.originalCode ?? course.code
   const pcr = pcrUrlFor(course)
-  const hasPool = !!course.slotId && (course.pool?.length ?? course.suggests?.length ?? 0) > 0
   const pool = course.pool ?? course.suggests ?? []
 
   const contextLine = [
@@ -73,7 +77,11 @@ export function CourseDetailModal({
     .join(' · ')
 
   return (
-    <Modal eyebrow={`Course detail · ${course.cu} CU`} title={`${course.code} — ${course.title}`} onClose={onClose}>
+    <Modal
+      eyebrow={`${open ? 'Open slot' : 'Course detail'} · ${course.cu} CU`}
+      title={open ? course.title : `${course.code} — ${course.title}`}
+      onClose={onClose}
+    >
       <div className="mb-4 flex items-center gap-4 text-[0.75rem]">
         {pcr && (
           <a

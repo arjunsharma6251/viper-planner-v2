@@ -185,12 +185,13 @@ export function SemesterCard({
         )}
       </div>
 
-      {/* Quiet until the card is engaged — 11 always-on dashed buttons read
-          as noise. Hover/focus reveals it; coarse pointers (touch) keep it. */}
+      {/* Present but quiet at rest — a first-time user must be able to see
+          how to add a course without hovering. Engaging the card brings it
+          to full strength; coarse pointers (touch) always get it. */}
       <button
         type="button"
         onClick={() => onAddCourse(semKey)}
-        className="no-print mt-3 w-full rounded-md border border-dashed border-rule py-1.5 text-[0.71875rem] tracking-wide text-ink/45 opacity-0 transition-all duration-200 group-hover/card:opacity-100 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue focus-visible:opacity-100 pointer-coarse:opacity-100"
+        className="no-print mt-3 w-full rounded-md border border-dashed border-rule py-1.5 text-[0.71875rem] tracking-wide text-ink/45 opacity-45 transition-all duration-200 group-hover/card:opacity-100 hover:border-penn-blue hover:bg-penn-blue/3 hover:text-penn-blue focus-visible:opacity-100 pointer-coarse:opacity-100"
       >
         + Add course
       </button>
