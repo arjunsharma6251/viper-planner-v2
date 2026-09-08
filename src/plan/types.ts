@@ -56,6 +56,8 @@ export type FulfillmentTag =
   | 'seas-ssh'
   | 'seas-writ'
   | 'seas-ethics'
+  /** Student-marked VIPER energy-designated course (counts toward the 3). */
+  | 'viper-energy'
 
 /** What a course is intended to satisfy (from slot defs or user marks). */
 export interface FulfillmentIntent {
@@ -201,6 +203,10 @@ export interface CourseDraft {
   title?: string
   cu?: number
   category?: CourseCategory
+  /** Open requirement slot (no specific course yet): what it is meant to satisfy. */
+  intent?: FulfillmentIntent
+  isPlaceholder?: boolean
+  slotId?: string
 }
 
 export type Mutation =

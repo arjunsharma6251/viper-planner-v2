@@ -133,7 +133,7 @@ The College and Engineering have different gen-ed requirements. SAS uses either 
 
 **OCC** (old curriculum, mainly relevant for older students or specific BA tracks): organized around Foundational Approaches (FA) and Sectors (I–VII). Validation passes when every FA and every Sector has at least one course satisfying it.
 
-**NCC** (new curriculum): organized around 6 Foundations (Kite, Key, FYS, Writing, P&D, Language) + a 5+3 distribution requirement (5 CU in Social Sciences + 3 CU in Humanities, beyond a 12 CU Natural Sciences requirement that's already satisfied by the engineering major). Total non-major: 14 CU at full policy.
+**NCC** (new curriculum): organized around 6 Foundations (Kite, Key, FYS, Writing, P&D — "Perspectives and Difference", Language) + a 5+3 distribution requirement (5 CU in Social Sciences + 3 CU in Humanities, beyond a 12 CU Natural Sciences requirement that's already satisfied by the engineering major). Total non-major: 14 CU at full policy.
 
 For VIPER specifically, the NCC math is heavier than the major requirements can absorb, which is the whole reason for the policy-advocacy work the sandbox supports.
 
@@ -176,6 +176,7 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - VIPR 1300 is 0.5 CU per term, with a 0.5–1.5 CU range allowed in summer
 - Total degrees: BA 36 CU minimum, BSE 40 CU minimum, dual 40+ CU (with overlap)
 - Per-semester soft cap: 5.5 CU normal, 6.5 CU "dual overload" (allowed but tight), 7.5 CU hard cap (needs approval)
+- **First semester (Fall Y1) is hard-capped at 5.5 CU** — no overload. The scheduler enforces this via `semesterCap()` in `src/scheduler/helpers.ts` (core courses beyond the cap defer to the next term with room; `first-semester-cap.test.ts` asserts it for every combo). The UI shows anything above 5.5 in Fall Y1 as "over first-semester cap" in red.
 - Summers have different thresholds — don't apply the academic-year load classification
 
 ---

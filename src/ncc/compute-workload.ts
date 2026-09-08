@@ -88,7 +88,7 @@ export function computeNCCWorkload(
     mkFoundation('key',  'Key',                  mods.keyWaiver,  'VIPR 1200/1210'),
     mkFoundation('fys',  'First-Year Seminar',   mods.fysWaiver,  'VIPR 1200/1210'),
     mkFoundation('writ', 'Writing Seminar',      false, null),
-    mkFoundation('pad',  'Perspectives & Diff.', mods.pdWaiver,   'VIPR 1300'),
+    mkFoundation('pad',  'Perspectives & Difference', mods.pdWaiver, 'VIPR 1300'),
     mkFoundation('lang', 'Foreign Language',     mods.langWaiver, 'committee waiver'),
   ]
 

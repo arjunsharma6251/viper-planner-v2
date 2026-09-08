@@ -11,7 +11,7 @@ const FULFILLMENT_LABELS: Record<FulfillmentTag, string> = {
   'ncc-key': 'Key Foundation',
   'ncc-fys': 'First-Year Seminar',
   'ncc-writ': 'Writing Foundation',
-  'ncc-pad': 'Power & Difference',
+  'ncc-pad': 'Perspectives and Difference',
   'ncc-lang': 'Language Foundation',
   'ncc-distrib-ss': 'Distribution: Social Sciences',
   'ncc-distrib-h': 'Distribution: Humanities',
@@ -19,6 +19,7 @@ const FULFILLMENT_LABELS: Record<FulfillmentTag, string> = {
   'seas-ssh': 'SEAS SS/H elective',
   'seas-writ': 'SEAS Writing',
   'seas-ethics': 'SEAS Ethics',
+  'viper-energy': 'VIPER energy course',
 }
 
 /** The cluster palette — muted, paper-compatible tones. */

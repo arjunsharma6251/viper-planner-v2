@@ -37,6 +37,7 @@ const fulfillmentTagSchema = z.enum([
   'seas-ssh',
   'seas-writ',
   'seas-ethics',
+  'viper-energy',
 ])
 
 const courseDraftSchema = z.object({

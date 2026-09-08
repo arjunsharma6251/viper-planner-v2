@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { MAJORS, SAS_MAJORS, SEAS_MAJORS } from '../../data/majors'
-import { AP_CREDITS, resolveAPCredit } from '../../data/ap-credits'
+import { AP_CREDITS, AP_CREDIT_GROUPS, resolveAPCredit } from '../../data/ap-credits'
 import type { PlanConfig } from '../store/use-plan-store'
 
 export interface PlanSetupProps {
@@ -177,27 +177,47 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
 
         <fieldset>
           <legend className="smallcaps mb-1.5">Incoming credit</legend>
-          <div className="flex flex-col gap-1 rounded-sm border border-hairline bg-paper p-3.5 shadow-[var(--shadow-card)]">
-            {AP_CREDITS.map((ap) => {
-              const resolved = resolveAPCredit(ap, gradYear)
-              const on = apCreditIds.includes(ap.id)
+          <div className="flex flex-col gap-3.5 rounded-sm border border-hairline bg-paper p-3.5 shadow-[var(--shadow-card)]">
+            {AP_CREDIT_GROUPS.map((group) => {
+              const entries = AP_CREDITS.filter((ap) => group.kinds.includes(ap.kind))
+              if (entries.length === 0) return null
               return (
-                <label
-                  key={ap.id}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-0.5 text-[0.8125rem] hover:bg-[#fbf8f0]"
-                >
-                  <input
-                    type="checkbox"
-                    checked={on}
-                    className="accent-penn-blue"
-                    onChange={() =>
-                      setApCreditIds((ids) =>
-                        on ? ids.filter((i) => i !== ap.id) : [...ids, ap.id],
+                <div key={group.label}>
+                  <p className="mb-1 flex items-baseline gap-2 px-1">
+                    <span className="smallcaps !text-[0.5625rem] !text-ink/50">{group.label}</span>
+                    {group.hint && (
+                      <span className="text-[0.6875rem] text-ink/40 italic">{group.hint}</span>
+                    )}
+                  </p>
+                  <div className="flex flex-col gap-0.5">
+                    {entries.map((ap) => {
+                      const resolved = resolveAPCredit(ap, gradYear)
+                      const on = apCreditIds.includes(ap.id)
+                      return (
+                        <label
+                          key={ap.id}
+                          title={resolved.note}
+                          className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-0.5 text-[0.8125rem] hover:bg-[#fbf8f0]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            className="accent-penn-blue"
+                            onChange={() =>
+                              setApCreditIds((ids) =>
+                                on ? ids.filter((i) => i !== ap.id) : [...ids, ap.id],
+                              )
+                            }
+                          />
+                          <span className="flex-1">{resolved.label}</span>
+                          {!resolved.credit && (
+                            <span className="smallcaps !text-[0.5rem] !text-ink/35">no CU</span>
+                          )}
+                        </label>
                       )
-                    }
-                  />
-                  <span className="flex-1">{resolved.label}</span>
-                </label>
+                    })}
+                  </div>
+                </div>
               )
             })}
           </div>

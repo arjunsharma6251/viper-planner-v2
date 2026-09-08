@@ -8,6 +8,7 @@ import {
   REGULAR_SEMESTER_KEYS,
   TARGET_MAX,
   TARGET_HARD_CAP,
+  semesterCap,
   addCourse,
   canPlaceInSemester,
   getNccModule,
@@ -212,13 +213,13 @@ function placeGenEdFromOverride(
   // Try preferred semester first
   let sem: SemesterKey | null =
     canPlaceInSemester(data, slot.semPref) &&
-    (plan.loads[slot.semPref] || 0) + data.cu <= TARGET_HARD_CAP
+    (plan.loads[slot.semPref] || 0) + data.cu <= semesterCap(slot.semPref, TARGET_HARD_CAP)
       ? slot.semPref
       : null;
   // Otherwise find a light semester that accepts the offering
   if (!sem) {
     for (const k of REGULAR_SEMESTER_KEYS) {
-      if (canPlaceInSemester(data, k) && (plan.loads[k] || 0) + data.cu <= TARGET_HARD_CAP) {
+      if (canPlaceInSemester(data, k) && (plan.loads[k] || 0) + data.cu <= semesterCap(k, TARGET_HARD_CAP)) {
         sem = k;
         break;
       }
@@ -286,7 +287,7 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
     let bestLoad = Infinity;
     for (const k of allowedSems) {
       const cur = plan.loads[k] || 0;
-      if (cur + slot.cu <= cap && cur < bestLoad) {
+      if (cur + slot.cu <= semesterCap(k, cap) && cur < bestLoad) {
         best = k;
         bestLoad = cur;
       }
@@ -296,7 +297,7 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
 
   if (customSem && isRegularSemKey(customSem)) {
     sem = customSem;
-  } else if ((plan.loads[slot.semPref] || 0) + slot.cu <= SOFT) {
+  } else if ((plan.loads[slot.semPref] || 0) + slot.cu <= semesterCap(slot.semPref, SOFT)) {
     // Tier 2: semPref is comfortable
     sem = slot.semPref;
   } else if (isFoundation) {
@@ -306,7 +307,7 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
     if (!sem) sem = findLightestUnder(SOFT);
     if (!sem) {
       // No comfortable slot — try semPref under hard cap, then lightest under hard cap
-      if ((plan.loads[slot.semPref] || 0) + slot.cu <= HARD) {
+      if ((plan.loads[slot.semPref] || 0) + slot.cu <= semesterCap(slot.semPref, HARD)) {
         sem = slot.semPref;
       } else {
         sem =
@@ -319,7 +320,7 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
     // Non-Foundation slots: use original tier logic
     sem = findLightestUnder(SOFT);
     if (!sem) {
-      if ((plan.loads[slot.semPref] || 0) + slot.cu <= HARD) {
+      if ((plan.loads[slot.semPref] || 0) + slot.cu <= semesterCap(slot.semPref, HARD)) {
         sem = slot.semPref;
       } else {
         sem = findLightestUnder(HARD);
@@ -333,6 +334,7 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
     let best: SemesterKey | null = null;
     let bestLoad = Infinity;
     for (const k of REGULAR_SEMESTER_KEYS) {
+      if (k === 'fall-y1') continue; // first-semester cap is a hard rule
       if ((plan.loads[k] || 0) < bestLoad) {
         best = k;
         bestLoad = plan.loads[k] || 0;
@@ -345,7 +347,7 @@ function placeGenEdPlaceholder(plan: SchedulerPlan, slot: GenEdSlotLike): void {
 
   // Final exceedsMax check — ALWAYS based on current load + slot CU.
   // Catches user drag-drops to over-capacity semesters.
-  if ((plan.loads[sem] || 0) + slot.cu > HARD) {
+  if ((plan.loads[sem] || 0) + slot.cu > semesterCap(sem, HARD)) {
     exceedsMax = true;
   }
 

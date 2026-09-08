@@ -7,6 +7,7 @@ import {
   REGULAR_SEMESTER_KEYS,
   TARGET_MAX,
   TARGET_HARD_CAP,
+  semesterCap,
   addCourse,
   canPlaceInSemester,
   earliestAllowedIdx,
@@ -98,7 +99,7 @@ export function placeCoreCourses(plan: SchedulerPlan): SchedulerPlan {
         for (let i = earliestIdx; i < prefIdx; i++) {
           const candidate = REGULAR_SEMESTER_KEYS[i]!;
           if (!canPlaceInSemester(item.data, candidate)) continue;
-          if ((plan.loads[candidate] || 0) + item.data.cu > TARGET_MAX) continue;
+          if ((plan.loads[candidate] || 0) + item.data.cu > semesterCap(candidate, TARGET_MAX)) continue;
           targetSem = candidate;
           break;
         }
@@ -111,7 +112,10 @@ export function placeCoreCourses(plan: SchedulerPlan): SchedulerPlan {
     }
     // For user-dropped courses, ALWAYS honor the drop location regardless
     // of capacity. The course gets an EXCEEDS-MAX flag if over policy.
-    if ((plan.loads[targetSem] || 0) + item.data.cu > TARGET_HARD_CAP && !isUserDrop) {
+    // Fall Y1 uses the 5.5 CU first-semester cap: a sample-schedule core
+    // course that would overload it falls through to prereq-based placement
+    // (Phase 2), which finds the earliest term with room.
+    if ((plan.loads[targetSem] || 0) + item.data.cu > semesterCap(targetSem, TARGET_HARD_CAP) && !isUserDrop) {
       remaining.push(item);
       continue;
     }

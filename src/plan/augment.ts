@@ -85,6 +85,9 @@ export function augmentPlan(
           else if (id === 'seas-ethics') intent.seas = [...(intent.seas ?? []), 'ethics']
         }
       }
+      // A student can mark any course as VIPER energy-designated; it then
+      // counts toward the 3-course requirement exactly like a catalog flag.
+      const isEnergy = !!c.isEnergy || userMarks.includes('viper-energy')
 
       // Compute requirement count for star display:
       //   "Overlap" = counts toward both BA and BSE (cross-degree contribution)
@@ -105,7 +108,7 @@ export function augmentPlan(
       if (intent?.foundation) extraReqs += 1
       if (intent?.distribution) extraReqs += 1
       if (intent?.seas?.length) extraReqs += intent.seas.length
-      if (c.isEnergy) extraReqs += 1
+      if (isEnergy) extraReqs += 1
       const requirementCount = crossDegreeCount + extraReqs
       const overlapKind =
         c.category === 'both' || c.category === 'viper'
@@ -114,7 +117,7 @@ export function augmentPlan(
             ? ('within-degree' as const) // red stars — within one degree
             : null
 
-      return { ...c, intent, userFulfills: userMarks, requirementCount, overlapKind }
+      return { ...c, intent, isEnergy, userFulfills: userMarks, requirementCount, overlapKind }
     })
   }
 

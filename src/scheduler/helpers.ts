@@ -22,6 +22,16 @@ export const TARGET_IDEAL = 5.5;
 export const TARGET_MAX = 6.5;
 export const TARGET_HARD_CAP = 7.5;
 
+/**
+ * Penn caps first-semester students at 5.5 CU — no overload in Fall Y1.
+ * Every placement stage that fits a course against a load ceiling runs the
+ * ceiling through semesterCap() so the seed never overloads the first term.
+ */
+export const FIRST_SEMESTER_CAP = 5.5;
+export function semesterCap(semKey: string, cap: number): number {
+  return semKey === 'fall-y1' ? Math.min(cap, FIRST_SEMESTER_CAP) : cap;
+}
+
 // The 8 in-term semester keys, widened to SemesterKey so indexOf/includes
 // accept any semester key (the old untyped code indexed freely).
 export const REGULAR_SEMESTER_KEYS: readonly SemesterKey[] = SEMESTER_KEYS;
@@ -129,7 +139,7 @@ export function findBestSemester(
   for (let i = earliestIdx; i < REGULAR_SEMESTER_KEYS.length; i++) {
     const key = REGULAR_SEMESTER_KEYS[i]!;
     if (!canPlaceInSemester(course, key)) continue;
-    if ((plan.loads[key] || 0) + course.cu <= maxLoad) return key;
+    if ((plan.loads[key] || 0) + course.cu <= semesterCap(key, maxLoad)) return key;
   }
   return null;
 }
@@ -149,7 +159,7 @@ export function findLightestFitting(
     const key = REGULAR_SEMESTER_KEYS[i]!;
     if (!canPlaceInSemester(course, key)) continue;
     const load = plan.loads[key] || 0;
-    if (load + course.cu <= maxLoad && load < bestLoad) {
+    if (load + course.cu <= semesterCap(key, maxLoad) && load < bestLoad) {
       best = key;
       bestLoad = load;
     }

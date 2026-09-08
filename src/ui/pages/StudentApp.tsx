@@ -19,6 +19,7 @@ import { MajorSelects } from '../components/MajorSelects'
 import { LoadSkyline } from '../components/LoadSkyline'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
+import { computeNccAudit } from '../../plan/ncc-audit'
 
 interface OpenCourseRef {
   courseId: string
@@ -245,7 +246,15 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                     'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1',
               ].join(' ')}
             >
-              <RequirementTracker summary={store.augmented.summary} />
+              <RequirementTracker
+                summary={store.augmented.summary}
+                ncc={computeNccAudit(
+                  store.augmented,
+                  store.distributionTargets,
+                  store.viperMods,
+                  store.config?.apCreditIds ?? [],
+                )}
+              />
               {renderExtras?.(store)}
               {/* Collapsed disclosure panels print as empty boxes — leave
                   them off paper; the audit above is what an advisor needs. */}
@@ -367,9 +376,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           semKey={addTo}
           gradYear={gradYear}
           onClose={() => setAddTo(null)}
-          onAdd={(code, title, cu) =>
-            applyToast({ kind: 'add_course', semester: addTo, course: { code, title, cu } })
-          }
+          onAdd={(draft) => applyToast({ kind: 'add_course', semester: addTo, course: draft })}
         />
       )}
     </div>

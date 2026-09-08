@@ -140,9 +140,15 @@ export interface ViperProgram {
  * courses. Some (like AP Calc BC) have policy that varies by graduating
  * class — for those, `grants` (and `note`) is a function of gradYear.
  */
+/** How incoming credit was earned — drives grouping in setup. */
+export type ApCreditKind = 'ap' | 'ib' | 'alevel' | 'exam' | 'waiver';
+
 export interface ApCredit {
   id: string;
   label: string;
+  kind: ApCreditKind;
+  /** false = placement/waiver only: removes a requirement but adds no CU. */
+  credit: boolean;
   grants: readonly string[] | ((gradYear?: number | null) => readonly string[]);
   note: string | ((gradYear?: number | null) => string);
 }
@@ -151,6 +157,8 @@ export interface ApCredit {
 export interface ResolvedApCredit {
   id: string;
   label: string;
+  kind: ApCreditKind;
+  credit: boolean;
   grants: readonly string[];
   note: string;
 }

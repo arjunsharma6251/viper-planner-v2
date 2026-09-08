@@ -31,8 +31,15 @@ export interface SemesterCardProps {
  * Load classification (academic-year semesters only — summers are judged
  * differently and never get these labels).
  */
-function loadTone(load: number, summer: boolean): { cls: string; word: string | null } {
+function loadTone(
+  load: number,
+  summer: boolean,
+  firstSemester: boolean,
+): { cls: string; word: string | null } {
   if (summer || load === 0) return { cls: 'text-ink-soft', word: null }
+  // Penn caps first-semester students at 5.5 CU — no overload allowed.
+  if (firstSemester && load > 5.5)
+    return { cls: 'text-penn-red font-semibold', word: 'over first-semester cap' }
   if (load > 7.5) return { cls: 'text-penn-red font-semibold', word: 'over hard cap' }
   if (load > 6.5) return { cls: 'text-penn-red', word: 'needs approval' }
   if (load > 5.5) return { cls: 'text-[#9a6a00]', word: 'overload' }
@@ -60,7 +67,8 @@ export function SemesterCard({
 }: SemesterCardProps) {
   const summer = isSummerSem(semKey)
   const [insertAt, setInsertAt] = useState<number | null>(null)
-  const tone = loadTone(load, summer)
+  const firstSemester = semKey === 'fall-y1'
+  const tone = loadTone(load, summer, firstSemester)
   const crowded = courses.length > 7
 
   function handleDragOver(e: DragEvent<HTMLDivElement>) {
@@ -134,7 +142,11 @@ export function SemesterCard({
           <div
             className={[
               'absolute inset-y-0 left-0 rounded-full transition-[width,background-color] duration-300 ease-out',
-              load > 6.5 ? 'bg-penn-red' : load > 5.5 ? 'bg-[#b8860b]' : 'bg-penn-blue/70',
+              load > 6.5 || (firstSemester && load > 5.5)
+                ? 'bg-penn-red'
+                : load > 5.5
+                  ? 'bg-[#b8860b]'
+                  : 'bg-penn-blue/70',
             ].join(' ')}
             style={{ width: `${Math.min(load / 7.5, 1) * 100}%` }}
           />

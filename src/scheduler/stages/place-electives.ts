@@ -6,6 +6,7 @@ import type { SemesterKey } from '../../data/semesters';
 import {
   REGULAR_SEMESTER_KEYS,
   TARGET_MAX,
+  semesterCap,
   addCourse,
   canPlaceInSemester,
   earliestAllowedIdx,
@@ -141,14 +142,16 @@ function placeOneElective(
   let placedSem: SemesterKey | null = null;
   for (const { k } of tryOrder) {
     if (!canPlaceInSemester(data, k)) continue;
-    if ((plan.loads[k] || 0) + data.cu <= TARGET_MAX) {
+    if ((plan.loads[k] || 0) + data.cu <= semesterCap(k, TARGET_MAX)) {
       placedSem = k;
       break;
     }
   }
   if (!placedSem) {
-    // Force into lightest slot with offering constraint
+    // Force into lightest slot with offering constraint (never Fall Y1 —
+    // the first-semester cap is a hard rule, not a preference)
     for (const { k } of tryOrder) {
+      if (k === 'fall-y1') continue;
       if (canPlaceInSemester(data, k)) {
         placedSem = k;
         break;

@@ -172,23 +172,40 @@ export function addCourse(plan: Plan, semester: SemesterKey, course: CourseDraft
   if (!isSemesterKey(semester)) {
     return fail(plan, `Unknown semester "${semester as string}".`)
   }
-  const code = course.code?.trim()
+  let code = course.code?.trim()
   if (!code) return fail(plan, 'Course code is required.')
 
   const catalog = lookupCourse(code)
   const next = clonePlan(plan)
+  const placeholder = !!course.isPlaceholder
+  if (placeholder) {
+    // Open slots share a display code ("—") but need distinct identities
+    // for tagging, moving and removal: suffix with the next free ordinal.
+    const base = code
+    const taken = new Set(
+      Object.values(next.semesters)
+        .flat()
+        .map((c) => c.originalCode ?? c.code),
+    )
+    let n = 1
+    code = `${base} #${n}`
+    while (taken.has(code)) code = `${base} #${++n}`
+  }
   next.semesters[semester].push({
     code,
     title: course.title?.trim() || catalog?.title || code,
     cu: course.cu ?? catalog?.cu ?? 1,
     category: course.category ?? 'gened',
-    isElective: false,
-    isPlaceholder: false,
+    isElective: placeholder,
+    isPlaceholder: placeholder,
+    ...(course.slotId ? { slotId: course.slotId, slotLabel: course.title?.trim() } : {}),
+    ...(course.intent ? { intent: course.intent } : {}),
     isUserAdded: true,
     tags: ['USER-ADDED'],
   })
   recomputeDerived(next)
-  return { ok: true, message: `Added ${code} to ${semLabel(next, semester)}`, plan: next }
+  const what = placeholder ? `an open ${course.title?.trim() ?? 'requirement'} slot` : code
+  return { ok: true, message: `Added ${what} to ${semLabel(next, semester)}`, plan: next }
 }
 
 /**
