@@ -5,6 +5,7 @@ import { ALL_SEMESTER_KEYS, semesterLabel } from '../../data/semesters'
 import { pcrUrlFor } from '../../utils/pcr'
 import { Modal } from './Modal'
 import { isOpenSlot } from '../../plan/open-slot'
+import { alternativesFor } from '../../data/seas-catalog'
 
 const FULFILLMENT_LABELS: Record<FulfillmentTag, string> = {
   'ncc-kite': 'Kite Foundation',
@@ -32,6 +33,8 @@ export interface CourseDetailModalProps {
   semKey: SemesterKey
   gradYear: number | null
   color?: string
+  /** Picks which catalog alternatives apply to core courses. */
+  seasMajorKey?: string | null
   onClose: () => void
   onToggleFulfillment: (courseId: string, tag: FulfillmentTag, on: boolean) => void
   onSwap: (slotId: string, newCode: string) => void
@@ -50,6 +53,7 @@ export function CourseDetailModal({
   semKey,
   gradYear,
   color,
+  seasMajorKey,
   onClose,
   onToggleFulfillment,
   onSwap,
@@ -58,7 +62,10 @@ export function CourseDetailModal({
   onDelete,
   onSetColor,
 }: CourseDetailModalProps) {
-  const hasPool = !!course.slotId && (course.pool?.length ?? course.suggests?.length ?? 0) > 0
+  const alternatives = alternativesFor(seasMajorKey, course.originalCode ?? course.code)
+  const hasPool =
+    (!!course.slotId && (course.pool?.length ?? course.suggests?.length ?? 0) > 0) ||
+    alternatives.length > 0
   const open = isOpenSlot(course)
   // An open slot's one job is to get filled — land on the picker when
   // there is one, otherwise on Actions (where a code can be typed in).
@@ -141,7 +148,35 @@ export function CourseDetailModal({
         </div>
       )}
 
-      {tab === 'pick' && hasPool && (
+      {tab === 'pick' && alternatives.length > 0 && (
+        <div className="mb-4 flex flex-col">
+          <p className="smallcaps mb-2">Accepted in place of {course.originalCode ?? course.code}</p>
+          <p className="mb-1.5 text-[0.6875rem] leading-relaxed text-ink/45">
+            Listed as "or" options in the SEAS catalog for your major. Swapping keeps this
+            requirement's place in the plan.
+          </p>
+          {alternatives.map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => {
+                onRename(courseId, code)
+                onClose()
+              }}
+              className="flex items-center gap-3 border-b border-dotted border-hairline px-1 py-2 text-left text-[0.8125rem] last:border-b-0 hover:bg-[#fbf8f0]"
+            >
+              <span className="w-[4.6rem] font-mono text-[0.6875rem] font-medium text-penn-blue">
+                {code}
+              </span>
+              {code === course.code && (
+                <span className="smallcaps !text-[0.5rem] !text-[#1e6b38]">current</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {tab === 'pick' && pool.length > 0 && (
         <div className="flex flex-col">
           <p className="smallcaps mb-2">Pre-screened picks for this slot</p>
           {pool.map((code) => (

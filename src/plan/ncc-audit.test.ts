@@ -131,7 +131,33 @@ describe('computeNccAudit — confirmed policy only', () => {
     const byId = Object.fromEntries(a.seas.map((r) => [r.id, r]))
     expect(byId['seas-writ']?.planned).toBe(1)
     expect(byId['seas-ethics']?.by).toBe('VIPR 1210')
+    // Default (non-MEAM) split: 3 "SS or H" + 2 "SS/H/TBS"; two courses fill the first bucket.
     expect(byId['seas-ssh']?.planned).toBe(2)
+    expect(byId['seas-ssh']?.target).toBe(3)
+    expect(byId['seas-ssh-tbs']?.planned).toBe(0)
+  })
+
+  it('MEAM uses the catalog split: 1 SS, 1 H (beyond Writing), 1 SS/H, 2 SS/H/TBS', () => {
+    const a = computeNccAudit(
+      plan({
+        'fall-y3': [
+          course({ code: 'ECON 0100', intent: { distribution: 'SS' } }),
+          course({ code: 'HIST 1708', intent: { distribution: 'H' } }),
+          course({ code: 'PHIL 0001', intent: { distribution: 'H' } }),
+        ],
+      }),
+      [],
+      undefined,
+      'MEAM',
+    )
+    expect(a.seas.map((r) => [r.id, r.planned, r.target])).toEqual([
+      ['seas-writ', 0, 1],
+      ['seas-ethics', 0, 1],
+      ['seas-ss', 1, 1],
+      ['seas-h', 1, 1],
+      ['seas-ssh', 1, 1],
+      ['seas-ssh-tbs', 0, 2],
+    ])
   })
 
   it('maps seeded old-curriculum sectors onto NCC divisions', () => {
@@ -154,6 +180,8 @@ describe('computeNccAudit — confirmed policy only', () => {
       ['SS', 2, 3],
       ['H', 3, 5],
     ])
-    expect(a.seas.find((r) => r.id === 'seas-ssh')?.planned).toBe(5)
+    // Five sector/FA courses fill "SS or H" (3) then "SS/H/TBS" (2).
+    expect(a.seas.find((r) => r.id === 'seas-ssh')?.planned).toBe(3)
+    expect(a.seas.find((r) => r.id === 'seas-ssh-tbs')?.planned).toBe(2)
   })
 })

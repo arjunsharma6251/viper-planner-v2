@@ -248,7 +248,12 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             >
               <RequirementTracker
                 summary={store.augmented.summary}
-                ncc={computeNccAudit(store.augmented, store.config?.apCreditIds ?? [])}
+                ncc={computeNccAudit(
+                  store.augmented,
+                  store.config?.apCreditIds ?? [],
+                  undefined,
+                  store.config?.seasMajorKey ?? null,
+                )}
               />
               {renderExtras?.(store)}
               {/* Collapsed disclosure panels print as empty boxes — leave
@@ -339,6 +344,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           semKey={openCourse.semKey}
           gradYear={gradYear}
           color={store.colorOverrides[openCourse.course.originalCode ?? openCourse.course.code]}
+          seasMajorKey={store.config?.seasMajorKey ?? null}
           onClose={() => setOpenRef(null)}
           onToggleFulfillment={(courseId, tag, on) => {
             store.apply({ kind: 'tag_fulfillment', courseId, fulfillmentId: tag, on })

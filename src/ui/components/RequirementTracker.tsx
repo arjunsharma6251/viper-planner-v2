@@ -176,12 +176,7 @@ export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc
                 missing={[`${r.target - r.planned} CU`]}
                 detail={
                   <p className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs leading-relaxed text-ink-soft">
-                    {r.id === 'seas-writ' &&
-                      (r.by ? `Covered by ${r.by}.` : 'Plan a Critical Writing seminar — it covers both.')}
-                    {r.id === 'seas-ethics' &&
-                      (r.by ? `Covered by ${r.by}.` : 'VIPR 1200 or VIPR 1210 covers this once placed.')}
-                    {r.id === 'seas-ssh' &&
-                      `${r.planned} of 5 planned. Any Social Sciences or Humanities course counts; the exact SS / H / TBS split depends on your engineering major.`}
+                    {r.hint}
                   </p>
                 }
               />

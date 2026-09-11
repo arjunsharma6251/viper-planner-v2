@@ -1,6 +1,7 @@
 import type { AugmentedCourse, AugmentedPlan, FoundationId } from './types'
 import { CONFIRMED_VIPER_MODS, normalizeViperMods } from '../ncc/mods'
 import type { ViperModsInput } from '../ncc/types'
+import { SEAS_GEN_ED, type SeasGenEdSpec } from '../data/seas-catalog'
 
 /**
  * Student-facing New College Curriculum audit, read straight off the plan.
@@ -42,11 +43,13 @@ export interface NccDivisionAudit {
 }
 
 export interface SeasElectiveAudit {
-  id: 'seas-writ' | 'seas-ethics' | 'seas-ssh'
+  id: string
   label: string
   planned: number
   target: number
   by: string | null
+  /** Expanded-row guidance. */
+  hint: string
 }
 
 export interface NccAudit {
@@ -89,6 +92,8 @@ export function computeNccAudit(
   apCreditIds: readonly string[] = [],
   /** Defaults to confirmed policy. Pass sandbox mods only in admin views. */
   viperMods: ViperModsInput = CONFIRMED_VIPER_MODS,
+  /** Picks the SEAS general-elective split (per-major in the catalog). */
+  seasMajorKey: string | null = null,
 ): NccAudit {
   const mods = normalizeViperMods(viperMods)
   const courses = Object.values(plan.semesters).flat()
@@ -161,13 +166,36 @@ export function computeNccAudit(
   ]
 
   // ---- SEAS general electives (7 CU) ----
+  // Ethics (VIPR 1200/1210 for VIPER) + Writing seminar + 5 SS/H/TBS whose
+  // split is per major (src/data/seas-catalog.ts). Courses fill the
+  // strictest bucket they qualify for first, so a Social Science course
+  // lands in "Social Science" before it lands in "SS or H".
   const writ = foundations.find((f) => f.id === 'ncc-writ')
   const ethicsBy = has('VIPR 1200') ? 'VIPR 1200' : has('VIPR 1210') ? 'VIPR 1210' : null
-  // Any SS/H course counts toward the 5, as does anything the student has
-  // tagged as a SEAS SS/H elective. Each course counts once.
-  const sshCourses = courses.filter(
-    (c) => divisionOf(c) !== null || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh'),
-  )
+  const spec: SeasGenEdSpec = SEAS_GEN_ED[seasMajorKey ?? ''] ?? { ss: 0, h: 0, ssh: 3, sshTbs: 2, ethics: ['EAS 2030'] }
+  let ssPool = 0
+  let hPool = 0
+  let eitherPool = 0
+  for (const c of courses) {
+    if (c.slotId === 'gened-writ' || c.intent?.fa === 'WRIT') continue // tracked as Writing
+    const d = divisionOf(c)
+    if (d === 'SS') ssPool += 1
+    else if (d === 'H') hPool += 1
+    else if (d === 'SS/H' || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh')) eitherPool += 1
+  }
+  const take = (n: number, ...pools: Array<'ss' | 'h' | 'either'>): number => {
+    let got = 0
+    for (const p of pools) {
+      const avail = p === 'ss' ? ssPool : p === 'h' ? hPool : eitherPool
+      const use = Math.min(n - got, avail)
+      if (p === 'ss') ssPool -= use
+      else if (p === 'h') hPool -= use
+      else eitherPool -= use
+      got += use
+      if (got >= n) break
+    }
+    return got
+  }
   const seas: SeasElectiveAudit[] = [
     {
       id: 'seas-writ',
@@ -175,6 +203,9 @@ export function computeNccAudit(
       planned: writ?.state === 'missing' ? 0 : 1,
       target: 1,
       by: writ?.state === 'missing' ? null : (writ?.by ?? null),
+      hint: writ?.state === 'missing'
+        ? 'Plan a Critical Writing seminar — it covers the College Foundation and this slot.'
+        : `Covered by ${writ?.by}.`,
     },
     {
       id: 'seas-ethics',
@@ -182,15 +213,31 @@ export function computeNccAudit(
       planned: ethicsBy ? 1 : 0,
       target: 1,
       by: ethicsBy,
-    },
-    {
-      id: 'seas-ssh',
-      label: 'SS / H / TBS electives',
-      planned: Math.min(5, sshCourses.length),
-      target: 5,
-      by: null,
+      hint: ethicsBy
+        ? `Covered by ${ethicsBy}.`
+        : `VIPR 1200 or VIPR 1210 covers this once placed (the catalog lists ${spec.ethics.join(' / ')}).`,
     },
   ]
+  if (spec.ss > 0) {
+    const got = take(spec.ss, 'ss')
+    seas.push({ id: 'seas-ss', label: 'Social Science', planned: got, target: spec.ss, by: null,
+      hint: `${got} of ${spec.ss} planned. Must carry the SEAS Social Science (EUSS) attribute.` })
+  }
+  if (spec.h > 0) {
+    const got = take(spec.h, 'h')
+    seas.push({ id: 'seas-h', label: 'Humanities', planned: got, target: spec.h, by: null,
+      hint: `${got} of ${spec.h} planned. Must carry the SEAS Humanities (EUHS) attribute.` })
+  }
+  if (spec.ssh > 0) {
+    const got = take(spec.ssh, 'ss', 'h', 'either')
+    seas.push({ id: 'seas-ssh', label: 'Social Science or Humanities', planned: got, target: spec.ssh, by: null,
+      hint: `${got} of ${spec.ssh} planned. Any Social Science or Humanities course counts.` })
+  }
+  if (spec.sshTbs > 0) {
+    const got = take(spec.sshTbs, 'ss', 'h', 'either')
+    seas.push({ id: 'seas-ssh-tbs', label: 'SS, Humanities or TBS', planned: got, target: spec.sshTbs, by: null,
+      hint: `${got} of ${spec.sshTbs} planned. Social Science, Humanities, or Technology in Business & Society (EUTB).` })
+  }
 
   return {
     foundations,
