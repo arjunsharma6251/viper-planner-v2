@@ -83,6 +83,7 @@ export function augmentPlan(
           else if (id === 'seas-ssh') intent.seas = [...(intent.seas ?? []), 'ssh']
           else if (id === 'seas-writ') intent.seas = [...(intent.seas ?? []), 'writ']
           else if (id === 'seas-ethics') intent.seas = [...(intent.seas ?? []), 'ethics']
+          else if (id === 'seas-tbs') intent.seas = [...(intent.seas ?? []), 'tbs']
         }
       }
       // A student can mark any course as VIPER energy-designated; it then

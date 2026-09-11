@@ -173,24 +173,20 @@ export function computeNccAudit(
   const writ = foundations.find((f) => f.id === 'ncc-writ')
   const ethicsBy = has('VIPR 1200') ? 'VIPR 1200' : has('VIPR 1210') ? 'VIPR 1210' : null
   const spec: SeasGenEdSpec = SEAS_GEN_ED[seasMajorKey ?? ''] ?? { ss: 0, h: 0, ssh: 3, sshTbs: 2, ethics: ['EAS 2030'] }
-  let ssPool = 0
-  let hPool = 0
-  let eitherPool = 0
+  const pools = { ss: 0, h: 0, either: 0, tbs: 0 }
   for (const c of courses) {
     if (c.slotId === 'gened-writ' || c.intent?.fa === 'WRIT') continue // tracked as Writing
     const d = divisionOf(c)
-    if (d === 'SS') ssPool += 1
-    else if (d === 'H') hPool += 1
-    else if (d === 'SS/H' || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh')) eitherPool += 1
+    if (d === 'SS') pools.ss += 1
+    else if (d === 'H') pools.h += 1
+    else if (d === 'SS/H' || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh')) pools.either += 1
+    else if (c.intent?.seas?.includes('tbs') || c.userFulfills.includes('seas-tbs')) pools.tbs += 1
   }
-  const take = (n: number, ...pools: Array<'ss' | 'h' | 'either'>): number => {
+  const take = (n: number, ...from: Array<keyof typeof pools>): number => {
     let got = 0
-    for (const p of pools) {
-      const avail = p === 'ss' ? ssPool : p === 'h' ? hPool : eitherPool
-      const use = Math.min(n - got, avail)
-      if (p === 'ss') ssPool -= use
-      else if (p === 'h') hPool -= use
-      else eitherPool -= use
+    for (const p of from) {
+      const use = Math.min(n - got, pools[p])
+      pools[p] -= use
       got += use
       if (got >= n) break
     }
@@ -234,9 +230,9 @@ export function computeNccAudit(
       hint: `${got} of ${spec.ssh} planned. Any Social Science or Humanities course counts.` })
   }
   if (spec.sshTbs > 0) {
-    const got = take(spec.sshTbs, 'ss', 'h', 'either')
+    const got = take(spec.sshTbs, 'tbs', 'ss', 'h', 'either')
     seas.push({ id: 'seas-ssh-tbs', label: 'SS, Humanities or TBS', planned: got, target: spec.sshTbs, by: null,
-      hint: `${got} of ${spec.sshTbs} planned. Social Science, Humanities, or Technology in Business & Society (EUTB).` })
+      hint: `${got} of ${spec.sshTbs} planned. Social Science, Humanities, or Technology in Business & Society — tag a TBS course under Tags → SEAS TBS.` })
   }
 
   return {

@@ -184,4 +184,18 @@ describe('computeNccAudit — confirmed policy only', () => {
     expect(a.seas.find((r) => r.id === 'seas-ssh')?.planned).toBe(3)
     expect(a.seas.find((r) => r.id === 'seas-ssh-tbs')?.planned).toBe(2)
   })
+
+  it('TBS-tagged courses fill only the SS/H/TBS bucket', () => {
+    const a = computeNccAudit(
+      plan({
+        'fall-y3': [
+          course({ code: 'LGST 1000', userFulfills: ['seas-tbs'] }),
+          course({ code: 'OIDD 1010', userFulfills: ['seas-tbs'] }),
+          course({ code: 'MGMT 1010', userFulfills: ['seas-tbs'] }),
+        ],
+      }),
+    )
+    expect(a.seas.find((r) => r.id === 'seas-ssh')?.planned).toBe(0)
+    expect(a.seas.find((r) => r.id === 'seas-ssh-tbs')?.planned).toBe(2)
+  })
 })

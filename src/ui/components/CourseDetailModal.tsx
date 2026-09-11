@@ -20,6 +20,7 @@ const FULFILLMENT_LABELS: Record<FulfillmentTag, string> = {
   'seas-ssh': 'SEAS SS/H elective',
   'seas-writ': 'SEAS Writing',
   'seas-ethics': 'SEAS Ethics',
+  'seas-tbs': 'SEAS Technology in Business & Society (TBS)',
   'viper-energy': 'VIPER energy course',
 }
 

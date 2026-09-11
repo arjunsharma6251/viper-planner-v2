@@ -45,7 +45,7 @@ export type FoundationId =
   | 'ncc-lang'
 
 /** SEAS gen-ed buckets a course can be marked toward. */
-export type SeasBucket = 'ssh' | 'writ' | 'ethics'
+export type SeasBucket = 'ssh' | 'tbs' | 'writ' | 'ethics'
 
 /** User-markable fulfillment ids (the checkbox list in the detail modal). */
 export type FulfillmentTag =
@@ -56,6 +56,8 @@ export type FulfillmentTag =
   | 'seas-ssh'
   | 'seas-writ'
   | 'seas-ethics'
+  /** Technology in Business & Society (EUTB) — fills only the SS/H/TBS bucket. */
+  | 'seas-tbs'
   /** Student-marked VIPER energy-designated course (counts toward the 3). */
   | 'viper-energy'
 
