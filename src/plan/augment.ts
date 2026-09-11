@@ -107,7 +107,18 @@ export function augmentPlan(
       if (fa) extraReqs += 1
       if (sec) extraReqs += 1
       if (intent?.foundation) extraReqs += 1
-      if (intent?.distribution) extraReqs += 1
+      // Per the College chart only First-Year Seminar and Perspectives and
+      // Difference may count within the distribution; other Foundation
+      // slots carry a division for placement only and must not earn a
+      // double-count star for it.
+      // A division the student tagged themselves is their claim and counts.
+      const foundationOnly =
+        (intent?.foundation === 'ncc-kite' ||
+          intent?.foundation === 'ncc-key' ||
+          intent?.foundation === 'ncc-writ' ||
+          intent?.foundation === 'ncc-lang') &&
+        !userMarks.some((t) => t.startsWith('ncc-distrib-'))
+      if (intent?.distribution && !foundationOnly) extraReqs += 1
       if (intent?.seas?.length) extraReqs += intent.seas.length
       if (isEnergy) extraReqs += 1
       const requirementCount = crossDegreeCount + extraReqs
