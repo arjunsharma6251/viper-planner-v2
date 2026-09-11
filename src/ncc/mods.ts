@@ -10,6 +10,28 @@
 
 import type { ModDefinition, ModPreset, ViperModKey, ViperMods, ViperModsInput } from './types'
 
+/**
+ * What is actually approved today (Arjun, 2026-09-11): VIPR 1200/1210 count
+ * as the First-Year Seminar. Every other modification is a proposal that
+ * needs committee approval. Student-facing audits use THIS set; the admin
+ * sandbox starts from DEFAULT_VIPER_MODS (the current proposal) and toggles.
+ */
+export const CONFIRMED_VIPER_MODS: ViperMods = {
+  fysWaiver: true,
+  keyWaiver: false,
+  langWaiver: false,
+  pdWaiver: false,
+  kiteFullWaiver: false,
+  viprKiteWaiver: false,
+  kiteLabWaiver: false,
+  summerFoundation: false,
+  doubleCountVIPR1300: false,
+  doubleCountKite: false,
+  doubleCountWriting: false,
+  seasHumanitiesKite: false,
+  aandsCUWaiver: false,
+}
+
 export const DEFAULT_VIPER_MODS: ViperMods = {
   // — Foundation waivers via VIPR courses —
   fysWaiver:          true,   // VIPR 1200 satisfies First-Year Seminar

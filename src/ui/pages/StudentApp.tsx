@@ -248,12 +248,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             >
               <RequirementTracker
                 summary={store.augmented.summary}
-                ncc={computeNccAudit(
-                  store.augmented,
-                  store.distributionTargets,
-                  store.viperMods,
-                  store.config?.apCreditIds ?? [],
-                )}
+                ncc={computeNccAudit(store.augmented, store.config?.apCreditIds ?? [])}
               />
               {renderExtras?.(store)}
               {/* Collapsed disclosure panels print as empty boxes — leave

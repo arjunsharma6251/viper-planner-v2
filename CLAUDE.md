@@ -133,7 +133,13 @@ The College and Engineering have different gen-ed requirements. SAS uses either 
 
 **OCC** (old curriculum, mainly relevant for older students or specific BA tracks): organized around Foundational Approaches (FA) and Sectors (I–VII). Validation passes when every FA and every Sector has at least one course satisfying it.
 
-**NCC** (new curriculum): organized around 6 Foundations (Kite, Key, FYS, Writing, P&D — "Perspectives and Difference", Language) + a 5+3 distribution requirement (5 CU in Social Sciences + 3 CU in Humanities, beyond a 12 CU Natural Sciences requirement that's already satisfied by the engineering major). Total non-major: 14 CU at full policy.
+**NCC** (new curriculum) — confirmed with Arjun 2026-09-11 from the College's own summary chart:
+
+- **Foundations (6):** Kite, Key, First-Year Seminar, Perspectives and Difference, Language, Critical Writing. Each is 1 CU except Language, which is 0–2 CU depending on placement. First-Year Seminar and Perspectives and Difference *may be counted within the distribution requirements* (official policy, not a VIPER ask).
+- **Distribution: 12 + 5 + 3** across the three divisions (Humanities & the Arts, Natural Sciences, Social Sciences). Division I (12 CU, "likely basis for major", 12–20 CU) is the major's own division — Natural Sciences for every VIPER College major, so it is covered by major work. The 5 and the 3 go to the other two divisions **in either order**; do not hardcode SS = 5, H = 3 as a rule (it is only the default targets object the sandbox starts from).
+- **Electives:** 11–13+ CU. **BA total: 36+ CU.**
+- **Approved VIPER overlap (the only one):** VIPR 1200/1210 count as the First-Year Seminar. Every other modification in the sandbox (Key via VIPR 1210, Language waiver, P&D via VIPR 1300, Kite waivers/lab, Kite/Writing/VIPR 1300 double-counts, A&S 3 CU waiver) **needs committee approval** and must not appear as granted in anything a student sees. `CONFIRMED_VIPER_MODS` in `src/ncc/mods.ts` encodes this; student-facing code uses it, the sandbox uses `DEFAULT_VIPER_MODS` (the current proposal).
+- **SEAS general electives: 7 CU**, unchanged by NCC. 1 is the Writing seminar (the College's Critical Writing), 1 is Engineering ethics (VIPR 1200/1210), and the remaining 5 are SS / H / TBS courses whose split depends on the engineering major (per-major split not yet in data — ask Arjun).
 
 For VIPER specifically, the NCC math is heavier than the major requirements can absorb, which is the whole reason for the policy-advocacy work the sandbox supports.
 

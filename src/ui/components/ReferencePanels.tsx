@@ -73,6 +73,40 @@ export function ReferencePanels() {
         </ul>
       </Disclosure>
 
+      <Disclosure title="New College Curriculum">
+        <ul className="flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-ink-soft">
+          <li>
+            <span className="text-ink">Foundations:</span> Kite, Key, First-Year Seminar,
+            Perspectives and Difference, Language (0–2 CU), Critical Writing. 1 CU each except
+            Language.
+          </li>
+          <li>
+            <span className="text-ink">Distribution 12 + 5 + 3:</span> the 12 is your major's
+            division (Natural Sciences) and is covered by major work. The 5 and 3 go to Social
+            Sciences and Humanities in either order.
+          </li>
+          <li>
+            First-Year Seminar and Perspectives and Difference may also count within the
+            distribution.
+          </li>
+          <li>
+            <span className="text-ink">Approved VIPER overlap:</span> VIPR 1200 / 1210 count as
+            the First-Year Seminar. Any other waiver or double-count needs approval — ask before
+            you plan on it.
+          </li>
+          <li>
+            <span className="text-ink">SEAS general electives, 7 CU:</span> Writing seminar,
+            Engineering ethics (VIPR 1200 / 1210), and 5 SS / H / TBS courses split by
+            engineering major.
+          </li>
+          <li>
+            BA total{' '}
+            <span className="tnum font-mono text-[0.6875rem] text-ink">36+ CU</span>, with 11–13+
+            CU of electives for majors, minors and exploration.
+          </li>
+        </ul>
+      </Disclosure>
+
       <Disclosure title="Common double-counts">
         <p className="mb-2 text-[0.6875rem] text-ink/45 italic">
           Courses VIPER students routinely double-count. Click through to PCR before

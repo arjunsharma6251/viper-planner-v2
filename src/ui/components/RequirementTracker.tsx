@@ -123,16 +123,14 @@ export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc
                     {ncc.foundations.map((f) => (
                       <li key={f.id} className="flex items-baseline gap-2 py-0.5">
                         <span
-                          className={
-                            f.state === 'missing' ? 'text-ink/85' : 'text-ink-soft'
-                          }
+                          className={f.state === 'missing' ? 'text-ink/85' : 'text-ink-soft'}
                         >
                           {f.label}
                         </span>
                         <span className="text-ink/40 italic">
                           {f.state === 'missing' && 'nothing planned'}
                           {f.state === 'planned' && `— ${f.by}`}
-                          {f.state === 'waived' && `— waived (${f.by})`}
+                          {f.state === 'approved-overlap' && `— ${f.by} (approved overlap)`}
                           {f.state === 'credit' && `— ${f.by}`}
                         </span>
                       </li>
@@ -141,7 +139,9 @@ export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc
                   <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink/45">
                     To plan one: open any semester's <span className="font-medium">Add course</span>{' '}
                     and choose an open slot, or open a course and tick it under{' '}
-                    <span className="font-medium">Tags</span>.
+                    <span className="font-medium">Tags</span>. First-Year Seminar and Perspectives
+                    and Difference also count toward the distribution once their course is tagged
+                    with a division.
                   </p>
                 </div>
               }
@@ -149,16 +149,39 @@ export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc
             {ncc.divisions.map((d) => (
               <TrackerRow
                 key={d.id}
-                label={`${d.label} distribution`}
+                label={d.label}
                 done={d.planned}
                 total={d.target}
                 unit="cu"
-                missing={[`${d.target - d.planned} CU of ${d.label}`]}
+                missing={[`${round1(d.target - d.planned)} CU of ${d.label}`]}
                 detail={
                   <p className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs leading-relaxed text-ink-soft">
                     {d.planned >= d.target
                       ? `${d.planned} CU planned toward ${d.label}.`
-                      : `${round1(d.target - d.planned)} CU still to plan. Add an open ${d.label} slot from any semester, or tag a course under Tags → Distribution: ${d.label}.`}
+                      : `${round1(d.target - d.planned)} CU still to plan. Add an open ${d.label} slot from any semester, or tag a course under Tags → Distribution.`}{' '}
+                    The 5 and 3 CU targets go to either division; Natural Sciences (12 CU) is
+                    covered by your major.
+                  </p>
+                }
+              />
+            ))}
+            <GroupHead>SEAS general electives · 7 CU</GroupHead>
+            {ncc.seas.map((r) => (
+              <TrackerRow
+                key={r.id}
+                label={r.label}
+                done={r.planned}
+                total={r.target}
+                unit="cu"
+                missing={[`${r.target - r.planned} CU`]}
+                detail={
+                  <p className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs leading-relaxed text-ink-soft">
+                    {r.id === 'seas-writ' &&
+                      (r.by ? `Covered by ${r.by}.` : 'Plan a Critical Writing seminar — it covers both.')}
+                    {r.id === 'seas-ethics' &&
+                      (r.by ? `Covered by ${r.by}.` : 'VIPR 1200 or VIPR 1210 covers this once placed.')}
+                    {r.id === 'seas-ssh' &&
+                      `${r.planned} of 5 planned. Any Social Sciences or Humanities course counts; the exact SS / H / TBS split depends on your engineering major.`}
                   </p>
                 }
               />
