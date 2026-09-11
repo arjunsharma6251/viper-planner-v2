@@ -133,4 +133,27 @@ describe('computeNccAudit — confirmed policy only', () => {
     expect(byId['seas-ethics']?.by).toBe('VIPR 1210')
     expect(byId['seas-ssh']?.planned).toBe(2)
   })
+
+  it('maps seeded old-curriculum sectors onto NCC divisions', () => {
+    const a = computeNccAudit(
+      plan({
+        'fall-y3': [
+          course({ code: '— s1', title: 'Sector I: Society', isPlaceholder: true, intent: { sec: 'I' } }),
+          course({ code: '— s2', title: 'Sector II: History & Tradition', isPlaceholder: true, intent: { sec: 'II' } }),
+          course({ code: '— s3', title: 'Sector III: Arts & Letters', isPlaceholder: true, intent: { sec: 'III' } }),
+          course({ code: '— s4', title: 'Sector IV', isPlaceholder: true, intent: { sec: 'IV' } }),
+          course({ code: '— cca', title: 'Cross-Cultural Analysis', isPlaceholder: true, intent: { fa: 'CCA' } }),
+          course({ code: '— s5', title: 'Sector V: Living World', isPlaceholder: true, intent: { sec: 'V' } }),
+        ],
+      }),
+    )
+    // Fixed: SS 1 (Sector I), H 2 (II + III). Flexible 2 (IV + CCA) fill the
+    // larger gap first: H is fuller so it takes the 5-target; gaps H 3, SS 2 →
+    // H, then SS. Result SS 2/3, H 3/5. Sector V (natural science) is ignored.
+    expect(a.divisions.map((d) => [d.id, d.planned, d.target])).toEqual([
+      ['SS', 2, 3],
+      ['H', 3, 5],
+    ])
+    expect(a.seas.find((r) => r.id === 'seas-ssh')?.planned).toBe(5)
+  })
 })

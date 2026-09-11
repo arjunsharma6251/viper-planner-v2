@@ -115,10 +115,32 @@ export function computeNccAudit(
   })
 
   // ---- Distribution (SS / H; Natural Sciences is the major's division) ----
+  // Courses declare a division directly (NCC slots, student tags) or via
+  // the old-curriculum sector the seed placed them for — a "Sector I:
+  // Society" slot is a Social Sciences course by construction. Sectors and
+  // Foundational Approaches that straddle SS and H are allocated last, to
+  // whichever division still has the larger shortfall.
   const planned = { SS: 0, H: 0 }
+  let flexible = 0
   for (const c of courses) {
-    const d = c.intent?.distribution
+    const d = divisionOf(c)
     if (d === 'SS' || d === 'H') planned[d] += c.cu || 0
+    else if (d === 'SS/H') flexible += c.cu || 0
+  }
+  if (flexible > 0) {
+    // Assign the 5 to the fuller division first, then pour flexible CU into
+    // the larger remaining gap, one CU at a time.
+    let remaining = flexible
+    while (remaining > 0) {
+      const tSS = planned.SS >= planned.H ? DIST_TARGETS[0] : DIST_TARGETS[1]
+      const tH = planned.SS >= planned.H ? DIST_TARGETS[1] : DIST_TARGETS[0]
+      const gapSS = tSS - planned.SS
+      const gapH = tH - planned.H
+      const step = Math.min(1, remaining)
+      if (gapH > gapSS) planned.H += step
+      else planned.SS += step
+      remaining -= step
+    }
   }
   // 5 and 3 may go to either division: give the larger target to the
   // division the student has planned more of (ties favour Social Sciences).
@@ -144,11 +166,7 @@ export function computeNccAudit(
   // Any SS/H course counts toward the 5, as does anything the student has
   // tagged as a SEAS SS/H elective. Each course counts once.
   const sshCourses = courses.filter(
-    (c) =>
-      c.intent?.distribution === 'SS' ||
-      c.intent?.distribution === 'H' ||
-      c.intent?.seas?.includes('ssh') ||
-      c.userFulfills.includes('seas-ssh'),
+    (c) => divisionOf(c) !== null || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh'),
   )
   const seas: SeasElectiveAudit[] = [
     {
@@ -180,6 +198,32 @@ export function computeNccAudit(
     divisions,
     seas,
   }
+}
+
+/**
+ * Which NCC division a planned course counts toward, or null for none.
+ * 'SS/H' means the course satisfies either (Sector IV, the cross-cultural
+ * Foundational Approaches) and is allocated where the shortfall is larger.
+ */
+function divisionOf(c: AugmentedCourse): 'SS' | 'H' | 'SS/H' | null {
+  const d = c.intent?.distribution
+  if (d === 'SS' || d === 'H') return d
+  if (d === 'N') return null
+  const sec = c.intent?.sec ?? c.fulfills?.sec ?? c.sec ?? null
+  switch (sec) {
+    case 'I':
+      return 'SS' // Society
+    case 'II':
+    case 'III':
+      return 'H' // History & Tradition · Arts & Letters
+    case 'IV':
+      return 'SS/H' // Humanities & Social Science
+    default:
+      break
+  }
+  const fa = c.intent?.fa ?? c.fulfills?.fa ?? c.fa ?? null
+  if (fa === 'CCA' || fa === 'CDUS') return 'SS/H'
+  return null
 }
 
 function round1(n: number): number {
