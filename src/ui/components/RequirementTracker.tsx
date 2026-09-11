@@ -87,18 +87,32 @@ function GroupHead({ children }: { children: ReactNode }) {
  * the New College Curriculum (what VIPER '28+ is actually audited against)
  * and the legacy FA / Sector system the seed plan is built around.
  */
-export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc?: NccAudit }) {
+export function RequirementTracker({
+  summary,
+  ncc,
+  curriculum = 'legacy',
+}: {
+  summary: PlanSummary
+  ncc?: NccAudit
+  /** 'ncc' hides the old FA / Sector rows — the plan has no such slots. */
+  curriculum?: 'legacy' | 'ncc'
+}) {
+  const legacy = curriculum === 'legacy'
   const faMissing = FA_REQUIREMENTS.filter((fa) => summary.unfulfilledFA.includes(fa.id)).map(
     (fa) => fa.label,
   )
   const secMissing = SECTORS.filter((s) => summary.unfulfilledSec.includes(s.id)).map(
     (s) => s.label,
   )
+  const nccGreen =
+    !!ncc &&
+    ncc.foundations.every((f) => f.state !== 'missing') &&
+    ncc.divisions.every((d) => d.planned >= d.target) &&
+    ncc.seas.every((r) => r.planned >= r.target)
   const allGreen =
     summary.meetsDualMin &&
     summary.meetsEnergyReq &&
-    summary.unfulfilledFA.length === 0 &&
-    summary.unfulfilledSec.length === 0
+    (legacy ? summary.unfulfilledFA.length === 0 && summary.unfulfilledSec.length === 0 : nccGreen)
 
   return (
     <aside
@@ -181,21 +195,27 @@ export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc
                 }
               />
             ))}
-            <GroupHead>Legacy curriculum · Foundational Approaches &amp; Sectors</GroupHead>
+            {legacy && (
+              <GroupHead>Legacy curriculum · Foundational Approaches &amp; Sectors</GroupHead>
+            )}
           </>
         )}
-        <TrackerRow
-          label="Foundational Approaches"
-          done={summary.fulfilledFA.length}
-          total={FA_REQUIREMENTS.length}
-          missing={faMissing}
-        />
-        <TrackerRow
-          label="Sectors"
-          done={summary.fulfilledSec.length}
-          total={SECTORS.length}
-          missing={secMissing}
-        />
+        {legacy && (
+          <>
+            <TrackerRow
+              label="Foundational Approaches"
+              done={summary.fulfilledFA.length}
+              total={FA_REQUIREMENTS.length}
+              missing={faMissing}
+            />
+            <TrackerRow
+              label="Sectors"
+              done={summary.fulfilledSec.length}
+              total={SECTORS.length}
+              missing={secMissing}
+            />
+          </>
+        )}
         {ncc && <GroupHead>VIPER</GroupHead>}
         <TrackerRow
           label="Energy courses"
@@ -232,7 +252,7 @@ export function RequirementTracker({ summary, ncc }: { summary: PlanSummary; ncc
       </div>
       {allGreen && (
         <p className="animate-fade mt-4 rounded-sm border border-[#1e6b38]/25 bg-[#f2f7f0] px-3 py-2 text-[0.75rem] leading-relaxed text-[#1e5230]">
-          ✓ Every tracked requirement is satisfied — this plan graduates on time.
+          ✓ Every tracked requirement is planned — this plan graduates on time.
         </p>
       )}
     </aside>

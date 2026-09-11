@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { seedPlan } from '../ui/store/use-plan-store'
 import { augmentPlan } from '../plan/augment'
+import { computeNccAudit } from '../plan/ncc-audit'
 import { applyMutation, applyMutations } from '../plan/mutations'
 import { planToCSV, serializeAppState, parseAppState, planFromAppState } from '../plan/serialize'
 import { encodeShareState, decodeShareState } from '../utils/share-link'
@@ -29,7 +30,10 @@ describe('seed → augment → mutate (the UI path)', () => {
   })
 
   it('augments with summary, placement, and stars', () => {
-    const plan = seedPlan(CONFIG)!
+    // The old-app behaviour documented below is the OLD-CORE seed; VIPER
+    // '28 now seeds under the New College Curriculum by default, so pin
+    // the legacy mode explicitly here.
+    const plan = seedPlan({ ...CONFIG, curriculumMode: 'legacy' })!
     const aug = augmentPlan(plan, { sasMajorKey: 'CHEM', seasMajorKey: 'CBE', gradYear: 2028 })
     expect(aug).not.toBeNull()
     expect(aug!.summary.meetsDualMin).toBe(true)
@@ -46,6 +50,37 @@ describe('seed → augment → mutate (the UI path)', () => {
     // VII rides on flat catalog `sec` — the display summary sees neither.
     expect(aug!.summary.unfulfilledSec).toEqual(['VI', 'VII'])
     expect(aug!.placement).toBeDefined()
+  })
+
+  it('seeds the Class of 2028 under the NCC with confirmed policy only', () => {
+    const plan = seedPlan(CONFIG)!
+    expect(plan.meta.curriculumMode).toBe('ncc')
+    const slotIds = Object.values(plan.semesters)
+      .flat()
+      .map((c) => c.slotId ?? '')
+      .filter((id) => id.startsWith('ncc-'))
+    // Five standalone Foundations (FYS is the approved VIPR overlap) + 7 fillers
+    for (const id of ['ncc-writ', 'ncc-kite', 'ncc-key', 'ncc-pad', 'ncc-lang']) {
+      expect(slotIds, `Foundation slot ${id}`).toContain(id)
+    }
+    expect(slotIds.filter((id) => id.startsWith('ncc-dist-ss-'))).toHaveLength(4)
+    expect(slotIds.filter((id) => id.startsWith('ncc-dist-h-'))).toHaveLength(3)
+    expect(slotIds).not.toContain('ncc-fys')
+
+    const aug = augmentPlan(plan, { sasMajorKey: 'CHEM', seasMajorKey: 'CBE', gradYear: 2028 })!
+    const audit = computeNccAudit(aug, CONFIG.apCreditIds, undefined, 'CBE')
+    expect(audit.foundations.map((f) => [f.id, f.state])).toEqual([
+      ['ncc-kite', 'planned'],
+      ['ncc-key', 'planned'],
+      ['ncc-fys', 'approved-overlap'],
+      ['ncc-pad', 'planned'],
+      ['ncc-lang', 'planned'],
+      ['ncc-writ', 'planned'],
+    ])
+    expect(audit.divisions.map((d) => [d.id, d.planned, d.target])).toEqual([
+      ['SS', 5, 5],
+      ['H', 3, 3],
+    ])
   })
 
   it('applies and round-trips mutations like the UI does', () => {

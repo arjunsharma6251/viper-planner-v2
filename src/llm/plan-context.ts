@@ -17,6 +17,11 @@ export function buildPlanContext(plan: Plan): string {
   lines.push(
     `Majors: ${meta.sasMajor ?? '?'} (BA${meta.sasConc ? `, ${meta.sasConc}` : ''}) + ${meta.seasMajor ?? '?'} (BSE${meta.seasConc ? `, ${meta.seasConc}` : ''}) · Class of ${meta.gradYear ?? '?'}`,
   )
+  lines.push(
+    meta.curriculumMode === 'ncc'
+      ? 'College curriculum: New College Curriculum (six Foundations + 12+5+3 distribution; slot ids ncc-*). Confirmed VIPER overlap: VIPR 1200/1210 = First-Year Seminar only.'
+      : 'College curriculum: old core (Foundational Approaches + Sectors; slot ids gened-*).',
+  )
 
   for (const key of ALL_SEMESTER_KEYS) {
     const courses = plan.semesters[key] ?? []

@@ -24,8 +24,11 @@ import { lookupCourse } from '../../data/courses'
 import { MAJORS } from '../../data/majors'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { pcrUrlFor } from '../../utils/pcr'
-import { DEFAULT_VIPER_MODS } from '../../ncc/mods'
+import { CONFIRMED_VIPER_MODS, DEFAULT_VIPER_MODS } from '../../ncc/mods'
+import { installNccModule } from '../../ncc/scheduler-module'
 import type { PlanToolContext } from '../../llm/tools'
+
+export type CurriculumMode = 'legacy' | 'ncc'
 
 export interface PlanConfig {
   sasMajorKey: string
@@ -34,7 +37,21 @@ export interface PlanConfig {
   seasConcKey: string | null
   apCreditIds: string[]
   gradYear: number | null
+  /** Which College curriculum the seed is built for. Omitted = derived from gradYear. */
+  curriculumMode?: CurriculumMode
 }
+
+/** VIPER '28 and later are audited under the New College Curriculum. */
+export function defaultCurriculumMode(gradYear: number | null | undefined): CurriculumMode {
+  return gradYear != null && gradYear >= 2028 ? 'ncc' : 'legacy'
+}
+
+export function curriculumModeOf(config: Pick<PlanConfig, 'gradYear' | 'curriculumMode'>): CurriculumMode {
+  return config.curriculumMode ?? defaultCurriculumMode(config.gradYear)
+}
+
+// Must precede any seedPlan() call (boot runs inside the first render).
+installNccModule()
 
 const UNDO_LIMIT = 50
 
@@ -49,6 +66,11 @@ export function seedPlan(config: PlanConfig): Plan | null {
     gradYear: config.gradYear,
     shiftForward: true,
     genedDistribution: 'frontload',
+    curriculumMode: curriculumModeOf(config),
+    // Students are seeded under confirmed policy only; the admin sandbox
+    // explores proposals on top of the seeded plan, never inside the seed.
+    viperMods: { ...CONFIRMED_VIPER_MODS } as Record<string, boolean>,
+    distributionTargets: { N: 12, SS: 5, H: 3 },
   })
   if (!built) return null
   const plan = createEmptyPlan({
@@ -57,6 +79,7 @@ export function seedPlan(config: PlanConfig): Plan | null {
     seasMajor: config.seasMajorKey,
     seasConc: config.seasConcKey ?? undefined,
     gradYear: config.gradYear,
+    curriculumMode: curriculumModeOf(config),
   })
   // The user plan keeps only what the user can edit; loads/placement re-derive.
   plan.semesters = built.semesters as unknown as Plan['semesters']
@@ -75,6 +98,9 @@ function configFromState(state: AppState): PlanConfig | null {
     seasConcKey: state.seasConcKey ?? null,
     apCreditIds: state.apCreditIds ?? [],
     gradYear: state.gradYear ?? null,
+    ...(state.curriculumMode === 'ncc' || state.curriculumMode === 'legacy'
+      ? { curriculumMode: state.curriculumMode }
+      : {}),
   }
 }
 
@@ -168,6 +194,7 @@ export function usePlanStore(): PlanStore {
       seasConcKey: c?.seasConcKey ?? undefined,
       apCreditIds: c?.apCreditIds,
       gradYear: c?.gradYear,
+      curriculumMode: c ? curriculumModeOf(c) : undefined,
       viperMods,
       distributionTargets,
       userPlan: p ? { semesters: p.semesters as Record<string, PlannedCourse[]> } : null,

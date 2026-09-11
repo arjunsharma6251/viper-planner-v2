@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { MAJORS, SAS_MAJORS, SEAS_MAJORS } from '../../data/majors'
 import { AP_CREDITS, AP_CREDIT_GROUPS, resolveAPCredit } from '../../data/ap-credits'
-import type { PlanConfig } from '../store/use-plan-store'
+import { defaultCurriculumMode, type CurriculumMode, type PlanConfig } from '../store/use-plan-store'
 
 export interface PlanSetupProps {
   onDone: (config: PlanConfig) => void
@@ -28,6 +28,11 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   const [apCreditIds, setApCreditIds] = useState<string[]>(
     initial?.apCreditIds ?? ['ap-calc-bc'],
   )
+  // Curriculum follows the graduating class unless the student overrides it.
+  const [curriculumOverride, setCurriculumOverride] = useState<CurriculumMode | null>(
+    initial?.curriculumMode ?? null,
+  )
+  const curriculumMode: CurriculumMode = curriculumOverride ?? defaultCurriculumMode(gradYear)
 
   const sasConcs = useMemo(
     () => Object.entries(MAJORS[sasMajorKey]?.concentrations ?? {}),
@@ -102,7 +107,8 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   return (
     <div className="mx-auto max-w-md py-10">
       <p className="smallcaps rise text-center" style={{ '--i': 0 } as React.CSSProperties}>
-        Class of {gradYear} · dual degree
+        Class of {gradYear} · dual degree ·{' '}
+        {curriculumMode === 'ncc' ? 'New College Curriculum' : 'Old core curriculum'}
       </p>
       <h2
         className="rise mt-2 mb-8 text-center font-display text-[2.5rem] leading-tight font-semibold text-ink"
@@ -175,6 +181,42 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
           )}
         </div>
 
+        <div>
+          <p className="smallcaps mb-1.5">College curriculum</p>
+          <div
+            className="flex rounded-sm border border-hairline bg-paper p-0.5 shadow-[var(--shadow-card)]"
+            role="radiogroup"
+            aria-label="College curriculum"
+          >
+            {(
+              [
+                ['ncc', 'New College Curriculum'],
+                ['legacy', 'Old core (Sectors & FA)'],
+              ] as const
+            ).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={curriculumMode === mode}
+                onClick={() => setCurriculumOverride(mode)}
+                className={[
+                  'flex-1 rounded-[0.2rem] px-3 py-1.5 text-[0.75rem] transition-colors duration-150',
+                  curriculumMode === mode ? 'bg-penn-blue text-white' : 'text-ink/55 hover:text-ink',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink/45">
+            {defaultCurriculumMode(gradYear) === 'ncc'
+              ? `The Class of ${gradYear} is audited under the New College Curriculum.`
+              : `The Class of ${gradYear} is audited under the old core curriculum.`}{' '}
+            Change this only if your advisor told you otherwise.
+          </p>
+        </div>
+
         <fieldset>
           <legend className="smallcaps mb-1.5">Incoming credit</legend>
           <div className="flex flex-col gap-3.5 rounded-sm border border-hairline bg-paper p-3.5 shadow-[var(--shadow-card)]">
@@ -233,6 +275,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
               seasConcKey: seasConcKey ?? defaultConc(seasConcs),
               apCreditIds,
               gradYear,
+              ...(curriculumOverride ? { curriculumMode: curriculumOverride } : {}),
             })
           }
           className="mt-2 rounded-sm bg-penn-blue py-3 text-[0.8125rem] font-semibold tracking-[0.08em] text-white uppercase shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-penn-blue-soft hover:shadow-[var(--shadow-card-hover)]"

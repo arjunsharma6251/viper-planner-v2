@@ -161,6 +161,8 @@ export interface PlanMeta {
   seasMajor?: string
   seasConc?: string
   gradYear?: number | null
+  /** Which College curriculum the seed was built for ('ncc' for VIPER '28+). */
+  curriculumMode?: 'legacy' | 'ncc'
   overrides?: Record<string, unknown>
   creditFlags?: Record<string, boolean>
 }

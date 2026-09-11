@@ -20,6 +20,7 @@ import { LoadSkyline } from '../components/LoadSkyline'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
+import { curriculumModeOf } from '../store/use-plan-store'
 
 interface OpenCourseRef {
   courseId: string
@@ -59,6 +60,15 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   }, [store, toast, chatOpen, openRef, addTo])
 
   const gradYear = store.config?.gradYear ?? null
+  const curriculum = store.config ? curriculumModeOf(store.config) : 'legacy'
+  const nccAudit = store.augmented
+    ? computeNccAudit(
+        store.augmented,
+        store.config?.apCreditIds ?? [],
+        undefined,
+        store.config?.seasMajorKey ?? null,
+      )
+    : undefined
 
   // Always render the LIVE augmented course (single source of truth) — a
   // captured object would go stale the moment a fulfillment tag toggles.
@@ -148,7 +158,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             <hr className="double-rule draw-rule" />
             {store.augmented && (
               <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
-                <ProgressHeadline summary={store.augmented.summary} />
+                <ProgressHeadline summary={store.augmented.summary} ncc={curriculum === 'ncc' ? nccAudit : undefined} />
                 {!editingSetup && (
                   <div
                     className="no-print flex rounded-md border border-hairline bg-paper p-0.5 shadow-[var(--shadow-card)]"
@@ -248,12 +258,8 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             >
               <RequirementTracker
                 summary={store.augmented.summary}
-                ncc={computeNccAudit(
-                  store.augmented,
-                  store.config?.apCreditIds ?? [],
-                  undefined,
-                  store.config?.seasMajorKey ?? null,
-                )}
+                ncc={nccAudit}
+                curriculum={curriculum}
               />
               {renderExtras?.(store)}
               {/* Collapsed disclosure panels print as empty boxes — leave

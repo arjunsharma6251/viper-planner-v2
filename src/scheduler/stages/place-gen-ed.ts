@@ -106,7 +106,9 @@ export function placeGenEd(plan: SchedulerPlan): SchedulerPlan {
           label: 'Language Requirement',
           cu: 1,
           semPref: 'fall-y2',
-          intent: { foundation: 'ncc-lang', distribution: 'H' },
+          // Per the College chart only FYS and P&D may count within the
+          // distribution — Language is a Foundation only.
+          intent: { foundation: 'ncc-lang' },
           fulfillsDesc: 'NCC Foundation: Language (0-2 CU depending on placement).',
           note: 'Without VIPER modification, language must be completed per placement.',
           suggests: [],
@@ -122,8 +124,12 @@ export function placeGenEd(plan: SchedulerPlan): SchedulerPlan {
     const targets = plan.meta.distributionTargets || { N: 12, SS: 5, H: 3 };
     const projected = { SS: 0, H: 0 };
 
-    // Count what Foundations contribute to SS/H distribution
+    // Count what Foundations contribute to SS/H distribution.
+    // (Port fix: the generic ncc-dist-* placeholders are about to be
+    // replaced, so they must not count toward the projection — the old
+    // code counted them and under-provisioned fillers by 3–4 CU.)
     for (const s of slots) {
+      if (s.id.startsWith('ncc-dist-')) continue;
       if (!s.intent?.distribution) continue;
       const div = s.intent.distribution;
       if (div === 'N') continue; // N covered by major

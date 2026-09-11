@@ -175,7 +175,7 @@ export function computeNccAudit(
   const spec: SeasGenEdSpec = SEAS_GEN_ED[seasMajorKey ?? ''] ?? { ss: 0, h: 0, ssh: 3, sshTbs: 2, ethics: ['EAS 2030'] }
   const pools = { ss: 0, h: 0, either: 0, tbs: 0 }
   for (const c of courses) {
-    if (c.slotId === 'gened-writ' || c.intent?.fa === 'WRIT') continue // tracked as Writing
+    if (c.slotId === 'gened-writ' || c.slotId === 'ncc-writ' || c.intent?.fa === 'WRIT' || c.intent?.foundation === 'ncc-writ') continue // tracked as Writing
     const d = divisionOf(c)
     if (d === 'SS') pools.ss += 1
     else if (d === 'H') pools.h += 1
@@ -249,6 +249,11 @@ export function computeNccAudit(
  * Foundational Approaches) and is allocated where the shortfall is larger.
  */
 function divisionOf(c: AugmentedCourse): 'SS' | 'H' | 'SS/H' | null {
+  // Per the College chart only First-Year Seminar and Perspectives and
+  // Difference may count within the distribution; a Writing or Kite slot
+  // is a Foundation only, whatever division its slot definition carries.
+  const f = c.intent?.foundation ?? c.slotId
+  if (f === 'ncc-writ' || f === 'ncc-kite' || f === 'ncc-key' || f === 'ncc-lang') return null
   const d = c.intent?.distribution
   if (d === 'SS' || d === 'H') return d
   if (d === 'N') return null
