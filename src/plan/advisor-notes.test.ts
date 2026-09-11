@@ -41,8 +41,8 @@ describe('computeAdvisorNotes', () => {
       'fall-y3': [...six, course('Y'), course('Z')],
     })
     const sources = computeAdvisorNotes(p, undefined, 'legacy', 2028).map((n) => n.source)
-    // errors first, then warnings in semester order (fall-y2 before spring-y2)
-    expect(sources).toEqual(['Hard cap', 'Dual overload', 'Approval needed'])
+    // errors first; overloads fold into one line after the per-term warnings
+    expect(sources).toEqual(['Hard cap', 'Approval needed', 'Dual overload'])
   })
 
   it('lists missing NCC foundations and shortfalls under the NCC', () => {
@@ -58,5 +58,23 @@ describe('computeAdvisorNotes', () => {
     const p = plan({ 'fall-y1': [course('A')] }, { unfulfilledFA: [], unfulfilledSec: [] })
     const notes = computeAdvisorNotes(p, undefined, 'legacy', 2028)
     expect(notes).toEqual([expect.objectContaining({ severity: 'info', source: 'All clear' })])
+  })
+
+  it('folds every dual-overload term into one note', () => {
+    const six = Array.from({ length: 6 }, (_, i) => course(`X${i}`))
+    const p = plan({ 'fall-y2': six, 'spring-y2': six, 'fall-y3': six })
+    const notes = computeAdvisorNotes(p, undefined, 'legacy', 2028).filter((n) => n.source === 'Dual overload')
+    expect(notes).toHaveLength(1)
+    expect(notes[0]?.text).toContain('3 terms are')
+    expect(notes[0]?.text).toContain('Fall 2025 (6)')
+  })
+
+  it('counts gen-ed toward the BSE minimum', () => {
+    const p = plan(
+      { 'fall-y2': [course('SOCI 0001', 1, { category: 'gened' })] },
+      { seasCU: 39.5, sasCU: 36 },
+    )
+    const notes = computeAdvisorNotes(p, undefined, 'legacy', 2028)
+    expect(notes.some((n) => n.source === 'BSE minimum')).toBe(false)
   })
 })

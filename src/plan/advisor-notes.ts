@@ -40,6 +40,9 @@ export function computeAdvisorNotes(
   const s = plan.summary
 
   // ---- Semester loads (academic year only; summers are judged differently) ----
+  // Dual overloads are the VIPER norm, so they fold into one line; the
+  // rarer approval-level and hard-cap terms each get their own.
+  const overloads: string[] = []
   for (const key of SEMESTER_KEYS) {
     const load = plan.loads[key] ?? 0
     const label = semesterLabel(key, gradYear ?? undefined).season
@@ -62,12 +65,15 @@ export function computeAdvisorNotes(
         text: `${label} is ${load} CU. Requires a faculty advisor sign-off (SEAS) or a CU increase request (College).`,
       })
     } else if (load > DUAL_OVERLOAD) {
-      notes.push({
-        severity: 'warning',
-        source: 'Dual overload',
-        text: `${label} is ${load} CU — the expected VIPER dual-degree overload, but it still needs the form.`,
-      })
+      overloads.push(`${label} (${load})`)
     }
+  }
+  if (overloads.length > 0) {
+    notes.push({
+      severity: 'warning',
+      source: 'Dual overload',
+      text: `${overloads.length === 1 ? 'One term is' : `${overloads.length} terms are`} above ${DUAL_OVERLOAD} CU — the expected VIPER dual-degree overload, but each needs the form: ${overloads.join(', ')}.`,
+    })
   }
 
   // ---- Degree minimums ----
@@ -85,11 +91,19 @@ export function computeAdvisorNotes(
       text: `${round1(s.sasCU)} CU count toward the BA; the College requires ${BA_MIN}. Gen-ed and cross-listed courses close this gap as they are chosen.`,
     })
   }
-  if (s.seasCU < BSE_MIN) {
+  // The plan-layer display total (preserved from the old app) leaves gen-ed
+  // out of the BSE count; SEAS's 40 includes its 7 general electives, so add
+  // them back here rather than change the ported summary.
+  const genEdCU = Object.values(plan.semesters)
+    .flat()
+    .filter((c) => c.category === 'gened')
+    .reduce((sum, c) => sum + (c.cu || 0), 0)
+  const bseCU = round1(s.seasCU + genEdCU)
+  if (bseCU < BSE_MIN) {
     notes.push({
       severity: 'warning',
       source: 'BSE minimum',
-      text: `${round1(s.seasCU)} CU count toward the BSE; Engineering requires ${BSE_MIN}.`,
+      text: `${bseCU} CU count toward the BSE; Engineering requires ${BSE_MIN}.`,
     })
   }
   if (!s.meetsEnergyReq) {
