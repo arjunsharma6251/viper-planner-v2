@@ -20,6 +20,8 @@ import { LoadSkyline } from '../components/LoadSkyline'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
+import { computeAdvisorNotes } from '../../plan/advisor-notes'
+import { AdvisorNotes } from '../components/AdvisorNotes'
 import { curriculumModeOf } from '../store/use-plan-store'
 
 interface OpenCourseRef {
@@ -69,6 +71,20 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
         store.config?.seasMajorKey ?? null,
       )
     : undefined
+  const advisorNotes =
+    store.augmented ? computeAdvisorNotes(store.augmented, nccAudit, curriculum, gradYear) : []
+  // A plan saved before the curriculum switch (or built under the other
+  // curriculum) is left alone until the student chooses to rebuild.
+  const builtUnder = store.plan?.meta.curriculumMode ?? 'legacy'
+  const [curriculumNoticeDismissed, setCurriculumNoticeDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('viper-planner:curriculum-notice') === 'dismissed'
+    } catch {
+      return false
+    }
+  })
+  const showCurriculumNotice =
+    !!store.plan && !!store.config && builtUnder !== curriculum && !curriculumNoticeDismissed
 
   // Always render the LIVE augmented course (single source of truth) — a
   // captured object would go stale the moment a fulfillment tag toggles.
@@ -256,11 +272,60 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                     'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1',
               ].join(' ')}
             >
+              {showCurriculumNotice && (
+                <div
+                  className="rise no-print rounded-lg border border-penn-blue/25 bg-[#f3f5fa] px-5 py-4 text-[0.75rem] leading-relaxed text-ink/80 shadow-[var(--shadow-card)]"
+                  style={{ '--i': 1 } as React.CSSProperties}
+                  role="status"
+                >
+                  <p>
+                    This plan was built under the{' '}
+                    {builtUnder === 'ncc' ? 'New College Curriculum' : 'old core curriculum'}, but
+                    the Class of {gradYear} is audited under the{' '}
+                    {curriculum === 'ncc' ? 'New College Curriculum' : 'old core'}. Rebuilding
+                    replaces your edits with a fresh starting plan.
+                  </p>
+                  <div className="mt-2.5 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!store.config) return
+                        if (
+                          !window.confirm(
+                            'Rebuild the starting plan under the current curriculum? Your edits will be replaced.',
+                          )
+                        )
+                          return
+                        if (store.setup({ ...store.config, curriculumMode: curriculum }))
+                          toast('Plan rebuilt under the current curriculum.')
+                      }}
+                      className="rounded-full bg-penn-blue px-3.5 py-1.5 text-[0.71875rem] font-medium text-white transition-colors hover:bg-penn-blue-soft"
+                    >
+                      Rebuild plan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          localStorage.setItem('viper-planner:curriculum-notice', 'dismissed')
+                        } catch {
+                          /* storage unavailable — dismiss for this session only */
+                        }
+                        setCurriculumNoticeDismissed(true)
+                      }}
+                      className="rounded-full px-3.5 py-1.5 text-[0.71875rem] font-medium text-ink/55 transition-colors hover:bg-ink/5 hover:text-ink"
+                    >
+                      Keep as is
+                    </button>
+                  </div>
+                </div>
+              )}
               <RequirementTracker
                 summary={store.augmented.summary}
                 ncc={nccAudit}
                 curriculum={curriculum}
               />
+              <AdvisorNotes notes={advisorNotes} />
               {renderExtras?.(store)}
               {/* Collapsed disclosure panels print as empty boxes — leave
                   them off paper; the audit above is what an advisor needs. */}

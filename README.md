@@ -4,12 +4,20 @@ A four-year academic planning tool for Penn VIPER dual-degree students (BA + BSE
 
 > VIPER Planner is a student-built tool, not an official University of Pennsylvania application.
 
+## What it models
+
+- **Two College curricula.** The Class of 2028 and later seed under the New College Curriculum (six Foundations plus a 12 + 5 + 3 distribution); earlier classes under the old core (Foundational Approaches and Sectors). The mode follows graduation year and can be overridden in setup.
+- **Confirmed VIPER policy only in student views.** The sole approved overlap is VIPR 1200/1210 satisfying the First-Year Seminar. Every other waiver or double-count lives in the admin sandbox as a proposal.
+- **SEAS general electives (7 CU)** with the per-major split from the Penn catalog, plus the catalog's "X or Y" core alternatives offered as swaps in a course's detail modal.
+- **Penn load rules:** a 5.5 CU hard cap on the first semester (enforced by the seed and flagged in red), 6.5 CU dual overload, 7.5 CU hard cap. Advisor notes list what needs a change or a form, and print with the plan.
+- **Incoming credit** grouped as AP/IB/A-level exams, Penn credit and placement exams, and waivers, per Penn Admissions' pre-college credit policy.
+
 ## Development
 
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm test           # 522 tests: scheduler 420-combo regression, NCC math, plan core, LLM tools
+npm test           # 1,300+ tests: 420-combo seed regressions (old core + NCC), first-semester cap, NCC math, plan core, audit, LLM tools
 npm run build      # production build
 ```
 
