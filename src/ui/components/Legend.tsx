@@ -1,86 +1,121 @@
 import { useState } from 'react'
+import { IconChevronDown, IconChevronRight, IconLock, IconOpenBreaker } from './icons'
+
+function Terminals({ ba, bse, energy, tie }: { ba?: boolean; bse?: boolean; energy?: boolean; tie?: boolean }) {
+  const cells = [
+    [ba, 'var(--color-penn-blue)'],
+    [bse, 'var(--color-ink)'],
+    [energy, 'var(--color-energy)'],
+  ] as const
+  return (
+    <svg width="34" height="10" viewBox="0 0 34 10" aria-hidden="true">
+      {tie && <rect x="5" y="4" width="12" height="2" fill="var(--color-penn-blue)" />}
+      {cells.map(([on, color], i) => {
+        const cx = 5 + i * 12
+        return on ? (
+          <rect key={i} x={cx - 3.5} y="1.5" width="7" height="7" fill={color} />
+        ) : (
+          <rect key={i} x={cx - 3} y="2" width="6" height="6" fill="none" stroke="var(--color-rule-2)" />
+        )
+      })}
+    </svg>
+  )
+}
 
 /**
- * The legend: every mark the schedule uses, explained once. Collapsed by
- * default — it's a lookup, not a dashboard. Color is never the only signal
- * elsewhere (tooltips/text carry the meaning).
+ * Every mark the sheet uses, explained once. Collapsed by default; a
+ * lookup, not a dashboard. Color is never the only signal elsewhere.
  */
 export function Legend() {
   const [open, setOpen] = useState(false)
-  const row = 'flex items-center gap-2.5 py-1 text-[0.75rem] text-ink-soft'
+  const row = 'grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 py-1.5 text-[0.75rem] text-ink-2'
   return (
-    <aside
-      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
-      aria-label="Legend"
-      style={{ '--i': 4 } as React.CSSProperties}
-    >
+    <section className="panel print-block" aria-label="Legend">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-baseline justify-between text-left"
+        className={[
+          'flex w-full items-center justify-between px-2 py-2 text-left transition-colors duration-100 hover:bg-tint-blue',
+          open ? 'border-b border-ink' : '',
+        ].join(' ')}
       >
-        <span className="smallcaps">Legend</span>
-        <span className="text-[0.625rem] text-ink/35" aria-hidden>
-          {open ? '▾' : '▸'}
+        <span className="label !text-ink">Legend</span>
+        <span className="text-ink-3" aria-hidden>
+          {open ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
         </span>
       </button>
-      {open && <hr className="double-rule mt-1 mb-3" />}
       {open && (
-      <div className="animate-fade flex flex-col">
-        <div className={row}>
-          <span className="w-9 shrink-0 text-[0.625rem] tracking-[0.15em] text-[#b8860b]">
-            ★★
-          </span>
-          <span>Counts toward both degrees (BA + BSE overlap)</span>
+        <div className="fade px-2 py-1">
+          <p className="label mt-1 !text-[0.625rem] !text-ink-3">Ties</p>
+          <div className={row}>
+            <Terminals ba />
+            <span>Feeds the BA (College) bus</span>
+          </div>
+          <div className={row}>
+            <Terminals bse />
+            <span>Feeds the BSE (Engineering) bus</span>
+          </div>
+          <div className={row}>
+            <Terminals ba bse tie />
+            <span>Counts toward both degrees (overlap)</span>
+          </div>
+          <div className={row}>
+            <Terminals energy />
+            <span>VIPER energy-designated course</span>
+          </div>
+          <div className={row}>
+            <span className="tag text-penn-red">×2</span>
+            <span>Double-counts within one degree</span>
+          </div>
+          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Breakers</p>
+          <div className={row}>
+            <span className="flex justify-center text-ink-3">
+              <IconOpenBreaker size={14} />
+            </span>
+            <span>Open slot: a requirement reserved, course not chosen yet</span>
+          </div>
+          <div className={row}>
+            <span className="flex justify-center text-ink-3">
+              <IconLock size={12} />
+            </span>
+            <span>Fixed VIPER requirement, cannot be removed</span>
+          </div>
+          <div className={row}>
+            <span className="label !text-[0.625rem] !text-ink-3">moved</span>
+            <span>Moved from its seeded term</span>
+          </div>
+          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Load meters · rated 5.5 · overload 6.5 · trip 7.5</p>
+          <div className={row}>
+            <span className="meter !h-[5px]" aria-hidden>
+              <span className="fill bg-penn-blue" style={{ transform: 'scaleX(0.6)' }} />
+            </span>
+            <span>Normal load (up to 5.5 CU)</span>
+          </div>
+          <div className={row}>
+            <span className="meter !h-[5px]" aria-hidden>
+              <span className="fill bg-caution" style={{ transform: 'scaleX(0.8)' }} />
+            </span>
+            <span>Overload (5.5–6.5 CU), allowed but tight</span>
+          </div>
+          <div className={row}>
+            <span className="meter !h-[5px]" aria-hidden>
+              <span className="fill bg-penn-red" style={{ transform: 'scaleX(0.95)' }} />
+            </span>
+            <span>Needs approval above 6.5 CU; hard cap at 7.5. First semester trips at 5.5.</span>
+          </div>
+          <div className={row}>
+            <span className="h-4 border border-dashed border-rule-2" aria-hidden />
+            <span>Summer term: policy CU, not in-term load</span>
+          </div>
+          <div className={row}>
+            <span className="flex justify-center" aria-hidden>
+              <span className="h-4 w-[3px] bg-[#0f6b66]" />
+            </span>
+            <span>Your cluster color, set in course detail</span>
+          </div>
         </div>
-        <div className={row}>
-          <span className="w-9 shrink-0 text-[0.625rem] tracking-[0.15em] text-penn-red">
-            ★★
-          </span>
-          <span>Double-counts within one degree</span>
-        </div>
-        <div className={row}>
-          <span className="w-9 shrink-0 text-center text-[0.625rem] text-ink/40">×3</span>
-          <span>Three stars = triple-count; one job earns no stars</span>
-        </div>
-        <div className={row}>
-          <span className="smallcaps w-9 shrink-0 text-center !text-[0.5rem]">moved</span>
-          <span>Moved from its seeded semester</span>
-        </div>
-        <div className={row}>
-          <span className="flex w-9 shrink-0 items-center" aria-hidden>
-            <span className="h-[3px] w-full rounded-full bg-penn-blue/70" />
-          </span>
-          <span>Load meter — normal (≤ 5.5 CU)</span>
-        </div>
-        <div className={row}>
-          <span className="flex w-9 shrink-0 items-center" aria-hidden>
-            <span className="h-[3px] w-full rounded-full bg-[#b8860b]" />
-          </span>
-          <span>Dual overload (5.5–6.5 CU), allowed but tight</span>
-        </div>
-        <div className={row}>
-          <span className="flex w-9 shrink-0 items-center" aria-hidden>
-            <span className="h-[3px] w-full rounded-full bg-penn-red" />
-          </span>
-          <span>Needs approval (&gt; 6.5 CU); hard cap at 7.5</span>
-        </div>
-        <div className={row}>
-          <span
-            className="w-9 shrink-0 rounded-sm border border-dashed border-rule py-0.5"
-            aria-hidden
-          />
-          <span>Summer term — policy CU, not in-term burden</span>
-        </div>
-        <div className={row}>
-          <span className="flex w-9 shrink-0 justify-center" aria-hidden>
-            <span className="h-4 w-[3px] rounded-full bg-[#0f6b66]" />
-          </span>
-          <span>Your cluster color (set in course detail)</span>
-        </div>
-      </div>
       )}
-    </aside>
+    </section>
   )
 }

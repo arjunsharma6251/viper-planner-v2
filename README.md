@@ -32,7 +32,7 @@ src/
   ncc/         NCC workload math: policy vs in-term CU, strategy toggles
   plan/        Plan types, mutation API (UI and LLM share it), augment, serialization
   llm/         Anthropic chat: tools mirror the mutation API, prompt caching, plan digest
-  ui/          React components (registrar-ledger design system), plan store
+  ui/          React components (one-line-diagram design system, see DESIGN.md), plan store
   utils/       Share-link codec (old-app compatible), storage, PCR links
 api/
   anthropic/   Vercel edge proxy — injects the API key server-side

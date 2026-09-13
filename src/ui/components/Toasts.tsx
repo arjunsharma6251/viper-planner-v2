@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ToastContext } from './use-toast'
+import { IconClose } from './icons'
 
 export interface Toast {
   id: number
@@ -11,8 +12,8 @@ export interface Toast {
 const AUTO_DISMISS_MS = 5000
 
 /**
- * Bottom-right toasts, auto-dismiss after ~5s, persist while hovered
- * (Jakob's Law — match what students already know).
+ * Status lines, bottom-right, auto-dismiss after ~5s, persist while hovered.
+ * On phones they sit above the term bar.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -28,10 +29,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const schedule = useCallback(
     (id: number) => {
-      timers.current.set(
-        id,
-        setTimeout(() => dismiss(id), AUTO_DISMISS_MS),
-      )
+      timers.current.set(id, setTimeout(() => dismiss(id), AUTO_DISMISS_MS))
     },
     [dismiss],
   )
@@ -51,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={api}>
       {children}
       <div
-        className="no-print fixed right-6 bottom-6 z-50 flex flex-col gap-2"
+        className="no-print fixed right-4 bottom-16 z-50 flex flex-col gap-2 lg:right-6 lg:bottom-6"
         role="status"
         aria-live="polite"
       >
@@ -63,13 +61,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               if (timer) clearTimeout(timer)
             }}
             onMouseLeave={() => schedule(t.id)}
-            className="animate-rise flex items-center gap-3 rounded-md bg-ink px-4 py-2.5 text-[0.8125rem] text-[#f7f3ea] shadow-[var(--shadow-pop)]"
+            className="settle flex items-center gap-3 bg-ink px-3.5 py-2.5 text-[0.8125rem] text-sheet shadow-[var(--shadow-pop)]"
           >
             <span>{t.message}</span>
             {t.onUndo && (
               <button
                 type="button"
-                className="font-medium text-amber-300 hover:underline"
+                className="label !text-[0.625rem] !text-sheet underline underline-offset-4 hover:!text-energy"
                 onClick={() => {
                   t.onUndo?.()
                   dismiss(t.id)
@@ -81,10 +79,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <button
               type="button"
               aria-label="Dismiss"
-              className="text-white/60 hover:text-white"
+              className="-mr-1 text-sheet/70 hover:text-sheet"
               onClick={() => dismiss(t.id)}
             >
-              ×
+              <IconClose size={12} />
             </button>
           </div>
         ))}

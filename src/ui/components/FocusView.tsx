@@ -3,6 +3,7 @@ import type { AugmentedCourse, AugmentedPlan } from '../../plan/types'
 import type { SemesterKey } from '../../data/semesters'
 import { ALL_SEMESTER_KEYS, isSummerSem, semesterLabel } from '../../data/semesters'
 import { SemesterCard, type DragPayload } from './SemesterCard'
+import { IconChevronLeft, IconChevronRight } from './icons'
 
 export interface FocusViewProps {
   plan: AugmentedPlan
@@ -13,12 +14,14 @@ export interface FocusViewProps {
   onAddCourse: (semKey: SemesterKey) => void
   onMove: (from: SemesterKey, to: SemesterKey, courseId: string, targetIndex: number) => void
   colorOverrides?: Record<string, string>
+  /** The course whose detail modal is open. */
+  selectedCourse?: { semKey: SemesterKey; courseId: string } | null
 }
 
 /**
- * One semester at a time: a navigator strip of all eleven terms, arrow
- * paging, and the selected semester rendered large. Same card, same
- * handlers as the grid — switching views never loses state.
+ * One feeder at a time: a ruled navigator of all eleven terms grouped by
+ * year, then the selected term at full width. Same panel and handlers as
+ * the grid, so switching views never loses state.
  */
 export function FocusView({
   plan,
@@ -29,6 +32,7 @@ export function FocusView({
   onAddCourse,
   onMove,
   colorOverrides,
+  selectedCourse,
 }: FocusViewProps) {
   const [dragging, setDragging] = useState<DragPayload | null>(null)
   const idx = ALL_SEMESTER_KEYS.indexOf(selected)
@@ -36,16 +40,10 @@ export function FocusView({
   const next = idx < ALL_SEMESTER_KEYS.length - 1 ? ALL_SEMESTER_KEYS[idx + 1] : undefined
   const label = semesterLabel(selected, gradYear ?? undefined)
 
-  const arrow =
-    'flex w-11 shrink-0 items-center justify-center rounded-lg border border-hairline bg-paper font-display text-[1.375rem] text-ink/45 shadow-[var(--shadow-card)] transition-all duration-150 hover:-translate-y-px hover:text-penn-blue hover:shadow-[var(--shadow-card-hover)] disabled:opacity-25 disabled:hover:translate-y-0 disabled:hover:text-ink/45'
-
   return (
-    <div className="mx-auto w-full max-w-[50rem]">
-      {/* ── Term navigator: the eleven terms grouped by year, matching the
-          grid's chapters, so "Year 2, Spring" is one glance away. ── */}
+    <div className="mx-auto w-full max-w-[52rem]">
       <div
-        className="rise mb-5 flex flex-wrap justify-center gap-x-4 gap-y-3"
-        style={{ '--i': 0 } as React.CSSProperties}
+        className="mb-5 flex flex-wrap gap-x-6 gap-y-3"
         role="tablist"
         aria-label="Semesters"
       >
@@ -53,20 +51,12 @@ export function FocusView({
           const keys = ALL_SEMESTER_KEYS.filter((k) => k.endsWith(`-y${y}`))
           const yearActive = keys.includes(selected)
           return (
-            <div key={y} className="flex flex-col items-center gap-1.5">
-              <span
-                className={[
-                  'font-display text-[0.8125rem] leading-none font-semibold transition-colors duration-150',
-                  yearActive ? 'text-penn-blue' : 'text-ink/40',
-                ].join(' ')}
-              >
-                Year {y}
-              </span>
-              <div className="flex gap-1">
+            <div key={y} className="flex flex-col gap-1.5">
+              <span className={['label', yearActive ? '!text-ink' : ''].join(' ')}>Year {y}</span>
+              <div className="seg">
                 {keys.map((k) => {
                   const l = semesterLabel(k, gradYear ?? undefined)
                   const active = k === selected
-                  const count = (plan.semesters[k] ?? []).length
                   return (
                     <button
                       key={k}
@@ -74,13 +64,8 @@ export function FocusView({
                       aria-selected={active}
                       onClick={() => onSelect(k)}
                       className={[
-                        'tnum rounded-md border px-2 py-1.5 font-mono text-[0.6875rem] whitespace-nowrap transition-all duration-150',
-                        isSummerSem(k) ? 'border-dashed' : '',
-                        active
-                          ? 'border-penn-blue bg-penn-blue text-white shadow-[var(--shadow-card)]'
-                          : count > 0
-                            ? 'border-hairline bg-paper text-ink/70 hover:border-penn-blue/50 hover:text-penn-blue'
-                            : 'border-hairline bg-transparent text-ink/35 hover:border-penn-blue/50 hover:text-penn-blue',
+                        '!font-mono !text-[0.6875rem] !tracking-normal !normal-case',
+                        isSummerSem(k) && !active ? '!text-ink-3' : '',
                       ].join(' ')}
                     >
                       {l.short}
@@ -93,16 +78,15 @@ export function FocusView({
         })}
       </div>
 
-      {/* ── Selected term, large ── */}
-      <div className="flex items-stretch gap-4">
+      <div className="flex items-start gap-3">
         <button
           type="button"
-          className={arrow}
+          className="btn mt-3 !px-2.5 !py-3"
           disabled={!prev}
           onClick={() => prev && onSelect(prev)}
           aria-label={prev ? `Previous: ${semesterLabel(prev, gradYear ?? undefined).season}` : 'No earlier term'}
         >
-          ‹
+          <IconChevronLeft />
         </button>
         <div className="min-w-0 flex-1">
           <SemesterCard
@@ -118,22 +102,21 @@ export function FocusView({
             dragging={dragging}
             onDragChange={setDragging}
             colorOverrides={colorOverrides}
-            riseIndex={1}
+            selectedId={selectedCourse?.semKey === selected ? selectedCourse.courseId : null}
           />
         </div>
         <button
           type="button"
-          className={arrow}
+          className="btn mt-3 !px-2.5 !py-3"
           disabled={!next}
           onClick={() => next && onSelect(next)}
           aria-label={next ? `Next: ${semesterLabel(next, gradYear ?? undefined).season}` : 'No later term'}
         >
-          ›
+          <IconChevronRight />
         </button>
       </div>
-      <p className="mt-3 text-center text-[0.6875rem] text-ink/35">
-        Drag reorders within the term · use a course's Actions tab to move it to another
-        term
+      <p className="mt-3 text-center text-[0.75rem] text-ink-3">
+        Drag reorders within the term. To move a course to another term, open it and use Actions.
       </p>
     </div>
   )

@@ -1,7 +1,9 @@
 import type { DragEvent } from 'react'
 import type { AugmentedCourse } from '../../plan/types'
 import { isOpenSlot } from '../../plan/open-slot'
-import { Stars } from './Stars'
+import { busesOf, useTrace } from '../trace'
+import { Ties } from './Ties'
+import { IconGrip, IconLock, IconOpenBreaker } from './icons'
 
 export interface CourseRowProps {
   course: AugmentedCourse
@@ -9,27 +11,33 @@ export interface CourseRowProps {
   onOpen: (course: AugmentedCourse) => void
   onDragStart?: (event: DragEvent<HTMLDivElement>) => void
   onDragEnd?: (event: DragEvent<HTMLDivElement>) => void
-  /** Course needs attention (over-cap, prereq concern) — colored border. */
-  attention?: boolean
-  /** User-picked cluster color (left edge chip). */
+  /** True while this row is the one being dragged. */
+  dragging?: boolean
+  /** True while this row's detail modal is open. */
+  selected?: boolean
+  /** User-picked cluster color (a thin key at the left edge). */
   color?: string
+  /** Narrow ruling for summer panels: tag · title · CU, no ties column. */
+  compact?: boolean
 }
 
+/** The one column ruling every course row on the sheet obeys. */
+export const ROW_COLUMNS = 'grid-cols-[4.5rem_minmax(0,1fr)_2.75rem_2rem]'
+/** Summer panels are narrow: the same ruling without the ties column. */
+export const ROW_COLUMNS_COMPACT = 'grid-cols-[4.25rem_minmax(0,1fr)_2rem]'
+
 /**
- * One line of the ledger: code · title · stars · CU, divided from its
- * neighbors by a dotted hairline. Hover warms the paper and reveals the
- * grip — the row should read as typeset until touched.
+ * One breaker on a feeder: tag · title · ties · CU, ruled by a hairline.
+ * Hovering or focusing the row traces the buses it feeds. Dragging inverts
+ * the row fully to ink on sheet; there are no half-opacity states.
  */
-export function CourseRow({
-  course,
-  onOpen,
-  onDragStart,
-  onDragEnd,
-  attention,
-  color,
-}: CourseRowProps) {
+export function CourseRow({ course, onOpen, onDragStart, onDragEnd, dragging, selected, color, compact }: CourseRowProps) {
+  const inverted = !!dragging || !!selected
   const open = isOpenSlot(course)
   const code = course.isPlaceholder ? (course.label ?? '—') : course.code
+  const { setLit } = useTrace()
+  const title = open ? `Open slot — ${course.title}` : `${code} — ${course.title}`
+
   return (
     <div
       role="button"
@@ -44,70 +52,88 @@ export function CourseRow({
           onOpen(course)
         }
       }}
+      onMouseEnter={() => setLit(busesOf(course))}
+      onMouseLeave={() => setLit(null)}
+      onFocus={() => setLit(busesOf(course))}
+      onBlur={() => setLit(null)}
+      data-course-row
+      aria-current={selected ? 'true' : undefined}
       className={[
-        'group relative flex min-h-10 cursor-pointer items-center gap-2 py-2 pr-0.5 pl-3',
-        'border-b border-dotted border-hairline/70 last:border-b-0',
-        'transition-colors duration-150 ease-out hover:bg-[#fbf8f0]',
-        attention ? 'shadow-[inset_2px_0_0_var(--color-penn-red)]' : '',
+        'group relative grid min-h-9 cursor-pointer items-center py-1.5 pr-1',
+        compact ? `${ROW_COLUMNS_COMPACT} gap-x-1.5 pl-5` : `${ROW_COLUMNS} gap-x-2 pl-6`,
+        'border-b border-rule last:border-b-0',
+        'transition-colors duration-100 ease-out',
+        inverted ? 'bg-ink text-sheet' : 'hover:bg-tint-blue focus-visible:bg-tint-blue',
       ].join(' ')}
+      title={title}
     >
-      {/* cluster color chip / grip well */}
-      <span
-        aria-hidden
-        className="absolute top-1.5 bottom-1.5 left-0 w-[3px] rounded-full transition-colors duration-150"
-        style={color ? { backgroundColor: color } : undefined}
-      />
+      {/* cluster key */}
+      {color && (
+        <span
+          aria-hidden
+          className="absolute top-1.5 bottom-1.5 left-0 w-[3px]"
+          style={{ backgroundColor: color }}
+        />
+      )}
       {!course.fixed && (
         <span
           aria-hidden
-          className="-ml-1.5 w-2 cursor-grab font-mono text-[0.5625rem] leading-none text-ink/0 transition-colors duration-150 select-none group-hover:text-ink/35"
+          className={[
+            'absolute top-1/2 left-1.5 -translate-y-1/2 cursor-grab transition-opacity duration-100',
+            inverted ? 'text-sheet opacity-100' : 'text-ink-3 opacity-0 group-hover:opacity-100',
+          ].join(' ')}
         >
-          ⠿
+          <IconGrip size={14} />
         </span>
       )}
+
       {open ? (
-        // An open slot: a dotted "open" tag where the code would be, the
-        // requirement it must satisfy as the title, and a "choose" nudge
-        // that surfaces when the row is engaged. Open decisions should be
-        // the most inviting rows on the page, not the faintest.
         <span
-          aria-label="Open slot"
-          className="smallcaps w-[4.5rem] shrink-0 !text-[0.5rem] !text-ink/50 before:mr-1.5 before:inline-block before:h-[7px] before:w-[7px] before:rounded-full before:border before:border-dotted before:border-ink/40 before:align-middle before:content-['']"
+          className={[
+            'label flex items-center gap-1 !text-[0.625rem]',
+            inverted ? '!text-sheet' : '!text-ink-3',
+          ].join(' ')}
         >
+          <IconOpenBreaker size={14} />
           open
         </span>
       ) : (
-        <span className="w-[4.5rem] shrink-0 font-mono text-[0.6875rem] font-medium tracking-tight text-penn-blue">
-          {code}
-        </span>
+        <span className={['tag', inverted ? 'text-sheet' : 'text-ink'].join(' ')}>{code}</span>
       )}
-      {/* Titles wrap to a second line rather than truncate — a placeholder
-          that reads "S." instead of "SS/H/TBS Elective" tells the student
-          nothing. */}
+
       <span
         className={[
-          'line-clamp-2 min-w-0 flex-1 text-[0.84375rem] leading-snug break-words',
-          open ? 'text-ink/60' : 'text-ink/85',
+          'line-clamp-2 min-w-0 text-[0.8125rem] leading-snug break-words',
+          inverted ? 'text-sheet' : open ? 'text-ink-2' : 'text-ink',
         ].join(' ')}
-        title={open ? `Open slot — ${course.title}` : `${code} — ${course.title}`}
       >
         {course.title}
+        {course.fixed && (
+          <span className="ml-1.5 inline-block align-[-2px] text-ink-3" title="Fixed VIPER requirement">
+            <IconLock size={12} />
+            <span className="sr-only"> (fixed)</span>
+          </span>
+        )}
+        {course.tags?.includes('MOVED') && (
+          <span className="label ml-1.5 !text-[0.625rem] !text-ink-3">moved</span>
+        )}
       </span>
-      {open && (
-        // Overlays the right edge on hover (same warm paper as the row) so
-        // it never steals width from the title at rest.
+
+      {compact ? null : open ? (
         <span
+          className={[
+            'label !text-[0.625rem] opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100',
+            '!text-penn-blue',
+          ].join(' ')}
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-[#fbf8f0] pr-1 pl-3 text-[0.6875rem] font-medium text-penn-blue opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
         >
-          Choose ›
+          choose
         </span>
+      ) : (
+        <Ties course={course} inverted={inverted} />
       )}
-      <Stars course={course} />
-      {course.tags?.includes('MOVED') && (
-        <span className="smallcaps shrink-0 !text-[0.5rem] text-ink/40">moved</span>
-      )}
-      <span className="tnum w-7 shrink-0 text-right font-mono text-[0.6875rem] text-ink-soft">
+
+      <span className={['tag text-right', inverted ? 'text-sheet' : 'text-ink-2'].join(' ')}>
         {course.cu}
       </span>
     </div>

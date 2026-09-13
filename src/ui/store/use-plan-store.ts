@@ -195,6 +195,7 @@ export function usePlanStore(): PlanStore {
       apCreditIds: c?.apCreditIds,
       gradYear: c?.gradYear,
       curriculumMode: c ? curriculumModeOf(c) : undefined,
+      planCurriculumMode: p?.meta.curriculumMode,
       viperMods,
       distributionTargets,
       userPlan: p ? { semesters: p.semesters as Record<string, PlannedCourse[]> } : null,

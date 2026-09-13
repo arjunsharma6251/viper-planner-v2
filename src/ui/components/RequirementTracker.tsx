@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react'
 import type { PlanSummary } from '../../plan/types'
 import type { NccAudit } from '../../plan/ncc-audit'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
+import { useTrace, type Bus } from '../trace'
+import { IconCheck, IconChevronDown, IconChevronRight } from './icons'
 
 interface TrackerRowProps {
   label: string
@@ -11,62 +13,70 @@ interface TrackerRowProps {
   missing: string[]
   /** Optional richer expansion — replaces the plain missing list. */
   detail?: ReactNode
-  /** Format for the count (default "n/total"). */
   unit?: 'count' | 'cu'
+  /** Which bus this requirement loads; the row lights when a course traces it. */
+  bus?: Bus
+}
+
+const BUS_TINT: Record<Bus, string> = {
+  ba: 'bg-tint-blue',
+  bse: 'bg-ink/6',
+  energy: 'bg-tint-energy',
+}
+const BUS_FILL: Record<Bus, string> = {
+  ba: 'bg-penn-blue',
+  bse: 'bg-ink',
+  energy: 'bg-energy',
 }
 
 /**
- * One audit line: label, leader dots, count — like a table of contents.
- * Click expands into exactly which requirements are missing. The thin
- * progress rule beneath saturates as it fills; complete is solid Penn red.
+ * One loading line: label, meter, readout. Click expands into exactly what
+ * is still missing. Complete rows carry a check and the word "satisfied".
  */
-function TrackerRow({ label, done, total, missing, detail, unit = 'count' }: TrackerRowProps) {
+function TrackerRow({ label, done, total, missing, detail, unit = 'count', bus = 'ba' }: TrackerRowProps) {
   const [open, setOpen] = useState(false)
+  const { lit } = useTrace()
   const complete = done >= total
   const pct = total === 0 ? 1 : done / total
   const expandable = !complete || !!detail
+  const on = lit.has(bus)
   return (
-    <div>
+    <div className={['transition-colors duration-150 ease-out', on ? BUS_TINT[bus] : ''].join(' ')}>
       <button
         type="button"
         onClick={() => expandable && setOpen((v) => !v)}
         aria-expanded={expandable ? open : undefined}
-        className="flex w-full items-baseline rounded-sm px-1 py-1.5 text-left transition-colors duration-150 hover:bg-[#fbf8f0]"
+        className="grid w-full grid-cols-[minmax(0,1fr)_3.5rem_3.25rem_1rem] items-center gap-x-2 px-2 py-2 text-left transition-colors duration-100 hover:bg-tint-blue"
       >
-        <span className="text-[0.8125rem] text-ink/85">{label}</span>
-        <span className="leader" aria-hidden />
-        <span
-          className={[
-            'tnum font-mono text-[0.75rem] whitespace-nowrap',
-            complete ? 'font-semibold text-penn-red' : pct > 0 ? 'text-ink/75' : 'text-ink/40',
-          ].join(' ')}
-        >
+        <span className="truncate text-[0.8125rem] text-ink">{label}</span>
+        <span className="meter !h-[5px]" aria-hidden>
+          <span className={`fill ${BUS_FILL[bus]}`} style={{ transform: `scaleX(${Math.min(pct, 1)})` }} />
+        </span>
+        <span className={['tag text-right whitespace-nowrap', complete ? 'text-ink' : 'text-ink-2'].join(' ')}>
           {done}/{total}
-          {unit === 'cu' && <span className="ml-1 text-[0.5625rem] text-ink/40">CU</span>}
+          {unit === 'cu' && <span className="label ml-0.5 !text-[0.625rem] !text-ink-3">CU</span>}
         </span>
-        <span
-          className={`ml-2 w-3 text-center text-[0.625rem] ${complete ? 'text-[#1e6b38]' : 'text-ink/30'}`}
-          aria-hidden
-        >
-          {complete && !open ? '✓' : open ? '▾' : '▸'}
+        <span className="flex justify-end text-ink-3" aria-hidden>
+          {complete && !open ? (
+            <span className="text-good">
+              <IconCheck size={12} />
+            </span>
+          ) : expandable ? (
+            open ? (
+              <IconChevronDown size={12} />
+            ) : (
+              <IconChevronRight size={12} />
+            )
+          ) : null}
         </span>
-        {complete && <span className="sr-only">satisfied</span>}
+        <span className="sr-only">{complete ? 'satisfied' : 'not yet satisfied'}</span>
       </button>
-      <div className="mx-1 h-[2px] overflow-hidden rounded bg-ink/8" aria-hidden>
-        <div
-          className={[
-            'h-full rounded transition-[width] duration-300 ease-out',
-            complete ? 'bg-penn-red' : 'bg-penn-red/35',
-          ].join(' ')}
-          style={{ width: `${Math.min(pct, 1) * 100}%` }}
-        />
-      </div>
       {open &&
         (detail ?? (
-          <ul className="mt-1.5 ml-1 list-none border-l border-rule/60 pl-3 text-xs text-ink-soft">
+          <ul className="mx-2 mb-2 border-l border-rule-2 pl-3 text-[0.75rem] text-ink-2">
             {missing.map((m) => (
               <li key={m} className="py-0.5">
-                {m} <span className="text-ink/35 italic">— not yet satisfied</span>
+                {m} <span className="text-ink-3">— not yet satisfied</span>
               </li>
             ))}
           </ul>
@@ -76,16 +86,16 @@ function TrackerRow({ label, done, total, missing, detail, unit = 'count' }: Tra
 }
 
 function GroupHead({ children }: { children: ReactNode }) {
-  return (
-    <p className="smallcaps mt-1 mb-0.5 px-1 !text-[0.5625rem] !text-ink/45">{children}</p>
-  )
+  return <p className="label mt-3 mb-1 px-2 !text-[0.625rem] !text-ink-3 first:mt-0">{children}</p>
+}
+
+function Detail({ children }: { children: ReactNode }) {
+  return <div className="mx-2 mb-2 border-l border-rule-2 pl-3 text-[0.75rem] leading-relaxed text-ink-2">{children}</div>
 }
 
 /**
- * The Degree Audit panel — a single document region opened with a double
- * rule, set like an official audit summary. Two curricula are tracked:
- * the New College Curriculum (what VIPER '28+ is actually audited against)
- * and the legacy FA / Sector system the seed plan is built around.
+ * Bus loading: the degree audit as meters. Two curricula are tracked: the
+ * New College Curriculum (VIPER '28+) and the legacy FA / Sector system.
  */
 export function RequirementTracker({
   summary,
@@ -98,12 +108,8 @@ export function RequirementTracker({
   curriculum?: 'legacy' | 'ncc'
 }) {
   const legacy = curriculum === 'legacy'
-  const faMissing = FA_REQUIREMENTS.filter((fa) => summary.unfulfilledFA.includes(fa.id)).map(
-    (fa) => fa.label,
-  )
-  const secMissing = SECTORS.filter((s) => summary.unfulfilledSec.includes(s.id)).map(
-    (s) => s.label,
-  )
+  const faMissing = FA_REQUIREMENTS.filter((fa) => summary.unfulfilledFA.includes(fa.id)).map((fa) => fa.label)
+  const secMissing = SECTORS.filter((s) => summary.unfulfilledSec.includes(s.id)).map((s) => s.label)
   const nccGreen =
     !!ncc &&
     ncc.foundations.every((f) => f.state !== 'missing') &&
@@ -115,33 +121,25 @@ export function RequirementTracker({
     (legacy ? summary.unfulfilledFA.length === 0 && summary.unfulfilledSec.length === 0 : nccGreen)
 
   return (
-    <aside
-      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
-      aria-label="Degree audit"
-      style={{ '--i': 2 } as React.CSSProperties}
-    >
-      <p className="smallcaps mb-1">Degree audit</p>
-      <hr className="double-rule mb-3" />
-      <div className="flex flex-col gap-2.5">
+    <section className="panel print-block" aria-label="Degree audit">
+      <h2 className="label border-b border-ink px-2 py-2 !text-ink">Bus loading · degree audit</h2>
+      <div className="py-1.5">
         {ncc && (
           <>
-            <GroupHead>New College Curriculum</GroupHead>
+            <GroupHead>New College Curriculum · BA</GroupHead>
             <TrackerRow
               label="Foundations"
               done={ncc.plannedFoundations}
               total={ncc.foundations.length}
               missing={ncc.foundations.filter((f) => f.state === 'missing').map((f) => f.label)}
+              bus="ba"
               detail={
-                <div className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs">
-                  <ul className="list-none">
+                <Detail>
+                  <ul>
                     {ncc.foundations.map((f) => (
                       <li key={f.id} className="flex items-baseline gap-2 py-0.5">
-                        <span
-                          className={f.state === 'missing' ? 'text-ink/85' : 'text-ink-soft'}
-                        >
-                          {f.label}
-                        </span>
-                        <span className="text-ink/40 italic">
+                        <span className={f.state === 'missing' ? 'text-ink' : 'text-ink-2'}>{f.label}</span>
+                        <span className="text-ink-3">
                           {f.state === 'missing' && 'nothing planned'}
                           {f.state === 'planned' && `— ${f.by}`}
                           {f.state === 'approved-overlap' && `— ${f.by} (approved overlap)`}
@@ -150,14 +148,12 @@ export function RequirementTracker({
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink/45">
-                    To plan one: open any semester's <span className="font-medium">Add course</span>{' '}
-                    and choose an open slot, or open a course and tick it under{' '}
-                    <span className="font-medium">Tags</span>. First-Year Seminar and Perspectives
-                    and Difference also count toward the distribution once their course is tagged
-                    with a division.
+                  <p className="mt-1.5 text-[0.6875rem] text-ink-3">
+                    To plan one: open any term's Add course and choose an open slot, or open a
+                    course and tick it under Tags. First-Year Seminar and Perspectives and
+                    Difference also count toward the distribution once tagged with a division.
                   </p>
-                </div>
+                </Detail>
               }
             />
             {ncc.divisions.map((d) => (
@@ -167,19 +163,20 @@ export function RequirementTracker({
                 done={d.planned}
                 total={d.target}
                 unit="cu"
+                bus="ba"
                 missing={[`${round1(d.target - d.planned)} CU of ${d.label}`]}
                 detail={
-                  <p className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs leading-relaxed text-ink-soft">
+                  <Detail>
                     {d.planned >= d.target
                       ? `${d.planned} CU planned toward ${d.label}.`
-                      : `${round1(d.target - d.planned)} CU still to plan. Add an open ${d.label} slot from any semester, or tag a course under Tags → Distribution.`}{' '}
+                      : `${round1(d.target - d.planned)} CU still to plan. Add an open ${d.label} slot from any term, or tag a course under Tags → Distribution.`}{' '}
                     The 5 and 3 CU targets go to either division; Natural Sciences (12 CU) is
                     covered by your major.
-                  </p>
+                  </Detail>
                 }
               />
             ))}
-            <GroupHead>SEAS general electives · 7 CU</GroupHead>
+            <GroupHead>SEAS general electives · 7 CU · BSE</GroupHead>
             {ncc.seas.map((r) => (
               <TrackerRow
                 key={r.id}
@@ -187,75 +184,60 @@ export function RequirementTracker({
                 done={r.planned}
                 total={r.target}
                 unit="cu"
+                bus="bse"
                 missing={[`${r.target - r.planned} CU`]}
-                detail={
-                  <p className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs leading-relaxed text-ink-soft">
-                    {r.hint}
-                  </p>
-                }
+                detail={<Detail>{r.hint}</Detail>}
               />
             ))}
-            {legacy && (
-              <GroupHead>Legacy curriculum · Foundational Approaches &amp; Sectors</GroupHead>
-            )}
           </>
         )}
         {legacy && (
           <>
+            <GroupHead>Old core · Foundational Approaches &amp; Sectors · BA</GroupHead>
             <TrackerRow
               label="Foundational Approaches"
               done={summary.fulfilledFA.length}
               total={FA_REQUIREMENTS.length}
               missing={faMissing}
+              bus="ba"
             />
-            <TrackerRow
-              label="Sectors"
-              done={summary.fulfilledSec.length}
-              total={SECTORS.length}
-              missing={secMissing}
-            />
+            <TrackerRow label="Sectors" done={summary.fulfilledSec.length} total={SECTORS.length} missing={secMissing} bus="ba" />
           </>
         )}
-        {ncc && <GroupHead>VIPER</GroupHead>}
+        <GroupHead>VIPER · Energy</GroupHead>
         <TrackerRow
           label="Energy courses"
           done={Math.min(summary.energyCoursesCount, 3)}
           total={3}
+          bus="energy"
           missing={['VIPER-approved energy courses']}
           detail={
-            <p className="mt-1.5 ml-1 border-l border-rule/60 pl-3 text-xs leading-relaxed text-ink-soft">
+            <Detail>
               {summary.meetsEnergyReq
                 ? `${summary.energyCoursesCount} energy-designated courses planned.`
                 : `${3 - Math.min(summary.energyCoursesCount, 3)} more needed. Catalog energy courses count automatically; for any other approved course, open it and tick VIPER energy course under Tags.`}
-            </p>
+            </Detail>
           }
         />
-        <div className="mt-1 flex items-baseline px-1 text-[0.8125rem]">
-          <span className="text-ink/85">Total CU</span>
-          <span className="leader" aria-hidden />
-          <span
-            className={
-              summary.meetsDualMin
-                ? 'tnum font-mono text-[0.75rem] font-semibold text-penn-red'
-                : 'tnum font-mono text-[0.75rem] text-ink/75'
-            }
-          >
+        <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_1rem] items-center gap-x-2 border-t border-ink px-2 pt-2 text-[0.8125rem]">
+          <span className="text-ink">Total CU · dual minimum</span>
+          <span className={['tag', summary.meetsDualMin ? 'text-ink' : 'text-ink-2'].join(' ')}>
             {summary.totalCU} / 40
           </span>
-          <span
-            className={`ml-2 w-3 text-center text-[0.625rem] ${summary.meetsDualMin ? 'text-[#1e6b38]' : 'text-ink/30'}`}
-            aria-hidden
-          >
-            {summary.meetsDualMin ? '✓' : ''}
+          <span className="flex justify-end text-good" aria-hidden>
+            {summary.meetsDualMin && <IconCheck size={12} />}
           </span>
         </div>
       </div>
       {allGreen && (
-        <p className="animate-fade mt-4 rounded-sm border border-[#1e6b38]/25 bg-[#f2f7f0] px-3 py-2 text-[0.75rem] leading-relaxed text-[#1e5230]">
-          ✓ Every tracked requirement is planned — this plan graduates on time.
+        <p className="m-2 flex items-start gap-2 border border-good bg-tint-good px-3 py-2 text-[0.75rem] leading-snug text-good">
+          <span className="mt-[2px] shrink-0">
+            <IconCheck size={12} />
+          </span>
+          Every tracked requirement is planned. This plan graduates on time.
         </p>
       )}
-    </aside>
+    </section>
   )
 }
 

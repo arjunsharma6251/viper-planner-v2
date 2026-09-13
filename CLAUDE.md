@@ -293,10 +293,11 @@ Core palette (these are official Penn colors, not approximations):
 - **Ink** — near-black for text, not pure black.
 - **Subtle neutrals** for borders and dividers — avoid hard gray lines, prefer hairlines that almost disappear.
 
-Typography:
-- **Display / headlines** — a serif that's Penn-compatible. Penn's official guidelines lean toward Adobe Caslon Pro but that's a paid font; use a free serif that reads similar (Fraunces or EB Garamond work). For Penn-published web typography Lyon and Yale Design are both in use.
-- **Body / UI** — sans-serif. Inter is fine. Penn uses Berthold Akzidenz Grotesk in print but on web Inter or Söhne is the practical choice.
-- **Code / monospace** — JetBrains Mono or similar. Used for course codes and CU values.
+Typography and the visual world (2026-09-13, Impeccable redesign):
+- The app's visual world is the **One-Line Diagram** (a power-system single-line drawing: BA / BSE / Energy buses, terms as feeder panels, courses as breakers with tie marks, labeled load meters). `DESIGN.md` and `.impeccable/design.json` are the authority for tokens, type, components, and motion; `PRODUCT.md` holds product truth; the direction contract lives in `.impeccable/surfaces/`.
+- **Type:** Barlow Semi Condensed 600 caps for titles and labels, Barlow 400/500 for text, Red Hat Mono for course codes, CU values, and readouts. No display serif.
+- **Ground:** off-white sheet `#FAF9F6`, 1px hairlines, square corners, no grain or elevation on panels. Text is achromatic ink; color exists only for bus identity (BA Penn Blue, BSE ink, Energy gold `#B8860B`) and printed status (good green, caution amber, problem Penn Red), always with a word.
+- Custom classes (`.label .tag .btn .seg .field .box .meter .panel`) live in `@layer components` in `src/index.css` so Tailwind utilities override them.
 
 What "official Penn app" means visually:
 - Generous whitespace

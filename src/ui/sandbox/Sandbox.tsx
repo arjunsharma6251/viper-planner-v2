@@ -7,6 +7,7 @@ import { STRATEGIES, isStrategyOn, toggleStrategy } from '../../ncc/strategies'
 import type { ViperModKey, ViperMods } from '../../ncc/types'
 import { WorkloadMetric } from './WorkloadMetric'
 import { StrategyToggle } from './StrategyToggle'
+import { IconChevronDown, IconChevronRight } from '../components/icons'
 
 export interface SandboxProps {
   plan: AugmentedPlan
@@ -17,6 +18,7 @@ export interface SandboxProps {
 }
 
 const STATUS_LABEL = { waived: 'waived', summer: 'summer', 'in-term': 'in-term' } as const
+const STATUS_CLS = { waived: 'text-good', summer: 'text-caution', 'in-term': 'text-ink' } as const
 
 /** ViperMods is a closed interface; the store persists a plain record. */
 function toRecord(mods: ViperMods): Record<string, boolean> {
@@ -24,18 +26,11 @@ function toRecord(mods: ViperMods): Record<string, boolean> {
 }
 
 /**
- * The NCC sandbox — the policy-advocacy surface. A red-ruled document
- * region (the one place Penn red frames a panel): headline numeral on top,
- * one row per strategy, mod-level toggles and the distribution profile in
- * an "advanced" disclosure underneath.
+ * The NCC sandbox: the policy-advocacy panel, ruled in Penn red so it never
+ * reads as student truth. Workload meter on top, one breaker per strategy,
+ * mod-level toggles and the distribution profile behind "advanced".
  */
-export function Sandbox({
-  plan,
-  viperMods,
-  distributionTargets,
-  onModsChange,
-  onTargetsChange,
-}: SandboxProps) {
+export function Sandbox({ plan, viperMods, distributionTargets, onModsChange, onTargetsChange }: SandboxProps) {
   const [advanced, setAdvanced] = useState(false)
   const mods = useMemo(() => normalizeViperMods(viperMods), [viperMods])
   const workload = useMemo(
@@ -44,16 +39,13 @@ export function Sandbox({
   )
 
   return (
-    <section
-      aria-label="NCC sandbox"
-      className="rise print-block rounded-lg border border-hairline bg-paper px-5 py-4 shadow-[var(--shadow-card)]"
-      style={{ '--i': 2 } as React.CSSProperties}
-    >
-      <p className="smallcaps mb-1 !text-penn-red">Admin · NCC sandbox</p>
-      <hr className="double-rule mb-4 !border-penn-red/70" />
-      <WorkloadMetric workload={workload} />
+    <section aria-label="NCC sandbox" className="print-block border border-penn-red">
+      <h2 className="label border-b border-penn-red px-2 py-2 !text-penn-red">Admin · NCC sandbox · proposals, not policy</h2>
+      <div className="px-2 pt-3 pb-2">
+        <WorkloadMetric workload={workload} />
+      </div>
 
-      <div className="mt-4 flex flex-col">
+      <div className="border-t border-rule">
         {STRATEGIES.map((s) => (
           <StrategyToggle
             key={s.id}
@@ -68,32 +60,16 @@ export function Sandbox({
         ))}
       </div>
 
-      <div className="mt-4">
-        <p className="smallcaps mb-1.5">Foundations</p>
+      <div className="border-t border-rule px-2 py-2">
+        <p className="label mb-1 !text-[0.625rem] !text-ink-3">Foundations under this proposal</p>
         <ul className="flex flex-col">
           {workload.foundations.map((f) => (
-            <li key={f.id} className="flex items-baseline py-[3px]">
-              <span
-                className={`text-[0.75rem] ${f.status === 'in-term' ? 'text-ink/85' : 'text-ink/45'}`}
-              >
+            <li key={f.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 border-b border-rule py-1 last:border-b-0">
+              <span className={['truncate text-[0.75rem]', f.status === 'in-term' ? 'text-ink' : 'text-ink-2'].join(' ')}>
                 {f.label}
-                {f.waivedBy && (
-                  <span className="ml-1 text-[0.625rem] text-ink/35 italic">— {f.waivedBy}</span>
-                )}
+                {f.waivedBy && <span className="ml-1 text-[0.625rem] text-ink-3">— {f.waivedBy}</span>}
               </span>
-              <span className="leader" aria-hidden />
-              <span
-                className={[
-                  'tnum font-mono text-[0.625rem] tracking-wide uppercase',
-                  f.status === 'waived'
-                    ? 'text-[#1e6b38]'
-                    : f.status === 'summer'
-                      ? 'text-[#9a6a00]'
-                      : 'text-ink/70',
-                ].join(' ')}
-              >
-                {STATUS_LABEL[f.status]}
-              </span>
+              <span className={`label !text-[0.625rem] ${STATUS_CLS[f.status]}`}>{STATUS_LABEL[f.status]}</span>
             </li>
           ))}
         </ul>
@@ -103,17 +79,20 @@ export function Sandbox({
         type="button"
         onClick={() => setAdvanced((v) => !v)}
         aria-expanded={advanced}
-        className="mt-3.5 text-[0.6875rem] tracking-wide text-ink/45 transition-colors hover:text-ink"
+        className="flex w-full items-center justify-between border-t border-rule px-2 py-2 text-left text-[0.75rem] text-ink-2 transition-colors duration-100 hover:bg-tint-blue"
       >
-        {advanced ? '▾ Hide advanced toggles' : '▸ Advanced: individual mods + distribution profile'}
+        <span>Advanced: individual mods and distribution profile</span>
+        <span className="text-ink-3" aria-hidden>
+          {advanced ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
+        </span>
       </button>
 
       {advanced && (
-        <div className="animate-fade mt-3 flex flex-col gap-4 border-t border-hairline pt-3.5">
-          <div className="flex items-center gap-3 text-[0.75rem]">
-            <span className="smallcaps">Distribution</span>
+        <div className="fade flex flex-col gap-3 border-t border-rule px-2 py-3">
+          <div className="flex flex-wrap items-center gap-3 text-[0.75rem]">
+            <span className="label">Distribution</span>
             {(['SS', 'H'] as const).map((k) => (
-              <label key={k} className="flex items-center gap-1.5 font-mono text-[0.6875rem]">
+              <label key={k} className="tag flex items-center gap-1.5">
                 {k}
                 <input
                   type="number"
@@ -121,43 +100,34 @@ export function Sandbox({
                   max={k === 'SS' ? 5 : 3}
                   value={distributionTargets[k]}
                   onChange={(e) =>
-                    onTargetsChange({
-                      ...distributionTargets,
-                      [k]: Math.max(0, Number(e.target.value) || 0),
-                    })
+                    onTargetsChange({ ...distributionTargets, [k]: Math.max(0, Number(e.target.value) || 0) })
                   }
-                  className="tnum w-14 rounded-sm border border-hairline bg-paper px-1.5 py-1"
+                  className="field w-14 !py-1 font-mono !text-[0.6875rem]"
                   aria-label={`${k} target CU`}
                 />
               </label>
             ))}
-            <span className="font-mono text-[0.6875rem] text-ink/40">
-              N {distributionTargets.N} fixed
-            </span>
+            <span className="tag text-ink-3">N {distributionTargets.N} fixed</span>
           </div>
 
-          <div className="grid grid-cols-1 gap-0.5">
+          <div className="border-t border-rule">
             {(Object.keys(MOD_DEFINITIONS) as ViperModKey[]).map((key) => {
               const def = MOD_DEFINITIONS[key]
               return (
                 <label
                   key={key}
-                  className="flex cursor-pointer items-start gap-2.5 rounded-sm px-1 py-1 text-[0.75rem] hover:bg-[#fbf8f0]"
+                  className="flex cursor-pointer items-start gap-2.5 border-b border-rule px-1 py-1.5 text-[0.75rem] transition-colors duration-100 last:border-b-0 hover:bg-tint-blue"
                   title={def.desc}
                 >
                   <input
                     type="checkbox"
                     checked={!!mods[key]}
-                    className="mt-0.5 accent-penn-blue"
+                    className="box mt-0.5"
                     onChange={() => onModsChange({ ...toRecord(mods), [key]: !mods[key] })}
                   />
-                  <span className="text-ink/80">
+                  <span className="text-ink">
                     {def.label}
-                    {def.saves > 0 && (
-                      <span className="tnum ml-1.5 font-mono text-[0.625rem] text-ink/40">
-                        −{def.saves} CU
-                      </span>
-                    )}
+                    {def.saves > 0 && <span className="tag ml-1.5 text-ink-3">−{def.saves} CU</span>}
                   </span>
                 </label>
               )

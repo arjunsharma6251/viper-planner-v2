@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-13T00:00:00Z",
+  "title": "Design System: VIPER Four-Year Planner",
+  "extensions": {
+    "colorMeta": {
+      "sheet": { "role": "neutral", "displayName": "Sheet", "canonical": "oklch(98.2% 0.004 91)", "tonalRamp": ["oklch(15% 0.004 91)", "oklch(27% 0.004 91)", "oklch(38% 0.004 91)", "oklch(50% 0.004 91)", "oklch(61% 0.004 91)", "oklch(73% 0.004 91)", "oklch(84% 0.004 91)", "oklch(95% 0.004 91)"] },
+      "panel": { "role": "neutral", "displayName": "Panel White", "canonical": "oklch(100% 0 90)", "tonalRamp": ["oklch(15% 0 90)", "oklch(27% 0 90)", "oklch(38% 0 90)", "oklch(50% 0 90)", "oklch(61% 0 90)", "oklch(73% 0 90)", "oklch(84% 0 90)", "oklch(95% 0 90)"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "oklch(21.8% 0 90)", "tonalRamp": ["oklch(15% 0 90)", "oklch(27% 0 90)", "oklch(38% 0 90)", "oklch(50% 0 90)", "oklch(61% 0 90)", "oklch(73% 0 90)", "oklch(84% 0 90)", "oklch(95% 0 90)"] },
+      "ink-2": { "role": "neutral", "displayName": "Ink 2", "canonical": "oklch(44.8% 0.010 107)", "tonalRamp": ["oklch(15% 0.010 107)", "oklch(27% 0.010 107)", "oklch(38% 0.010 107)", "oklch(50% 0.010 107)", "oklch(61% 0.010 107)", "oklch(73% 0.010 107)", "oklch(84% 0.010 107)", "oklch(95% 0.010 107)"] },
+      "ink-3": { "role": "neutral", "displayName": "Ink 3", "canonical": "oklch(53.6% 0.009 107)", "tonalRamp": ["oklch(15% 0.009 107)", "oklch(27% 0.009 107)", "oklch(38% 0.009 107)", "oklch(50% 0.009 107)", "oklch(61% 0.009 107)", "oklch(73% 0.009 107)", "oklch(84% 0.009 107)", "oklch(95% 0.009 107)"] },
+      "rule": { "role": "neutral", "displayName": "Rule", "canonical": "oklch(87.6% 0.010 87)", "tonalRamp": ["oklch(15% 0.010 87)", "oklch(27% 0.010 87)", "oklch(38% 0.010 87)", "oklch(50% 0.010 87)", "oklch(61% 0.010 87)", "oklch(73% 0.010 87)", "oklch(84% 0.010 87)", "oklch(95% 0.010 87)"] },
+      "rule-2": { "role": "neutral", "displayName": "Rule 2", "canonical": "oklch(77.4% 0.015 89)", "tonalRamp": ["oklch(15% 0.015 89)", "oklch(27% 0.015 89)", "oklch(38% 0.015 89)", "oklch(50% 0.015 89)", "oklch(61% 0.015 89)", "oklch(73% 0.015 89)", "oklch(84% 0.015 89)", "oklch(95% 0.015 89)"] },
+      "penn-blue": { "role": "primary", "displayName": "Penn Blue", "canonical": "oklch(26.5% 0.114 261)", "tonalRamp": ["oklch(15% 0.114 261)", "oklch(27% 0.114 261)", "oklch(38% 0.114 261)", "oklch(50% 0.114 261)", "oklch(61% 0.114 261)", "oklch(73% 0.114 261)", "oklch(84% 0.114 261)", "oklch(95% 0.114 261)"] },
+      "penn-blue-2": { "role": "primary", "displayName": "Penn Blue Lit", "canonical": "oklch(37.5% 0.145 261)", "tonalRamp": ["oklch(15% 0.140 261)", "oklch(27% 0.140 261)", "oklch(38% 0.140 261)", "oklch(50% 0.140 261)", "oklch(61% 0.140 261)", "oklch(73% 0.140 261)", "oklch(84% 0.140 261)", "oklch(95% 0.140 261)"] },
+      "penn-red": { "role": "secondary", "displayName": "Penn Red", "canonical": "oklch(42.9% 0.176 29)", "tonalRamp": ["oklch(15% 0.140 29)", "oklch(27% 0.140 29)", "oklch(38% 0.140 29)", "oklch(50% 0.140 29)", "oklch(61% 0.140 29)", "oklch(73% 0.140 29)", "oklch(84% 0.140 29)", "oklch(95% 0.140 29)"] },
+      "energy": { "role": "primary", "displayName": "Energy Gold", "canonical": "oklch(65.2% 0.132 82)", "tonalRamp": ["oklch(15% 0.132 82)", "oklch(27% 0.132 82)", "oklch(38% 0.132 82)", "oklch(50% 0.132 82)", "oklch(61% 0.132 82)", "oklch(73% 0.132 82)", "oklch(84% 0.132 82)", "oklch(95% 0.132 82)"] },
+      "energy-ink": { "role": "primary", "displayName": "Energy Ink", "canonical": "oklch(48.8% 0.098 84)", "tonalRamp": ["oklch(15% 0.098 84)", "oklch(27% 0.098 84)", "oklch(38% 0.098 84)", "oklch(50% 0.098 84)", "oklch(61% 0.098 84)", "oklch(73% 0.098 84)", "oklch(84% 0.098 84)", "oklch(95% 0.098 84)"] },
+      "good": { "role": "secondary", "displayName": "Good Green", "canonical": "oklch(52.2% 0.140 147)", "tonalRamp": ["oklch(15% 0.140 147)", "oklch(27% 0.140 147)", "oklch(38% 0.140 147)", "oklch(50% 0.140 147)", "oklch(61% 0.140 147)", "oklch(73% 0.140 147)", "oklch(84% 0.140 147)", "oklch(95% 0.140 147)"] },
+      "caution": { "role": "secondary", "displayName": "Caution Amber", "canonical": "oklch(55.5% 0.146 49)", "tonalRamp": ["oklch(15% 0.140 49)", "oklch(27% 0.140 49)", "oklch(38% 0.140 49)", "oklch(50% 0.140 49)", "oklch(61% 0.140 49)", "oklch(73% 0.140 49)", "oklch(84% 0.140 49)", "oklch(95% 0.140 49)"] },
+      "problem": { "role": "secondary", "displayName": "Problem Red", "canonical": "oklch(42.9% 0.176 29)", "tonalRamp": ["oklch(15% 0.140 29)", "oklch(27% 0.140 29)", "oklch(38% 0.140 29)", "oklch(50% 0.140 29)", "oklch(61% 0.140 29)", "oklch(73% 0.140 29)", "oklch(84% 0.140 29)", "oklch(95% 0.140 29)"] },
+      "tint-blue": { "role": "neutral", "displayName": "Blue Tint", "canonical": "oklch(95.8% 0.009 265)", "tonalRamp": ["oklch(15% 0.009 265)", "oklch(27% 0.009 265)", "oklch(38% 0.009 265)", "oklch(50% 0.009 265)", "oklch(61% 0.009 265)", "oklch(73% 0.009 265)", "oklch(84% 0.009 265)", "oklch(95% 0.009 265)"] },
+      "tint-energy": { "role": "neutral", "displayName": "Energy Tint", "canonical": "oklch(96.5% 0.026 88)", "tonalRamp": ["oklch(15% 0.026 88)", "oklch(27% 0.026 88)", "oklch(38% 0.026 88)", "oklch(50% 0.026 88)", "oklch(61% 0.026 88)", "oklch(73% 0.026 88)", "oklch(84% 0.026 88)", "oklch(95% 0.026 88)"] },
+      "tint-red": { "role": "neutral", "displayName": "Red Tint", "canonical": "oklch(95.3% 0.014 17)", "tonalRamp": ["oklch(15% 0.014 17)", "oklch(27% 0.014 17)", "oklch(38% 0.014 17)", "oklch(50% 0.014 17)", "oklch(61% 0.014 17)", "oklch(73% 0.014 17)", "oklch(84% 0.014 17)", "oklch(95% 0.014 17)"] },
+      "tint-good": { "role": "neutral", "displayName": "Good Tint", "canonical": "oklch(95.5% 0.013 153)", "tonalRamp": ["oklch(15% 0.013 153)", "oklch(27% 0.013 153)", "oklch(38% 0.013 153)", "oklch(50% 0.013 153)", "oklch(61% 0.013 153)", "oklch(73% 0.013 153)", "oklch(84% 0.013 153)", "oklch(95% 0.013 153)"] },
+      "tint-caution": { "role": "neutral", "displayName": "Caution Tint", "canonical": "oklch(96.4% 0.019 68)", "tonalRamp": ["oklch(15% 0.019 68)", "oklch(27% 0.019 68)", "oklch(38% 0.019 68)", "oklch(50% 0.019 68)", "oklch(61% 0.019 68)", "oklch(73% 0.019 68)", "oklch(84% 0.019 68)", "oklch(95% 0.019 68)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The setup sheet's title only. Condensed caps, 700." },
+      "headline": { "displayName": "Headline", "purpose": "Year bands and the title-block wordmark. Condensed caps, 700, 0.04–0.06em." },
+      "title": { "displayName": "Title", "purpose": "Feeder panel headers, setup section heads; modal titles at 1.125rem sentence case." },
+      "body": { "displayName": "Body", "purpose": "Course titles, tracker labels, options, chat. 0.75rem for hints and alarms, 0.6875rem for footnotes." },
+      "label": { "displayName": "Label", "purpose": "Panel titles, column heads, status words, captions. Condensed caps 600, 0.07em; 0.625rem variant in ink-3 for in-panel column heads and unit suffixes." },
+      "tag": { "displayName": "Tag", "purpose": "Course codes, CU readouts, thresholds, dates, key hints. Red Hat Mono 500, tabular numerals." },
+      "control": { "displayName": "Control", "purpose": "Every button. Condensed caps 600, 0.06em." }
+    },
+    "shadows": [
+      { "name": "pop", "value": "0 2px 6px rgba(26, 26, 26, 0.08), 0 14px 32px -10px rgba(26, 26, 26, 0.28)", "purpose": "Modals, dropdown menus, share popover, toasts, phone chat drawer. Always with a 1px ink border. Nothing on the sheet itself casts it." }
+    ],
+    "motion": [
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Meter fills and modal settle." },
+      { "name": "flip", "value": "80ms ease-out", "purpose": "Button, box, and segment state flips (background, color, transform)." },
+      { "name": "state", "value": "100ms–120ms ease-out", "purpose": "Row hover/inversion, field border, drop-target tint; the fade keyframe for scrims and drawers." },
+      { "name": "trace", "value": "150ms–160ms ease-out", "purpose": "Bus cells and tracker rows lighting when a course is hovered or focused; meter fill recolor." },
+      { "name": "settle", "value": "160ms ease-out-expo (opacity 0→1, scale 0.985→1)", "purpose": "Modals, popovers, toasts, chat bubbles entering." },
+      { "name": "meter", "value": "280ms ease-out-expo (transform scaleX)", "purpose": "Meter fill settling to its reading." },
+      { "name": "reduced-motion", "value": "animation: none; transition-duration: 0.01ms", "purpose": "Applied globally under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "The default switch: condensed caps in a 1px ink rectangle; hover inverts to ink.",
+      "html": "<button class=\"ds-btn\">Edit setup</button>",
+      "css": ".ds-btn { font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; padding: 0.625rem 0.875rem; border: 1px solid var(--color-ink, #1a1a1a); color: var(--color-ink, #1a1a1a); background: transparent; border-radius: 0; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; cursor: pointer; transition: background-color 80ms ease-out, color 80ms ease-out, transform 80ms ease-out; } .ds-btn:hover { background: var(--color-ink, #1a1a1a); color: var(--color-sheet, #faf9f6); } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; } .ds-btn:disabled { border-color: var(--color-rule-2, #b9b5ab); color: var(--color-ink-3, #6e6e68); background: transparent; pointer-events: none; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled control per surface (Share plan). Penn Blue, with its key hint printed in mono.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"M7 3H3v10h10V9M9 3h4v4M13 3L7 9\"/></svg>Share plan<span class=\"ds-kbd\">S</span></button>",
+      "css": ".ds-btn-primary { font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; padding: 0.625rem 0.875rem; border: 1px solid var(--color-penn-blue, #011f5b); background: var(--color-penn-blue, #011f5b); color: #ffffff; border-radius: 0; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; cursor: pointer; transition: background-color 80ms ease-out, border-color 80ms ease-out, transform 80ms ease-out; } .ds-btn-primary:hover { background: var(--color-penn-blue-2, #0b3a8c); border-color: var(--color-penn-blue-2, #0b3a8c); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; } .ds-kbd { font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.625rem; font-weight: 500; letter-spacing: 0; text-transform: none; opacity: 0.6; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Borderless utility control (Undo, Export, Chat, modal close). Hover takes the blue tint; pressed state inverts to ink.",
+      "html": "<button class=\"ds-btn-quiet\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"M6 4L3 7l3 3\"/><path d=\"M3 7h6.5a3.5 3.5 0 010 7H7\"/></svg><span class=\"ds-kbd\">Cmd Z</span></button>",
+      "css": ".ds-btn-quiet { font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; padding: 0.625rem 0.875rem; border: 1px solid transparent; color: var(--color-ink-2, #55554f); background: transparent; border-radius: 0; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: background-color 80ms ease-out, color 80ms ease-out, transform 80ms ease-out; } .ds-btn-quiet:hover { background: var(--color-tint-blue, #eef1f7); color: var(--color-ink, #1a1a1a); } .ds-btn-quiet[aria-pressed='true'] { background: var(--color-ink, #1a1a1a); color: var(--color-sheet, #faf9f6); } .ds-btn-quiet:active { transform: translateY(1px); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; } .ds-kbd { font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.625rem; font-weight: 500; letter-spacing: 0; text-transform: none; opacity: 0.6; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Delete only. Penn Red outline that fills on hover.",
+      "html": "<button class=\"ds-btn-danger\">Remove course</button>",
+      "css": ".ds-btn-danger { font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; padding: 0.625rem 0.875rem; border: 1px solid var(--color-penn-red, #990000); color: var(--color-penn-red, #990000); background: transparent; border-radius: 0; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: background-color 80ms ease-out, color 80ms ease-out, transform 80ms ease-out; } .ds-btn-danger:hover { background: var(--color-penn-red, #990000); color: #ffffff; } .ds-btn-danger:active { transform: translateY(1px); } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; }"
+    },
+    {
+      "name": "Segmented Switch",
+      "kind": "nav",
+      "refersTo": "segment",
+      "description": "Grid | Focus and modal tabs: label-voice cells in one ink rectangle; the selected cell inverts.",
+      "html": "<div class=\"ds-seg\" role=\"tablist\"><button role=\"tab\" aria-selected=\"true\">Grid<span class=\"ds-kbd\">V</span></button><button role=\"tab\" aria-selected=\"false\">Focus<span class=\"ds-kbd\">V</span></button></div>",
+      "css": ".ds-seg { display: inline-flex; border: 1px solid var(--color-ink, #1a1a1a); } .ds-seg > button { font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.07em; text-transform: uppercase; padding: 0.4375rem 0.75rem; color: var(--color-ink-2, #55554f); background: transparent; border: 0; border-radius: 0; cursor: pointer; transition: background-color 80ms ease-out, color 80ms ease-out; } .ds-seg > button + button { border-left: 1px solid var(--color-ink, #1a1a1a); } .ds-seg > button[aria-selected='true'] { background: var(--color-ink, #1a1a1a); color: var(--color-sheet, #faf9f6); } .ds-seg > button:hover:not([aria-selected='true']) { background: var(--color-tint-blue, #eef1f7); color: var(--color-ink, #1a1a1a); } .ds-seg > button:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; } .ds-kbd { font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.625rem; font-weight: 500; letter-spacing: 0; text-transform: none; opacity: 0.6; margin-left: 0.375rem; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Square text input or select on panel white; Penn Blue border plus 1px inset ring on focus.",
+      "html": "<label class=\"ds-label\" for=\"ds-f\">Course code</label><input id=\"ds-f\" class=\"ds-field\" placeholder=\"CHEM 2410\" />",
+      "css": ".ds-label { display: block; margin-bottom: 0.375rem; font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-ink-2, #55554f); line-height: 1; } .ds-field { appearance: none; width: 100%; border: 1px solid var(--color-rule-2, #b9b5ab); background: var(--color-panel, #ffffff); color: var(--color-ink, #1a1a1a); padding: 0.5rem 0.625rem; font-family: var(--font-sans, 'Barlow', sans-serif); font-size: 0.8125rem; line-height: 1.25; border-radius: 0; transition: border-color 120ms ease-out; } .ds-field:hover { border-color: var(--color-ink-3, #6e6e68); } .ds-field:focus { outline: none; border-color: var(--color-penn-blue, #011f5b); box-shadow: inset 0 0 0 1px var(--color-penn-blue, #011f5b); } .ds-field::placeholder { color: var(--color-ink-3, #6e6e68); }"
+    },
+    {
+      "name": "Feeder Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "A term: title and readout, a labeled load meter with printed thresholds, ink-ruled column heads, then breakers on the fixed ruling and a dashed add cell.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-head\"><div class=\"ds-panel-row\"><h3 class=\"ds-panel-title\">Spring 2025</h3><div class=\"ds-readout ds-caution\"><span class=\"ds-word\">overload</span><span class=\"ds-tag\">6.5 CU</span></div></div><div class=\"ds-meter\"><div class=\"ds-fill ds-fill-caution\" style=\"transform:scaleX(0.867)\"></div><span class=\"ds-tick\" style=\"left:73.3%\"></span><span class=\"ds-tick\" style=\"left:86.7%\"></span></div><div class=\"ds-thresholds\"><span style=\"left:73.3%\">5.5</span><span style=\"left:86.7%\">6.5</span><span class=\"ds-cap\">7.5</span></div></header><div class=\"ds-cols\"><span>tag</span><span>course</span><span>ties</span><span class=\"ds-r\">CU</span></div><div class=\"ds-row\"><span class=\"ds-tag\">CHEM 1022</span><span class=\"ds-title\">General Chemistry II</span><svg width=\"34\" height=\"10\" viewBox=\"0 0 34 10\" aria-hidden=\"true\"><rect x=\"5\" y=\"4\" width=\"12\" height=\"2\" fill=\"var(--color-penn-blue, #011f5b)\"/><rect x=\"1.5\" y=\"1.5\" width=\"7\" height=\"7\" fill=\"var(--color-penn-blue, #011f5b)\"/><rect x=\"13.5\" y=\"1.5\" width=\"7\" height=\"7\" fill=\"var(--color-ink, #1a1a1a)\"/><rect x=\"26\" y=\"2\" width=\"6\" height=\"6\" fill=\"none\" stroke=\"var(--color-rule-2, #b9b5ab)\"/></svg><span class=\"ds-tag ds-cu\">1</span></div><div class=\"ds-row\"><span class=\"ds-tag\">MATH 1410</span><span class=\"ds-title\">Calculus, Part II</span><svg width=\"34\" height=\"10\" viewBox=\"0 0 34 10\" aria-hidden=\"true\"><rect x=\"5\" y=\"4\" width=\"12\" height=\"2\" fill=\"var(--color-penn-blue, #011f5b)\"/><rect x=\"1.5\" y=\"1.5\" width=\"7\" height=\"7\" fill=\"var(--color-penn-blue, #011f5b)\"/><rect x=\"13.5\" y=\"1.5\" width=\"7\" height=\"7\" fill=\"var(--color-ink, #1a1a1a)\"/><rect x=\"26\" y=\"2\" width=\"6\" height=\"6\" fill=\"none\" stroke=\"var(--color-rule-2, #b9b5ab)\"/></svg><span class=\"ds-tag ds-cu\">1</span></div><button class=\"ds-add\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M8 3v10M3 8h10\"/></svg>Add course</button></section>",
+      "css": ".ds-panel { border: 1px solid var(--color-rule, #d9d6cf); background: var(--color-sheet, #faf9f6); font-family: var(--font-sans, 'Barlow', sans-serif); color: var(--color-ink, #1a1a1a); max-width: 22rem; } .ds-panel-head { padding: 0.75rem 0.75rem 0; } .ds-panel-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; } .ds-panel-title { margin: 0; font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1; } .ds-readout { display: flex; align-items: baseline; gap: 0.375rem; white-space: nowrap; } .ds-caution { color: var(--color-caution, #b45309); } .ds-word { font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.625rem; letter-spacing: 0.07em; text-transform: uppercase; } .ds-tag { font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.6875rem; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; } .ds-meter { position: relative; height: 6px; margin-top: 0.625rem; background: var(--color-panel, #ffffff); border: 1px solid var(--color-rule, #d9d6cf); } .ds-fill { position: absolute; inset: 0; transform-origin: left center; transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms ease-out; } .ds-fill-caution { background: var(--color-caution, #b45309); } .ds-tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--color-ink, #1a1a1a); } .ds-thresholds { position: relative; height: 0.75rem; margin-bottom: 0.75rem; } .ds-thresholds > span { position: absolute; top: 0.125rem; transform: translateX(-50%); font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.625rem; font-weight: 500; color: var(--color-ink-3, #6e6e68); } .ds-thresholds > .ds-cap { right: 0; left: auto; transform: none; } .ds-cols, .ds-row { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) 2.75rem 2rem; column-gap: 0.5rem; align-items: center; padding-left: 1.5rem; padding-right: 0.25rem; } .ds-cols { padding-bottom: 0.25rem; border-bottom: 1px solid var(--color-ink, #1a1a1a); font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.625rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-ink-3, #6e6e68); } .ds-r, .ds-cu { text-align: right; } .ds-row { min-height: 2.25rem; padding-top: 0.375rem; padding-bottom: 0.375rem; border-bottom: 1px solid var(--color-rule, #d9d6cf); cursor: pointer; transition: background-color 100ms ease-out, color 100ms ease-out; } .ds-row:hover { background: var(--color-tint-blue, #eef1f7); } .ds-row:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; background: var(--color-tint-blue, #eef1f7); } .ds-title { font-size: 0.8125rem; line-height: 1.375; } .ds-cu { color: var(--color-ink-2, #55554f); } .ds-add { display: flex; align-items: center; justify-content: center; gap: 0.375rem; margin: 0.5rem; padding: 0.5rem; width: calc(100% - 1rem); border: 1px dashed var(--color-rule-2, #b9b5ab); background: transparent; border-radius: 0; font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-ink-3, #6e6e68); cursor: pointer; transition: border-color 100ms ease-out, color 100ms ease-out; } .ds-add:hover, .ds-add:focus-visible { border-color: var(--color-ink, #1a1a1a); color: var(--color-ink, #1a1a1a); }"
+    },
+    {
+      "name": "Course Row, Inverted",
+      "kind": "custom",
+      "refersTo": "course-row-inverted",
+      "description": "A selected or dragged breaker: full inversion to ink ground and sheet text, the BSE terminal printed in sheet so ties stay legible.",
+      "html": "<div class=\"ds-row-inv\" aria-current=\"true\"><span class=\"ds-grip\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><rect x=\"5\" y=\"3\" width=\"2\" height=\"2\"/><rect x=\"9\" y=\"3\" width=\"2\" height=\"2\"/><rect x=\"5\" y=\"7\" width=\"2\" height=\"2\"/><rect x=\"9\" y=\"7\" width=\"2\" height=\"2\"/><rect x=\"5\" y=\"11\" width=\"2\" height=\"2\"/><rect x=\"9\" y=\"11\" width=\"2\" height=\"2\"/></svg></span><span class=\"ds-tag\">CHEM 1012</span><span class=\"ds-title\">General Chemistry I</span><svg width=\"34\" height=\"10\" viewBox=\"0 0 34 10\" aria-hidden=\"true\"><rect x=\"5\" y=\"4\" width=\"12\" height=\"2\" fill=\"var(--color-tint-blue, #eef1f7)\"/><rect x=\"1.5\" y=\"1.5\" width=\"7\" height=\"7\" fill=\"var(--color-tint-blue, #eef1f7)\"/><rect x=\"13.5\" y=\"1.5\" width=\"7\" height=\"7\" fill=\"var(--color-sheet, #faf9f6)\"/><rect x=\"26\" y=\"2\" width=\"6\" height=\"6\" fill=\"none\" stroke=\"var(--color-ink-3, #6e6e68)\"/></svg><span class=\"ds-tag ds-cu\">1</span></div>",
+      "css": ".ds-row-inv { position: relative; display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) 2.75rem 2rem; column-gap: 0.5rem; align-items: center; min-height: 2.25rem; padding: 0.375rem 0.25rem 0.375rem 1.5rem; max-width: 22rem; background: var(--color-ink, #1a1a1a); color: var(--color-sheet, #faf9f6); font-family: var(--font-sans, 'Barlow', sans-serif); cursor: pointer; } .ds-grip { position: absolute; left: 0.375rem; top: 50%; transform: translateY(-50%); color: var(--color-sheet, #faf9f6); cursor: grab; } .ds-tag { font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.6875rem; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; } .ds-title { font-size: 0.8125rem; line-height: 1.375; } .ds-cu { text-align: right; }"
+    },
+    {
+      "name": "Bus Loading Row",
+      "kind": "custom",
+      "refersTo": "meter",
+      "description": "One audit line in the rail: label, 5px bus-colored meter, mono readout, green check when satisfied. Lights in the bus tint when a course traces it.",
+      "html": "<div class=\"ds-track\"><button class=\"ds-track-row\"><span class=\"ds-track-label\">Foundations</span><span class=\"ds-track-meter\"><span class=\"ds-track-fill\" style=\"transform:scaleX(1)\"></span></span><span class=\"ds-tag\">6/6</span><span class=\"ds-good\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"M3 8.5l3.5 3.5L13 4\"/></svg></span></button><button class=\"ds-track-row\" data-lit=\"true\"><span class=\"ds-track-label\">Social Sciences</span><span class=\"ds-track-meter\"><span class=\"ds-track-fill\" style=\"transform:scaleX(0.6)\"></span></span><span class=\"ds-tag ds-dim\">3/5<span class=\"ds-unit\">CU</span></span><span class=\"ds-chev\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M6 3l5 5-5 5\"/></svg></span></button></div>",
+      "css": ".ds-track { border: 1px solid var(--color-rule, #d9d6cf); background: var(--color-sheet, #faf9f6); padding: 0.375rem 0; max-width: 21rem; font-family: var(--font-sans, 'Barlow', sans-serif); } .ds-track-row { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) 3.5rem 3.25rem 1rem; column-gap: 0.5rem; align-items: center; padding: 0.5rem; border: 0; background: transparent; text-align: left; cursor: pointer; transition: background-color 150ms ease-out; } .ds-track-row:hover { background: var(--color-tint-blue, #eef1f7); } .ds-track-row[data-lit='true'] { background: var(--color-tint-blue, #eef1f7); } .ds-track-row:focus-visible { outline: 2px solid var(--color-penn-blue, #011f5b); outline-offset: 2px; } .ds-track-label { font-size: 0.8125rem; color: var(--color-ink, #1a1a1a); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-track-meter { position: relative; display: block; height: 5px; background: var(--color-panel, #ffffff); border: 1px solid var(--color-rule, #d9d6cf); } .ds-track-fill { position: absolute; inset: 0; background: var(--color-penn-blue, #011f5b); transform-origin: left center; transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-tag { font-family: var(--font-mono, 'Red Hat Mono', monospace); font-size: 0.6875rem; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; color: var(--color-ink, #1a1a1a); } .ds-dim { color: var(--color-ink-2, #55554f); } .ds-unit { margin-left: 0.125rem; font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.625rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-ink-3, #6e6e68); } .ds-good { display: flex; justify-content: flex-end; color: var(--color-good, #1e7e34); } .ds-chev { display: flex; justify-content: flex-end; color: var(--color-ink-3, #6e6e68); }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Status line, bottom-right: ink ground, sheet text, an underlined Undo that turns gold on hover.",
+      "html": "<div class=\"ds-toast\" role=\"status\"><span>Moved CHEM 2410 to Spring 2026.</span><button class=\"ds-toast-undo\">Undo</button><button class=\"ds-toast-x\" aria-label=\"Dismiss\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M3.5 3.5l9 9M12.5 3.5l-9 9\"/></svg></button></div>",
+      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.875rem; background: var(--color-ink, #1a1a1a); color: var(--color-sheet, #faf9f6); font-family: var(--font-sans, 'Barlow', sans-serif); font-size: 0.8125rem; box-shadow: 0 2px 6px rgba(26, 26, 26, 0.08), 0 14px 32px -10px rgba(26, 26, 26, 0.28); animation: ds-settle 160ms cubic-bezier(0.16, 1, 0.3, 1) both; } .ds-toast-undo { border: 0; background: transparent; padding: 0; cursor: pointer; font-family: var(--font-cond, 'Barlow Semi Condensed', sans-serif); font-weight: 600; font-size: 0.625rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-sheet, #faf9f6); text-decoration: underline; text-underline-offset: 4px; transition: color 80ms ease-out; } .ds-toast-undo:hover { color: var(--color-energy, #b8860b); } .ds-toast-x { border: 0; background: transparent; padding: 0; margin-right: -0.25rem; color: rgba(250, 249, 246, 0.7); cursor: pointer; display: flex; } .ds-toast-x:hover { color: var(--color-sheet, #faf9f6); } @keyframes ds-settle { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } } @media (prefers-reduced-motion: reduce) { .ds-toast { animation: none; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The One-Line Diagram",
+    "overview": "The plan is drawn the way a power engineer draws a substation: one warm off-white sheet, three buses (BA, BSE, Energy) along the top, eight feeders (the academic terms) hanging below them, and every course a breaker that ties to the buses it feeds. Nothing on the sheet is decorative. Every region is ruled by a hairline, every load is a meter with its thresholds printed beside it, every status is a colored word, and the only saturated color on the page is bus identity or a printed alarm. The text field is achromatic ink on sheet; when something goes wrong it says so in Penn Red, and when it is fine the sheet stays quiet.\n\nThe world is dense and flat. Panels carry no elevation; depth exists only for the things that float above the sheet for a moment (modals, menus, toasts, the phone chat drawer). Type is a drafting voice: condensed capitals for titles and column heads, a plain grotesque for course names and prose, and a monospaced face for equipment tags (course codes), CU readouts, and key hints. Selection and drag do not dim or tint; they invert the row fully to ink-on-sheet, the way a highlighter would on a print.\n\nThis world replaced the earlier \"registrar ledger\" identity (display serif, paper texture) and refuses the kanban-of-cards planner with progress rings. It was shipped 2026-09-13 with a finish disposition of ship.",
+    "keyCharacteristics": [
+      "One off-white sheet, hairline rules, square corners everywhere, no grain",
+      "Achromatic text; color only for bus identity (Penn Blue, ink, energy gold) and status (green, amber, Penn Red) with a printed word",
+      "Three faces with fixed jobs: Barlow Semi Condensed caps, Barlow text, Red Hat Mono readouts",
+      "One fixed column ruling (tag | title | ties | CU) for every course row",
+      "Labeled meters with printed thresholds (5.5 rated · 6.5 overload · 7.5 trip)",
+      "Full inversion for selected and dragged rows; a hover \"trace\" that lights the buses a course feeds",
+      "Authored single-stroke SVG icons; keyboard shortcuts printed in mono beside their controls",
+      "No entrance choreography; state flips are instant, meters settle in 280ms"
+    ],
+    "rules": [
+      { "name": "The Achromatic Field Rule", "body": "Running text, titles, labels, and readouts are ink, ink-2, or ink-3. A hue on text means one of exactly two things: which bus (Penn Blue, energy gold) or which status (green, amber, Penn Red).", "section": "colors" },
+      { "name": "The Printed Word Rule", "body": "Status color never stands alone. Every amber or red load carries its word (overload, needs approval, over hard cap, over first-semester cap); every green carries a check or \"satisfied\".", "section": "colors" },
+      { "name": "The One Filled Control Rule", "body": "Penn Blue fills one control per surface (Share plan in the title block; the primary action inside a modal or notice). Everything else is outlined or quiet.", "section": "colors" },
+      { "name": "The Three Voices Rule", "body": "Condensed caps name things, Barlow describes things, mono measures things. A number that will be compared (CU, counts, thresholds) is always mono and tabular.", "section": "typography" },
+      { "name": "The Printed Key Rule", "body": "A keyboard shortcut is printed in `kbd` mono beside the control it drives (Cmd Z, C, S, V, esc), never hidden in a tooltip.", "section": "typography" },
+      { "name": "The Sheet Is Flat Rule", "body": "Nothing that lives on the sheet has a shadow. Pop is reserved for surfaces that will close.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do rule every region with a 1px hairline (`{colors.rule}`) and reserve 1px ink for structural edges and 2px ink for year bands and drop indicators.",
+      "Do keep every course row on the fixed ruling `4.5rem | minmax(0,1fr) | 2.75rem | 2rem` (compact `4.25rem | minmax(0,1fr) | 2rem` for summers) so codes, ties, and CU align down the whole sheet.",
+      "Do print the word with the color: a status hue on a load, tracker, or alarm always carries its status word or a check glyph.",
+      "Do set every comparable number (CU, counts, thresholds, dates, key hints) in Red Hat Mono with tabular figures.",
+      "Do invert fully (ink ground, sheet text) for selected and dragged rows and the selected segment; hover takes the flat tint-blue.",
+      "Do give loads a labeled meter with the thresholds printed (5.5 · 6.5 · 7.5; first semester 5.5 only) rather than a bare number or a ring.",
+      "Do author new icons in the single-stroke 16px set (1.5px, square caps, miter joins) and size them 12–14px inline.",
+      "Do keep the right edge to one occupant: the rail or the chat drawer, never both.",
+      "Do print a control's keyboard shortcut in `kbd` beside it and keep all motion under `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "Don't round a corner. The radius scale is `0px`; the only ruled shapes are rectangles, dashed rectangles, and squares.",
+      "Don't put a shadow on anything that lives on the sheet. Pop belongs to modals, menus, popovers, toasts, and the phone chat drawer only.",
+      "Don't color text for emphasis. Hue on text means bus (Penn Blue, gold) or status (green, amber, Penn Red); everything else is ink, ink-2, or ink-3.",
+      "Don't use Penn Red as decoration or a second accent; it is problem status, the danger button, ×n double-count marks, and the admin sandbox's ruling.",
+      "Don't introduce a fourth typeface, a serif, an italic, or a weight outside Barlow 400/500/600, Barlow Semi Condensed 500/600/700, Red Hat Mono 400/500/600.",
+      "Don't dim or fade a row to show state (no half-opacity ghosts); invert it.",
+      "Don't add paper grain, notebook lines, gradients, or any texture to the sheet.",
+      "Don't choreograph entrances on load or exceed the 280ms meter settle; state flips stay at or under 120ms.",
+      "Don't open a modal from a modal; second-level decisions are tabs inside the first."
+    ]
+  }
+}

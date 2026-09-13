@@ -4,6 +4,7 @@ import { CHAT_MODEL, USES_PROXY, chatIsReady, createClient, setStoredApiKey } fr
 import { runChatTurn } from './chat-loop'
 import type { PlanToolContext } from './tools'
 import { MarkdownLite } from './MarkdownLite'
+import { IconArrowUp, IconCheck, IconChevronRight, IconClose, IconStop } from '../ui/components/icons'
 
 interface DisplayEntry {
   id: number
@@ -36,15 +37,11 @@ function groupEntries(entries: DisplayEntry[]): RenderItem[] {
 /** Map API failures to something a student can act on — never raw JSON. */
 function friendlyError(err: unknown): string {
   const status =
-    err && typeof err === 'object' && 'status' in err
-      ? (err as { status?: number }).status
-      : undefined
+    err && typeof err === 'object' && 'status' in err ? (err as { status?: number }).status : undefined
   if (status === 401)
-    return "That API key was rejected. Tap **Key** above and re-paste it — and check the key's workspace actually has credits."
-  if (status === 429)
-    return 'Rate limited — give it a few seconds and try again.'
-  if (status === 529 || status === 500)
-    return "Anthropic's API is having a moment. Try again shortly."
+    return "That API key was rejected. Use **Key** above and re-paste it, and check the key's workspace actually has credits."
+  if (status === 429) return 'Rate limited. Give it a few seconds and try again.'
+  if (status === 529 || status === 500) return "Anthropic's API is having a moment. Try again shortly."
   const msg = err instanceof Error ? err.message : String(err)
   return `Something went wrong talking to the API: ${msg.slice(0, 200)}`
 }
@@ -62,28 +59,22 @@ export interface ChatPanelProps {
   onClose?: () => void
 }
 
-/** The one way out of the panel — always in the top-right, always labeled. */
 function CloseButton({ onClose }: { onClose?: () => void }) {
   if (!onClose) return null
   return (
-    <button
-      type="button"
-      onClick={onClose}
-      aria-label="Close chat"
-      className="-mr-2 flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-3 text-[0.71875rem] font-medium text-ink/55 transition-colors duration-150 hover:bg-ink/6 hover:text-ink focus-visible:bg-ink/6 focus-visible:text-ink"
-    >
-      Close
-      <span aria-hidden className="text-[1rem] leading-none">
-        ×
+    <button type="button" onClick={onClose} aria-label="Close chat" className="btn btn-quiet !px-2">
+      <IconClose size={14} />
+      <span className="kbd" aria-hidden>
+        esc
       </span>
     </button>
   )
 }
 
 /**
- * The chat sidekick — a quiet document margin, not a messenger app.
- * Tool activity renders as ledger clusters (dotted rules, mono labels);
- * prose streams into paper cards. Chat is the sidekick, not the surface.
+ * The plan assistant: a log beside the sheet, not a messenger. Tool activity
+ * prints as ruled mono lines; prose lands in bordered panels. Chat is the
+ * sidekick, not the surface.
  */
 export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
   const [entries, setEntries] = useState<DisplayEntry[]>([])
@@ -142,9 +133,7 @@ export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
               streamingId.current = push({ role: 'assistant', text: event.text, pending: true })
             } else {
               const id = streamingId.current
-              setEntries((es) =>
-                es.map((e) => (e.id === id ? { ...e, text: e.text + event.text } : e)),
-              )
+              setEntries((es) => es.map((e) => (e.id === id ? { ...e, text: e.text + event.text } : e)))
             }
           } else if (event.type === 'text_done') {
             if (streamingId.current !== null) {
@@ -157,17 +146,13 @@ export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
             setEntries((es) => {
               const last = [...es].reverse().find((e) => e.role === 'tool' && e.pending)
               if (!last) return es
-              return es.map((e) =>
-                e.id === last.id ? { ...e, pending: false, ok: event.ok } : e,
-              )
+              return es.map((e) => (e.id === last.id ? { ...e, pending: false, ok: event.ok } : e))
             })
           }
         },
       })
     } catch (err) {
-      if (!abort.signal.aborted) {
-        push({ role: 'assistant', text: friendlyError(err) })
-      }
+      if (!abort.signal.aborted) push({ role: 'assistant', text: friendlyError(err) })
     } finally {
       if (streamingId.current !== null) {
         patch(streamingId.current, { pending: false })
@@ -179,37 +164,76 @@ export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
     }
   }
 
-  if (!hasKey) {
-    return (
-      <div className="flex h-full flex-col justify-center gap-3 px-6">
-        <div className="flex items-center justify-between">
-          <p className="smallcaps">Plan assistant</p>
+  const header = (
+    <header className="flex items-center justify-between gap-2 border-b border-ink px-4 py-2.5">
+      <div className="min-w-0">
+        <p className="label !text-ink">Plan assistant</p>
+        <p className="tag mt-0.5 !text-[0.625rem] text-ink-3">{CHAT_MODEL}</p>
+      </div>
+      <div className="flex items-center gap-1">
+        {hasKey && (
+          <button
+            type="button"
+            onClick={() => {
+              history.current = []
+              setEntries([])
+            }}
+            className="btn btn-quiet !py-2"
+          >
+            Clear
+          </button>
+        )}
+        {hasKey && !USES_PROXY && (
+          <button
+            type="button"
+            onClick={() => {
+              setHasKey(false)
+              setKeyInput('')
+            }}
+            className="btn btn-quiet !py-2"
+          >
+            Key
+          </button>
+        )}
+        <div className="hidden lg:block">
           <CloseButton onClose={onClose} />
         </div>
-        <hr className="double-rule" />
-        <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-soft">
-          Paste an Anthropic API key to enable the plan-review chat. It's stored only in
-          this browser, never sent anywhere but Anthropic.
-        </p>
-        <input
-          type="password"
-          value={keyInput}
-          onChange={(e) => setKeyInput(e.target.value)}
-          placeholder="sk-ant-…"
-          className="rounded-md border border-hairline bg-paper px-3 py-2.5 font-mono text-[0.6875rem] placeholder:text-ink/30"
-          aria-label="Anthropic API key"
-        />
-        <button
-          type="button"
-          disabled={!keyInput.startsWith('sk-ant-')}
-          onClick={() => {
-            setStoredApiKey(keyInput)
-            setHasKey(true)
-          }}
-          className="rounded-md bg-penn-blue py-2.5 text-[0.75rem] font-semibold tracking-[0.08em] text-white uppercase transition-colors hover:bg-penn-blue-soft disabled:opacity-40"
-        >
-          Save key
-        </button>
+      </div>
+    </header>
+  )
+
+  if (!hasKey) {
+    return (
+      <div className="flex h-full flex-col">
+        {header}
+        <div className="flex flex-1 flex-col justify-center gap-3 px-4">
+          <p className="text-[0.8125rem] leading-relaxed text-ink-2">
+            Paste an Anthropic API key to enable the plan-review chat. It is stored only in this browser and
+            sent nowhere but Anthropic.
+          </p>
+          <label className="label" htmlFor="api-key">
+            API key
+          </label>
+          <input
+            id="api-key"
+            type="password"
+            value={keyInput}
+            onChange={(e) => setKeyInput(e.target.value)}
+            placeholder="sk-ant-…"
+            className="field font-mono !text-[0.75rem]"
+          />
+          <button
+            type="button"
+            disabled={!keyInput.startsWith('sk-ant-')}
+            onClick={() => {
+              setStoredApiKey(keyInput)
+              setHasKey(true)
+            }}
+            className="btn btn-primary justify-center"
+          >
+            Save key
+          </button>
+        </div>
       </div>
     )
   }
@@ -218,109 +242,53 @@ export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* ── Panel masthead ── */}
-      <header className="px-5 pt-5 pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="smallcaps">Plan assistant</p>
-            <p className="tnum mt-0.5 font-mono text-[0.5625rem] text-ink/30">{CHAT_MODEL}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                history.current = []
-                setEntries([])
-              }}
-              className="smallcaps !text-[0.5625rem] !text-ink/40 transition-colors hover:!text-ink"
-            >
-              Clear
-            </button>
-            {!USES_PROXY && (
-              <button
-                type="button"
-                onClick={() => {
-                  setHasKey(false)
-                  setKeyInput('')
-                }}
-                className="smallcaps !text-[0.5625rem] !text-ink/40 transition-colors hover:!text-ink"
-              >
-                Key
-              </button>
-            )}
-            <CloseButton onClose={onClose} />
-          </div>
-        </div>
-        <hr className="double-rule mt-3" />
-      </header>
+      {header}
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pb-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-4">
         {entries.length === 0 && (
-          <div className="flex h-full flex-col justify-end gap-2.5 pb-2">
-            <p
-              className="rise font-display text-[1.5rem] leading-snug font-semibold text-ink"
-              style={{ '--i': 0 } as React.CSSProperties}
-            >
-              Ask about <span className="text-penn-blue italic">your plan</span>
-              <span className="text-penn-red">.</span>
+          <div className="flex h-full flex-col justify-end gap-2 pb-2">
+            <p className="font-cond text-[1.375rem] leading-tight font-semibold tracking-[0.02em] text-ink">
+              Ask about your plan.
             </p>
-            <p
-              className="rise mb-2 text-[0.78125rem] leading-relaxed text-ink-soft"
-              style={{ '--i': 1 } as React.CSSProperties}
-            >
-              I can review it, explain program rules, or dry-run "what if" scenarios —
-              nothing changes until you confirm.
+            <p className="mb-2 text-[0.8125rem] leading-relaxed text-ink-2">
+              I can review it, explain program rules, or dry-run "what if" scenarios. Nothing changes until you
+              confirm.
             </p>
-            {SUGGESTIONS.map((s, i) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => void send(s)}
-                style={{ '--i': i + 2 } as React.CSSProperties}
-                className="rise group flex items-baseline justify-between gap-3 rounded-md border border-hairline bg-paper px-3.5 py-2.5 text-left text-[0.78125rem] text-ink/80 shadow-[var(--shadow-card)] transition-all duration-200 ease-out hover:-translate-y-px hover:border-penn-blue/40 hover:text-penn-blue hover:shadow-[var(--shadow-card-hover)]"
-              >
-                <span>{s}</span>
-                <span
-                  aria-hidden
-                  className="text-ink/25 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-penn-blue"
+            <div className="border-t border-ink">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => void send(s)}
+                  className="group flex w-full items-center justify-between gap-3 border-b border-rule px-1 py-2.5 text-left text-[0.8125rem] text-ink transition-colors duration-100 hover:bg-tint-blue"
                 >
-                  →
-                </span>
-              </button>
-            ))}
+                  <span>{s}</span>
+                  <span className="text-ink-3 transition-colors group-hover:text-penn-blue" aria-hidden>
+                    <IconChevronRight size={12} />
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 pt-4">
           {items.map((item) => {
             if (item.kind === 'activity') {
               return (
-                <div
-                  key={item.id}
-                  className="animate-fade mr-8 rounded-md border border-hairline bg-cream/70 px-3 py-1"
-                >
-                  {item.entries.map((e, i) => (
-                    <div
-                      key={e.id}
-                      className={[
-                        'flex items-baseline gap-2 py-1.5 font-mono text-[0.625rem]',
-                        i > 0 ? 'border-t border-dotted border-hairline' : '',
-                      ].join(' ')}
-                    >
+                <div key={item.id} className="fade mr-8 border-l-2 border-rule-2 pl-3">
+                  {item.entries.map((e) => (
+                    <div key={e.id} className="tag flex items-center gap-2 py-1 !text-[0.625rem]">
                       <span
-                        aria-hidden
                         className={[
-                          'w-3 text-center',
-                          e.pending
-                            ? 'animate-pulse text-ink/40'
-                            : e.ok === false
-                              ? 'text-penn-red'
-                              : 'text-[#1e6b38]',
+                          'flex w-3 justify-center',
+                          e.pending ? 'animate-pulse text-ink-3' : e.ok === false ? 'text-penn-red' : 'text-good',
                         ].join(' ')}
+                        aria-hidden
                       >
-                        {e.pending ? '·' : e.ok === false ? '✗' : '✓'}
+                        {e.pending ? '·' : e.ok === false ? <IconClose size={10} /> : <IconCheck size={10} />}
                       </span>
-                      <span className={e.ok === false ? 'text-penn-red/80' : 'text-ink/55'}>
+                      <span className={e.ok === false ? 'text-penn-red' : 'text-ink-2'}>
                         {e.text}
                         {e.pending && '…'}
                       </span>
@@ -332,74 +300,51 @@ export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
             const e = item.entry
             if (e.role === 'user') {
               return (
-                <div
-                  key={e.id}
-                  className="animate-rise ml-10 self-end rounded-2xl rounded-br-md bg-penn-blue px-4 py-2.5 text-[0.8125rem] leading-relaxed text-[#f5f7ff] shadow-[var(--shadow-card)]"
-                >
+                <div key={e.id} className="settle ml-10 self-end bg-ink px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-sheet">
                   {e.text}
                 </div>
               )
             }
             return (
-              <div
-                key={e.id}
-                className="animate-rise mr-6 self-start rounded-2xl rounded-bl-md border border-hairline bg-paper px-4 py-3 text-[0.8125rem] leading-relaxed text-ink/90 shadow-[var(--shadow-card)]"
-              >
+              <div key={e.id} className="settle mr-6 self-start border border-rule-2 px-3.5 py-3 text-[0.8125rem] leading-relaxed text-ink">
                 <MarkdownLite text={e.text} />
-                {e.pending && (
-                  <span className="ml-0.5 inline-block h-[0.9em] w-[2px] translate-y-[2px] animate-pulse rounded bg-penn-blue/60" />
-                )}
+                {e.pending && <span className="ml-0.5 inline-block h-[0.9em] w-[2px] translate-y-[2px] animate-pulse bg-penn-blue" />}
               </div>
             )
           })}
           {busy && entries[entries.length - 1]?.role === 'user' && (
-            <div className="ml-1 flex gap-1" aria-label="Assistant is thinking">
+            <div className="flex gap-1 pl-1" aria-label="Assistant is thinking">
               {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="h-1.5 w-1.5 animate-pulse rounded-full bg-ink/25"
-                  style={{ animationDelay: `${i * 150}ms` }}
-                />
+                <span key={i} className="h-1.5 w-1.5 animate-pulse bg-ink-3" style={{ animationDelay: `${i * 150}ms` }} />
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Composer ── */}
       <form
-        className="border-t border-hairline bg-paper/60 px-4 py-3 backdrop-blur-sm"
+        className="border-t border-ink px-3 py-3"
         onSubmit={(e) => {
           e.preventDefault()
           void send(input)
         }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-stretch gap-2">
           <input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about your plan…"
-            className="min-w-0 flex-1 rounded-full border border-hairline bg-paper px-4 py-2.5 text-[0.8125rem] shadow-[inset_0_1px_2px_rgba(22,20,15,0.03)] transition-colors placeholder:text-ink/30 focus:border-penn-blue/50"
+            className="field min-w-0 flex-1"
             aria-label="Chat message"
           />
           {busy ? (
-            <button
-              type="button"
-              onClick={() => abortRef.current?.abort()}
-              aria-label="Stop"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-penn-red/40 text-[0.625rem] text-penn-red transition-colors hover:bg-penn-red/5"
-            >
-              ■
+            <button type="button" onClick={() => abortRef.current?.abort()} aria-label="Stop" className="btn btn-danger !px-2.5">
+              <IconStop size={14} />
             </button>
           ) : (
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              aria-label="Send"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-penn-blue text-[0.9375rem] text-white transition-all duration-150 hover:bg-penn-blue-soft disabled:opacity-30"
-            >
-              ↑
+            <button type="submit" disabled={!input.trim()} aria-label="Send" className="btn btn-primary !px-2.5">
+              <IconArrowUp size={14} />
             </button>
           )}
         </div>

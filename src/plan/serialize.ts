@@ -32,6 +32,8 @@ export interface AppState {
   shiftForward?: boolean
   genedDistribution?: string
   curriculumMode?: string
+  /** Which curriculum the saved plan was BUILT under (may differ from the audit mode). */
+  planCurriculumMode?: string
   viperMods?: Record<string, boolean>
   distributionTargets?: DistributionTargets
   /** The old app's userPlan held ONLY semesters; loads/placement are derived. */
@@ -89,6 +91,8 @@ export function planFromAppState(state: AppState): Plan | null {
   if (state.seasMajorKey !== undefined) meta.seasMajor = state.seasMajorKey
   if (state.seasConcKey !== undefined) meta.seasConc = state.seasConcKey
   if (state.gradYear !== undefined) meta.gradYear = state.gradYear
+  if (state.planCurriculumMode === 'ncc' || state.planCurriculumMode === 'legacy')
+    meta.curriculumMode = state.planCurriculumMode
 
   const plan = createEmptyPlan(meta)
   const target = plan.semesters as Record<string, PlannedCourse[]>

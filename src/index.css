@@ -1,165 +1,343 @@
 @import 'tailwindcss';
 
+/*
+ * The one-line diagram world. One off-white sheet, hairline rules, square
+ * corners, achromatic text. Color exists only for bus identity (BA blue,
+ * BSE ink, Energy gold) and printed status (good / caution / problem).
+ * Keep the brand values in sync with src/ui/branding/penn-tokens.ts.
+ */
 @theme {
-  /* Penn brand palette — keep in sync with src/ui/branding/penn-tokens.ts */
-  --color-penn-red: #990000;
+  --color-sheet: #faf9f6;
+  --color-panel: #ffffff;
+  --color-ink: #1a1a1a;
+  --color-ink-2: #55554f;
+  --color-ink-3: #6e6e68;
+  --color-rule: #d9d6cf;
+  --color-rule-2: #b9b5ab;
+
   --color-penn-blue: #011f5b;
-  --color-penn-blue-soft: #1b3a78;
-  --color-cream: #f7f3ea;
-  --color-paper: #fffdf8;
-  --color-ink: #16140f;
-  --color-ink-soft: #5c5749;
-  --color-hairline: #e3dccb;
-  --color-rule: #c9bfa6;
+  --color-penn-blue-2: #0b3a8c;
+  --color-penn-red: #990000;
+  --color-energy: #b8860b;
+  --color-energy-ink: #7a5a05;
 
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-good: #1e7e34;
+  --color-caution: #b45309;
+  --color-problem: #990000;
 
-  --shadow-card: 0 1px 2px rgba(22, 20, 15, 0.04), 0 4px 16px rgba(22, 20, 15, 0.05);
-  --shadow-card-hover: 0 2px 4px rgba(22, 20, 15, 0.05), 0 10px 28px rgba(22, 20, 15, 0.09);
-  --shadow-pop: 0 4px 12px rgba(22, 20, 15, 0.08), 0 24px 64px rgba(22, 20, 15, 0.18);
+  --color-tint-blue: #eef1f7;
+  --color-tint-energy: #fbf3e0;
+  --color-tint-red: #f9ecec;
+  --color-tint-good: #eaf3ec;
+  --color-tint-caution: #fcf1e6;
 
-  --animate-rise: rise 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  --animate-fade: fade 360ms ease-out both;
-  --animate-draw: draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --font-sans: 'Barlow', system-ui, sans-serif;
+  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Red Hat Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(14px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes fade {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  @keyframes draw {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
-    }
-  }
+  --shadow-pop: 0 2px 6px rgba(26, 26, 26, 0.08), 0 14px 32px -10px rgba(26, 26, 26, 0.28);
+  --shadow-sheet: 0 1px 0 rgba(26, 26, 26, 0.06);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@layer base {
 html {
-  background-color: var(--color-cream);
+  background-color: var(--color-sheet);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: 'ss01';
   -webkit-font-smoothing: antialiased;
-  /* One knob scales the whole document: every size in the app is rem-based,
-     so the design grows with the viewport — 16px at laptop widths, ~19.5px
-     on a 27" display. The layout never feels like a postcard on a desk. */
-  font-size: clamp(16px, 12.4px + 0.28vw, 20px);
+  font-size: clamp(15px, 13.4px + 0.2vw, 17px);
+  caret-color: var(--color-penn-blue);
+  accent-color: var(--color-penn-blue);
+  scrollbar-color: var(--color-rule-2) transparent;
 }
 
-/* Layered paper atmosphere: warm glow at the masthead, fine grain over all. */
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(120% 50% at 50% 0%, rgba(255, 252, 243, 0.9) 0%, rgba(247, 243, 234, 0) 60%),
-    var(--color-cream);
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 60;
-  opacity: 0.3;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background: var(--color-sheet);
 }
 
 ::selection {
-  background: rgba(1, 31, 91, 0.14);
+  background: var(--color-penn-blue);
+  color: #ffffff;
 }
 
 :focus-visible {
   outline: 2px solid var(--color-penn-blue);
   outline-offset: 2px;
-  border-radius: 2px;
 }
 
-/* ---- Typographic utilities (the document voice) ---- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-rule-2);
+  border: 3px solid var(--color-sheet);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* Letterspaced small caps — eyebrows, labels, column heads. */
-.smallcaps {
-  font-family: var(--font-sans);
-  font-size: 0.625rem;
+a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+}
+
+@layer components {
+/* ---- Voice: the drawing's lettering ---- */
+
+/* Condensed caps: panel titles, column heads, control labels. */
+.label {
+  font-family: var(--font-cond);
   font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--color-ink-soft);
+  color: var(--color-ink-2);
+  line-height: 1;
 }
 
-/* Classic university double rule: a heavier line over a hairline. */
-.double-rule {
-  border: 0;
-  border-top: 2px solid var(--color-ink);
-  position: relative;
-  margin: 0;
+/* Equipment tags and readouts. */
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
-.double-rule::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 3px;
-  border-top: 1px solid var(--color-rule);
-}
-
-/* Leader dots for audit rows: label ...... value */
-.leader {
-  flex: 1;
-  margin: 0 0.5em;
-  border-bottom: 2px dotted var(--color-rule);
-  transform: translateY(-0.3em);
-  min-width: 1.5rem;
-}
-
-/* Tabular numerals wherever numbers align. */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Page-load orchestration: stagger children via --i custom property. */
-.rise {
-  animation: var(--animate-rise);
-  animation-delay: calc(var(--i, 0) * 45ms);
+/* ---- Ruled regions ---- */
+
+.panel {
+  border: 1px solid var(--color-rule);
+  background: var(--color-sheet);
 }
-.draw-rule {
-  transform-origin: left;
-  animation: var(--animate-draw);
+
+/* ---- Meter: a ruled track with printed thresholds ---- */
+.meter {
+  position: relative;
+  height: 6px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+}
+.meter > .fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transition: transform 280ms var(--ease-out-expo), background-color 160ms ease-out;
+}
+.meter > .tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--color-ink);
+}
+
+/* Square checkbox drawn by us, not the platform. */
+.box {
+  appearance: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 1px solid var(--color-ink-3);
+  background: var(--color-panel);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  cursor: pointer;
+  transition: background-color 80ms ease-out, border-color 80ms ease-out;
+}
+.box:checked {
+  background: var(--color-penn-blue);
+  border-color: var(--color-penn-blue);
+}
+.box:checked::after {
+  content: '';
+  width: 0.5rem;
+  height: 0.3rem;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+/* Square select with our own chevron. */
+.field {
+  appearance: none;
+  border: 1px solid var(--color-rule-2);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  transition: border-color 120ms ease-out;
+}
+.field:hover {
+  border-color: var(--color-ink-3);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--color-penn-blue);
+  box-shadow: inset 0 0 0 1px var(--color-penn-blue);
+}
+.field::placeholder {
+  color: var(--color-ink-3);
+}
+select.field {
+  padding-right: 1.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231a1a1a' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+}
+
+/* Controls: the drawing's switches. */
+.btn {
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-ink);
+  color: var(--color-ink);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  transition: background-color 80ms ease-out, color 80ms ease-out, transform 80ms ease-out;
+}
+.btn:hover {
+  background: var(--color-ink);
+  color: var(--color-sheet);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled,
+.btn-primary:disabled {
+  background: transparent;
+  border-color: var(--color-rule-2);
+  color: var(--color-ink-3);
+  pointer-events: none;
+}
+.btn-primary {
+  background: var(--color-penn-blue);
+  border-color: var(--color-penn-blue);
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background: var(--color-penn-blue-2);
+  border-color: var(--color-penn-blue-2);
+  color: #ffffff;
+}
+.btn-quiet {
+  border-color: transparent;
+  color: var(--color-ink-2);
+}
+.btn-quiet:hover {
+  background: var(--color-tint-blue);
+  color: var(--color-ink);
+}
+.btn-danger {
+  border-color: var(--color-penn-red);
+  color: var(--color-penn-red);
+}
+.btn-danger:hover {
+  background: var(--color-penn-red);
+  color: #ffffff;
+}
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.6;
+}
+
+/* Segmented switch (grid | focus, tabs). */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--color-ink);
+}
+.seg > button {
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.4375rem 0.75rem;
+  color: var(--color-ink-2);
+  transition: background-color 80ms ease-out, color 80ms ease-out;
+}
+.seg > button + button {
+  border-left: 1px solid var(--color-ink);
+}
+.seg > button[aria-selected='true'],
+.seg > button[aria-pressed='true'] {
+  background: var(--color-ink);
+  color: var(--color-sheet);
+}
+.seg > button:hover:not([aria-selected='true']):not([aria-pressed='true']) {
+  background: var(--color-tint-blue);
+  color: var(--color-ink);
+}
+}
+
+/* Motion: one grammar. Modals settle in; nothing choreographs on load. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.settle {
+  animation: settle 160ms var(--ease-out-expo) both;
+}
+.fade {
+  animation: fade 120ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise,
-  .draw-rule {
+  .settle,
+  .fade {
     animation: none;
+  }
+  .meter > .fill {
+    transition: none;
   }
   * {
     transition-duration: 0.01ms !important;
   }
 }
 
-/* ---- Print: the plan as a clean paper document ---- */
+/* ---- Print: the sheet as issued ---- */
 @media print {
+  html {
+    font-size: 11px;
+  }
   body {
     background: #fff;
-  }
-  body::before {
-    display: none;
+    min-height: 0;
   }
   .no-print {
     display: none !important;
@@ -167,7 +345,7 @@ body::before {
   .print-block {
     break-inside: avoid;
   }
-  .rise {
-    animation: none;
+  .panel {
+    background: #fff;
   }
 }

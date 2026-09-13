@@ -741,3 +741,37 @@ describe('storage', () => {
     expect(loadAppState()).toBeNull()
   })
 })
+
+describe('planFromAppState — curriculum the plan was built under', () => {
+  it('restores meta.curriculumMode from planCurriculumMode so a reloaded NCC plan is not flagged as legacy', () => {
+    const state = parseAppState(
+      JSON.stringify({
+        version: 8,
+        sasMajorKey: 'CHEM',
+        seasMajorKey: 'CBE',
+        gradYear: 2028,
+        curriculumMode: 'ncc',
+        planCurriculumMode: 'ncc',
+        userPlan: { semesters: { 'fall-y1': [{ code: 'CHEM 1012', title: 'General Chemistry I', cu: 1 }] } },
+      }),
+    )
+    expect(state).not.toBeNull()
+    const plan = planFromAppState(state!)
+    expect(plan?.meta.curriculumMode).toBe('ncc')
+  })
+
+  it('leaves meta.curriculumMode unset for states saved before the field existed (old plans stay legacy)', () => {
+    const state = parseAppState(
+      JSON.stringify({
+        version: 8,
+        sasMajorKey: 'CHEM',
+        seasMajorKey: 'CBE',
+        gradYear: 2028,
+        curriculumMode: 'ncc',
+        userPlan: { semesters: { 'fall-y1': [] } },
+      }),
+    )
+    const plan = planFromAppState(state!)
+    expect(plan?.meta.curriculumMode).toBeUndefined()
+  })
+})
