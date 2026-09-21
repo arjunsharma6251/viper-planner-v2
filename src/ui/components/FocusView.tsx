@@ -116,7 +116,7 @@ export function FocusView({
         </button>
       </div>
       <p className="mt-3 text-center text-[0.75rem] text-ink-3">
-        Drag reorders within the term. To move a course to another term, open it and use Actions.
+        Drag reorders within the term. To move a course to another term, open it and pick a term.
       </p>
     </div>
   )

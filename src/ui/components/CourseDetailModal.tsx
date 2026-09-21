@@ -47,8 +47,6 @@ const FULFILLMENT_GROUPS: ReadonlyArray<{ group: string; tags: ReadonlyArray<[Fu
 /** The cluster palette — six keys a student can mark a course with. */
 const CLUSTER_COLORS = ['#011F5B', '#990000', '#1e7e34', '#b8860b', '#0f6b66', '#5b3a86']
 
-type Tab = 'tags' | 'pick' | 'actions'
-
 export interface CourseDetailModalProps {
   course: AugmentedCourse
   semKey: SemesterKey
@@ -59,15 +57,20 @@ export interface CourseDetailModalProps {
   onClose: () => void
   onToggleFulfillment: (courseId: string, tag: FulfillmentTag, on: boolean) => void
   onSwap: (slotId: string, newCode: string) => void
-  onRename: (courseId: string, newCode: string) => void
+  onRename: (courseId: string, newCode: string, newTitle?: string) => void
   onMoveTo: (to: SemesterKey) => void
   onDelete: () => void
   onSetColor: (courseId: string, color: string | null) => void
 }
 
+function Heading({ children }: { children: React.ReactNode }) {
+  return <p className="label mb-1.5 !text-[0.625rem] !text-ink-3">{children}</p>
+}
+
 /**
- * Course detail: three tabs (Tags, Pick course, Actions) and no more.
- * The Actions tab's move select is the keyboard alternative to drag.
+ * Course detail: one sheet, no tabs. Code and title are editable first,
+ * then move / remove, then what the course counts toward, then any
+ * catalog alternatives or pre-screened picks, then the cluster color.
  */
 export function CourseDetailModal({
   course,
@@ -84,15 +87,24 @@ export function CourseDetailModal({
   onSetColor,
 }: CourseDetailModalProps) {
   const alternatives = alternativesFor(seasMajorKey, course.originalCode ?? course.code)
-  const hasPool =
-    (!!course.slotId && (course.pool?.length ?? course.suggests?.length ?? 0) > 0) || alternatives.length > 0
+  const pool = course.pool ?? course.suggests ?? []
   const open = isOpenSlot(course)
-  const [tab, setTab] = useState<Tab>(open ? (hasPool ? 'pick' : 'actions') : 'tags')
-  const [renameValue, setRenameValue] = useState(course.code)
+  const locked = course.category === 'viper' && course.fixed === true
   const courseId = course.originalCode ?? course.code
   const pcr = pcrUrlFor(course)
-  const pool = course.pool ?? course.suggests ?? []
   const here = semesterLabel(semKey, gradYear ?? undefined)
+
+  const [codeValue, setCodeValue] = useState(open ? '' : course.code)
+  const [titleValue, setTitleValue] = useState(open ? '' : course.title)
+  const code = codeValue.trim()
+  const title = titleValue.trim()
+  const dirty = open ? code.length > 0 : (code.length > 0 && code !== course.code) || (title.length > 0 && title !== course.title)
+
+  function save() {
+    if (!dirty) return
+    onRename(courseId, code || course.code, title || undefined)
+    onClose()
+  }
 
   const context = [
     course.slotLabel ?? course.label,
@@ -133,119 +145,57 @@ export function CourseDetailModal({
         </>
       }
     >
-      <div className="seg mb-4" role="tablist">
-        {(['tags', 'pick', 'actions'] as const).map((t) => {
-          if (t === 'pick' && !hasPool) return null
-          return (
-            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
-              {t === 'pick' ? 'Pick course' : t}
-            </button>
-          )
-        })}
-      </div>
-
-      {tab === 'tags' && (
-        <div className="flex flex-col gap-3">
-          <p className="text-[0.75rem] leading-snug text-ink-2">
-            Tick every requirement this course satisfies. Tags feed the bus loading on the right.
-          </p>
-          {FULFILLMENT_GROUPS.map((g) => (
-            <div key={g.group}>
-              <p className="label mb-1 !text-[0.625rem] !text-ink-3">{g.group}</p>
-              <div className="border-t border-rule">
-                {g.tags.map(([tag, label]) => {
-                  const on = course.userFulfills.includes(tag)
-                  return (
-                    <label
-                      key={tag}
-                      className="flex cursor-pointer items-center gap-2.5 border-b border-rule px-1 py-1.5 text-[0.8125rem] transition-colors duration-100 hover:bg-tint-blue"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        onChange={() => onToggleFulfillment(courseId, tag, !on)}
-                        className="box"
-                      />
-                      <span className={on ? 'text-ink' : 'text-ink-2'}>{label}</span>
-                    </label>
-                  )
-                })}
+      <div className="flex flex-col gap-5">
+        {/* ── Code + title ── */}
+        {locked ? (
+          <p className="text-[0.75rem] text-ink-3">This course is a fixed VIPER requirement. Its code and title cannot change.</p>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              save()
+            }}
+          >
+            <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-2">
+              <div>
+                <label className="label mb-1.5 block" htmlFor="course-code">
+                  Code
+                </label>
+                <input
+                  id="course-code"
+                  value={codeValue}
+                  onChange={(e) => setCodeValue(e.target.value)}
+                  placeholder={open ? 'e.g. COL 0100' : undefined}
+                  className="field w-full font-mono !text-[0.75rem] uppercase"
+                  autoComplete="off"
+                />
+              </div>
+              <div>
+                <label className="label mb-1.5 block" htmlFor="course-title">
+                  Title
+                </label>
+                <input
+                  id="course-title"
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  placeholder={open ? 'Optional — catalog title used if known' : undefined}
+                  className="field w-full"
+                  autoComplete="off"
+                />
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'pick' && (
-        <div className="flex flex-col gap-4">
-          {alternatives.length > 0 && (
-            <div>
-              <p className="label mb-1 !text-[0.625rem] !text-ink-3">
-                Accepted in place of {course.originalCode ?? course.code}
-              </p>
-              <p className="mb-1.5 text-[0.75rem] leading-snug text-ink-2">
-                Listed as "or" options in the SEAS catalog for your major. Swapping keeps this
-                requirement's place in the plan.
-              </p>
-              <div className="border-t border-rule">
-                {alternatives.map((code) => (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => {
-                      onRename(courseId, code)
-                      onClose()
-                    }}
-                    className={pickRow}
-                  >
-                    <span className="tag text-ink">{code}</span>
-                    <span className="text-ink-2">Catalog alternative</span>
-                    {code === course.code ? (
-                      <span className="label flex items-center gap-1 !text-[0.625rem] !text-good">
-                        <IconCheck size={10} /> current
-                      </span>
-                    ) : (
-                      <span className="label !text-[0.625rem] !text-penn-blue">swap</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+            <div className="mt-2 flex items-center justify-end gap-2">
+              {open && <span className="mr-auto text-[0.75rem] text-ink-3">Name the course to fill this slot.</span>}
+              <button type="submit" disabled={!dirty} className="btn btn-primary !py-2">
+                {open ? 'Fill slot' : 'Save'}
+              </button>
             </div>
-          )}
-          {pool.length > 0 && (
-            <div>
-              <p className="label mb-1 !text-[0.625rem] !text-ink-3">Pre-screened picks for this slot</p>
-              <div className="border-t border-rule">
-                {pool.map((code) => (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => {
-                      if (course.slotId) onSwap(course.slotId, code)
-                      onClose()
-                    }}
-                    className={pickRow}
-                  >
-                    <span className="tag text-ink">{code}</span>
-                    <span className="text-ink-2">Fills this slot</span>
-                    {code === course.code ? (
-                      <span className="label flex items-center gap-1 !text-[0.625rem] !text-good">
-                        <IconCheck size={10} /> current
-                      </span>
-                    ) : (
-                      <span className="label !text-[0.625rem] !text-penn-blue">choose</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+          </form>
+        )}
 
-      {tab === 'actions' && (
-        <div className="flex flex-col gap-5">
-          <div>
+        {/* ── Move / remove ── */}
+        <div className="flex flex-wrap items-end gap-3 border-t border-rule pt-4">
+          <div className="min-w-0 flex-1">
             <label className="label mb-1.5 block" htmlFor="move-select">
               Move to term
             </label>
@@ -268,77 +218,137 @@ export function CourseDetailModal({
               })}
             </select>
           </div>
+          {course.fixed ? (
+            <p className="pb-2 text-[0.75rem] text-ink-3">Fixed requirement, cannot be removed.</p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                onDelete()
+                onClose()
+              }}
+              className="btn btn-danger"
+            >
+              Remove from plan
+            </button>
+          )}
+        </div>
 
-          <div>
-            <p className="label mb-1.5">Cluster color</p>
-            <div className="flex items-center gap-2">
-              {CLUSTER_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-label={`Set color ${c}`}
-                  aria-pressed={color === c}
-                  onClick={() => onSetColor(courseId, color === c ? null : c)}
-                  className={[
-                    'h-6 w-6 border transition-transform duration-100 hover:scale-110',
-                    color === c ? 'border-ink ring-2 ring-ink ring-offset-2 ring-offset-sheet' : 'border-transparent',
-                  ].join(' ')}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-              {color && (
-                <button type="button" onClick={() => onSetColor(courseId, null)} className="btn btn-quiet !py-1.5">
-                  Clear
-                </button>
-              )}
-            </div>
+        {/* ── Counts toward ── */}
+        <div className="border-t border-rule pt-4">
+          <Heading>Counts toward</Heading>
+          <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+            {FULFILLMENT_GROUPS.map((g) => (
+              <div key={g.group}>
+                <p className="mb-1 text-[0.6875rem] text-ink-3">{g.group}</p>
+                <div className="border-t border-rule">
+                  {g.tags.map(([tag, label]) => {
+                    const on = course.userFulfills.includes(tag)
+                    return (
+                      <label
+                        key={tag}
+                        className="flex cursor-pointer items-center gap-2.5 border-b border-rule px-1 py-1.5 text-[0.8125rem] transition-colors duration-100 hover:bg-tint-blue"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => onToggleFulfillment(courseId, tag, !on)}
+                          className="box"
+                        />
+                        <span className={on ? 'text-ink' : 'text-ink-2'}>{label}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div>
-            <label className="label mb-1.5 block" htmlFor="rename-input">
-              Rename course
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="rename-input"
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-                className="field flex-1 font-mono !text-[0.75rem]"
-              />
-              <button
-                type="button"
-                disabled={renameValue === course.code || !renameValue.trim()}
-                onClick={() => {
-                  onRename(courseId, renameValue.trim())
-                  onClose()
-                }}
-                className="btn"
-              >
-                Rename
-              </button>
-            </div>
-          </div>
-
+        {/* ── Alternatives / picks ── */}
+        {alternatives.length > 0 && (
           <div className="border-t border-rule pt-4">
-            {course.fixed ? (
-              <p className="text-[0.75rem] text-ink-3">
-                This course is a fixed VIPER requirement and cannot be removed.
-              </p>
-            ) : (
+            <Heading>Accepted in place of {course.originalCode ?? course.code}</Heading>
+            <div className="border-t border-rule">
+              {alternatives.map((alt) => (
+                <button
+                  key={alt}
+                  type="button"
+                  onClick={() => {
+                    onRename(courseId, alt)
+                    onClose()
+                  }}
+                  className={pickRow}
+                >
+                  <span className="tag text-ink">{alt}</span>
+                  <span className="text-ink-2">SEAS catalog alternative</span>
+                  {alt === course.code ? (
+                    <span className="label flex items-center gap-1 !text-[0.625rem] !text-good">
+                      <IconCheck size={10} /> current
+                    </span>
+                  ) : (
+                    <span className="label !text-[0.625rem] !text-penn-blue">swap</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {course.slotId && pool.length > 0 && (
+          <div className="border-t border-rule pt-4">
+            <Heading>Pre-screened picks for this slot</Heading>
+            <div className="border-t border-rule">
+              {pool.map((pick) => (
+                <button
+                  key={pick}
+                  type="button"
+                  onClick={() => {
+                    if (course.slotId) onSwap(course.slotId, pick)
+                    onClose()
+                  }}
+                  className={pickRow}
+                >
+                  <span className="tag text-ink">{pick}</span>
+                  <span className="text-ink-2">Fills this slot</span>
+                  {pick === course.code ? (
+                    <span className="label flex items-center gap-1 !text-[0.625rem] !text-good">
+                      <IconCheck size={10} /> current
+                    </span>
+                  ) : (
+                    <span className="label !text-[0.625rem] !text-penn-blue">choose</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Cluster color ── */}
+        <div className="flex items-center gap-3 border-t border-rule pt-4">
+          <span className="label">Color</span>
+          <div className="flex items-center gap-2">
+            {CLUSTER_COLORS.map((c) => (
               <button
+                key={c}
                 type="button"
-                onClick={() => {
-                  onDelete()
-                  onClose()
-                }}
-                className="btn btn-danger"
-              >
-                Remove from plan
+                aria-label={`Set color ${c}`}
+                aria-pressed={color === c}
+                onClick={() => onSetColor(courseId, color === c ? null : c)}
+                className={[
+                  'h-5 w-5 border transition-transform duration-100 hover:scale-110',
+                  color === c ? 'border-ink ring-2 ring-ink ring-offset-2 ring-offset-sheet' : 'border-transparent',
+                ].join(' ')}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+            {color && (
+              <button type="button" onClick={() => onSetColor(courseId, null)} className="btn btn-quiet !py-1">
+                Clear
               </button>
             )}
           </div>
         </div>
-      )}
+      </div>
     </Modal>
   )
 }

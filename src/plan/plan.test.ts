@@ -353,17 +353,40 @@ describe('renameCourse', () => {
     expect(result.message).toMatch(/cannot be renamed/)
   })
 
-  it('refuses to rename placeholders and rejects empty codes', () => {
+  it('retitles a course, and falls back to the catalog title when only the code changes', () => {
+    const plan = addCourse(createEmptyPlan(), 'fall-y1', { code: 'CHEM 2410', title: 'Organic Chemistry I' }).plan
+    const retitled = renameCourse(plan, 'CHEM 2410', 'CHEM 2410', 'Orgo I')
+    expect(retitled.ok).toBe(true)
+    expect(retitled.plan.semesters['fall-y1'][0]).toMatchObject({ code: 'CHEM 2410', title: 'Orgo I', isRenamed: false })
+    const recoded = renameCourse(plan, 'CHEM 2410', 'CHEM 2411')
+    expect(recoded.plan.semesters['fall-y1'][0]).toMatchObject({ code: 'CHEM 2411', title: 'Organic Chemistry I w/ Lab' })
+    const unknown = renameCourse(plan, 'CHEM 2410', 'CHEM 9999')
+    expect(unknown.plan.semesters['fall-y1'][0]?.title).toBe('Organic Chemistry I')
+  })
+
+  it('names an open slot into a real course that keeps its slot intent', () => {
     const plan = createEmptyPlan()
     plan.semesters['fall-y1'].push({
-      code: '—',
-      title: 'Slot',
+      code: '— ncc-kite',
+      title: 'Kite Foundation',
       cu: 1,
       isPlaceholder: true,
-      slotId: 's1',
+      slotId: 'ncc-kite',
+      intent: { foundation: 'ncc-kite' },
     })
-    expect(renameCourse(plan, 's1', 'CHEM 1012').ok).toBe(false)
-    expect(renameCourse(plan, 's1', '  ').ok).toBe(false)
+    const filled = renameCourse(plan, '— ncc-kite', 'COL 0100', 'Kite Seminar')
+    expect(filled.ok).toBe(true)
+    expect(filled.plan.semesters['fall-y1'][0]).toMatchObject({
+      code: 'COL 0100',
+      title: 'Kite Seminar',
+      isPlaceholder: false,
+      slotId: 'ncc-kite',
+      intent: { foundation: 'ncc-kite' },
+    })
+    const untitled = renameCourse(plan, '— ncc-kite', 'COL 0100')
+    expect(untitled.plan.semesters['fall-y1'][0]?.title).toBe('Kite Foundation')
+    expect(renameCourse(plan, '— ncc-kite', '— other').ok).toBe(false)
+    expect(renameCourse(plan, '— ncc-kite', '  ').ok).toBe(false)
   })
 })
 
@@ -543,7 +566,7 @@ describe('share link', () => {
     sasConcKey: 'STANDARD',
     seasMajorKey: 'CBE',
     seasConcKey: 'ENERGY',
-    apCreditIds: ['ap-calc-bc'],
+    apCreditIds: [],
     gradYear: 2028,
     shiftForward: true,
     genedDistribution: 'frontload',

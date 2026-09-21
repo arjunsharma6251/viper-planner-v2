@@ -33,16 +33,15 @@ describe('computeAdvisorNotes', () => {
     expect(notes[0]?.text).toContain('Fall 2024 is 6 CU')
   })
 
-  it('grades other semesters as overload, approval, or hard cap', () => {
+  it('grades other semesters against the 6.5 cap and the 7 CU form threshold', () => {
     const six = Array.from({ length: 6 }, (_, i) => course(`X${i}`))
     const p = plan({
-      'fall-y2': six,
-      'spring-y2': [...six, course('Y')],
-      'fall-y3': [...six, course('Y'), course('Z')],
+      'fall-y2': six, // 6 CU: normal dual-degree overload, no note
+      'spring-y2': [...six, course('H', 0.5), course('Q', 0.25)], // 6.75: over cap
+      'fall-y3': [...six, course('Y')], // 7: form
     })
     const sources = computeAdvisorNotes(p, undefined, 'legacy', 2028).map((n) => n.source)
-    // errors first; overloads fold into one line after the per-term warnings
-    expect(sources).toEqual(['Hard cap', 'Approval needed', 'Dual overload'])
+    expect(sources).toEqual(['Max CU Increase', 'Over cap'])
   })
 
   it('lists missing NCC foundations and shortfalls under the NCC', () => {
@@ -60,13 +59,17 @@ describe('computeAdvisorNotes', () => {
     expect(notes).toEqual([expect.objectContaining({ severity: 'info', source: 'All clear' })])
   })
 
-  it('folds every dual-overload term into one note', () => {
+  it('does not flag the 5.5–6.5 dual-degree overload', () => {
     const six = Array.from({ length: 6 }, (_, i) => course(`X${i}`))
-    const p = plan({ 'fall-y2': six, 'spring-y2': six, 'fall-y3': six })
-    const notes = computeAdvisorNotes(p, undefined, 'legacy', 2028).filter((n) => n.source === 'Dual overload')
-    expect(notes).toHaveLength(1)
-    expect(notes[0]?.text).toContain('3 terms are')
-    expect(notes[0]?.text).toContain('Fall 2025 (6)')
+    const p = plan({ 'fall-y2': six, 'spring-y2': [...six, course('H', 0.5)], 'fall-y3': six })
+    const notes = computeAdvisorNotes(p, undefined, 'legacy', 2028)
+    expect(notes).toEqual([expect.objectContaining({ severity: 'info', source: 'All clear' })])
+  })
+
+  it('states the 46 CU dual minimum', () => {
+    const p = plan({ 'fall-y1': [course('A')] }, { totalCU: 44, meetsDualMin: false })
+    const note = computeAdvisorNotes(p, undefined, 'legacy', 2028).find((n) => n.source === 'Dual minimum')
+    expect(note?.text).toContain('46+ CU')
   })
 
   it('counts gen-ed toward the BSE minimum', () => {

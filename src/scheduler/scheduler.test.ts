@@ -10,7 +10,7 @@
 //
 // Build options mirror the old App's seed call (references/old-app/index.html
 // ~4806-4884): CHEM/CBE-style defaults generalized over every combo —
-// apCreditIds ['ap-calc-bc'], gradYear 2028, legacy curriculum, shiftForward,
+// apCreditIds [], gradYear 2028, legacy curriculum, shiftForward,
 // frontloaded gen-eds, 12+5+3 distribution targets, no overrides/custom
 // placements/deletions. viperMods mirrors the App's NCC-absent fallback ({});
 // in legacy mode mods are inert either way.
@@ -42,7 +42,7 @@ for (const [sasMajorKey, sas] of sasEntries) {
 
 // Default build options matching the old App component's seed (see header).
 const DEFAULT_BUILD_OPTIONS = {
-  apCreditIds: ['ap-calc-bc'],
+  apCreditIds: [],
   electiveOverrides: {},
   customPlacements: {},
   deletedCourses: [],

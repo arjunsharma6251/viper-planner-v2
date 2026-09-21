@@ -266,7 +266,7 @@ export interface SchedulerPlanMeta {
   genedDistribution?: GenedDistribution;
   distributionTargets?: DistributionTargets;
   // ---- Stage-computed fields ----
-  /** Stage 1: non-course credit flags (LANG_FL, STAT_WAIVER, EAS_0091). */
+  /** Stage 1: non-course credit flags (LANG_FL, STAT_WAIVER, ECON_WAIVER, EAS_0091). */
   creditFlags?: Set<string>;
   /** Stage 3: thermo course required by the MATH+CIS combo. */
   requiredThermo?: string;

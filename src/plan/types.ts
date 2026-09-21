@@ -225,7 +225,7 @@ export type Mutation =
     }
   | { kind: 'tag_fulfillment'; courseId: string; fulfillmentId: FulfillmentTag; on: boolean }
   | { kind: 'swap_elective'; slotId: string; newCode: string }
-  | { kind: 'rename_course'; courseId: string; newCode: string }
+  | { kind: 'rename_course'; courseId: string; newCode: string; newTitle?: string }
 
 export interface MutationResult {
   ok: boolean

@@ -16,9 +16,9 @@ export interface ScheduleGridProps {
 }
 
 /**
- * The sheet, read year by year. Each year is a ruled band (YEAR N · span ·
- * in-term CU) over three feeder panels: Fall | Spring | Summer, left to
- * right. Year 4's third slot is commencement.
+ * The sheet, read year by year. Each year is a ruled band (YEAR N) over
+ * three feeder panels: Fall | Spring | Summer, left to right. Year 4's
+ * third slot is commencement.
  */
 export function ScheduleGrid({
   plan,
@@ -60,25 +60,13 @@ export function ScheduleGrid({
         const fall = SEMESTER_KEYS[(y - 1) * 2]
         const spring = SEMESTER_KEYS[(y - 1) * 2 + 1]
         const summer = SUMMER_KEYS[y - 1]
-        const fallLabel = fall ? semesterLabel(fall, gradYear ?? undefined) : null
-        const startYear = fallLabel ? Number(fallLabel.season.split(' ')[1]) : null
-        const span = startYear ? `${startYear}–${String(startYear + 1).slice(2)}` : null
-        const inTerm =
-          (fall ? (plan.loads[fall] ?? 0) : 0) + (spring ? (plan.loads[spring] ?? 0) : 0)
 
         return (
           <section key={y} id={`year-${y}`} aria-label={`Year ${y}`} className="scroll-mt-32">
-            <div className="mb-3 flex items-baseline gap-3 border-b-2 border-ink pb-1.5">
+            <div className="mb-3 border-b-2 border-ink pb-1.5">
               <h2 className="font-cond text-[1.125rem] leading-none font-bold tracking-[0.04em] text-ink uppercase">
                 Year {y}
               </h2>
-              {span && <span className="tag text-ink-3">{span}</span>}
-              <span className="flex-1" />
-              {inTerm > 0 && (
-                <span className="tag whitespace-nowrap text-ink-2">
-                  {inTerm.toFixed(1)} CU <span className="label !text-[0.625rem] !text-ink-3">in term</span>
-                </span>
-              )}
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_minmax(15rem,0.55fr)]">

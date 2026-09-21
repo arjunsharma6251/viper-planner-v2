@@ -15,7 +15,7 @@ export interface ApplyCreditsContext {
 export function applyCredits(
   plan: SchedulerPlan,
   apCreditIds: readonly string[],
-  { sasMajorKey, seasMajorKey, gradYear }: ApplyCreditsContext,
+  { gradYear }: ApplyCreditsContext,
 ): SchedulerPlan {
   const flags = new Set<string>();
   for (const id of apCreditIds) {
@@ -25,22 +25,9 @@ export function applyCredits(
     const grants =
       typeof cred.grants === 'function' ? cred.grants(gradYear) : cred.grants;
     for (const g of grants) {
-      if (g === 'LANG_FL' || g === 'STAT_WAIVER' || g === 'EAS_0091') {
+      if (g === 'LANG_FL' || g === 'STAT_WAIVER' || g === 'ECON_WAIVER' || g === 'EAS_0091') {
         flags.add(g);
       } else {
-        // Refuse AP-Chem-based credit for CHEM/CBE majors
-        if (
-          (g === 'CHEM 1012' || g === 'CHEM 1022') &&
-          (seasMajorKey === 'CBE' || sasMajorKey === 'CHEM') &&
-          id === 'ap-chem'
-        ) {
-          plan.notes.push({
-            level: 'warning',
-            src: 'AP Chem',
-            text: `AP Chemistry (EAS 0091) is not accepted by ${sasMajorKey === 'CHEM' ? 'CHEM' : 'CBE'}. Use the Penn CHEM placement exam instead.`,
-          });
-          continue;
-        }
         plan.placement[g] = 'credit';
       }
     }

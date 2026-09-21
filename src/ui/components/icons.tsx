@@ -104,6 +104,28 @@ export const IconCheck = (p: IconProps) => (
   </Svg>
 )
 
+/** Energy-designated course: a lightning bolt in the same single stroke. */
+export const IconBolt = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M9 2L4 9h4l-1 5 5-7H8z" />
+  </Svg>
+)
+
+/** An unticked checklist circle. */
+export const IconCircle = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8" r="5" />
+  </Svg>
+)
+
+/** A ticked checklist circle. */
+export const IconCircleCheck = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8" r="5" fill="currentColor" stroke="none" />
+    <path d="M5.5 8.2l1.8 1.8 3.4-3.6" stroke="var(--color-sheet)" />
+  </Svg>
+)
+
 export const IconAlert = (p: IconProps) => (
   <Svg {...p}>
     <path d="M8 2.5l6 11H2z" />

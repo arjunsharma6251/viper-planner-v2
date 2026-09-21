@@ -8,7 +8,6 @@ import { FocusView } from '../components/FocusView'
 import { RequirementTracker } from '../components/RequirementTracker'
 import { ReferencePanels } from '../components/ReferencePanels'
 import { Legend } from '../components/Legend'
-import { BusStrip } from '../components/BusStrip'
 import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
 import { CourseDetailModal } from '../components/CourseDetailModal'
@@ -210,6 +209,16 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       {MOD_KEY} Z
                     </span>
                   </button>
+                  <div className="seg hidden sm:flex" role="tablist" aria-label="Schedule view">
+                    {(['grid', 'focus'] as const).map((v) => (
+                      <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}>
+                        {v}
+                        <span className="kbd ml-1.5" aria-hidden>
+                          V
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                   <div className="hidden sm:block">
                     <ExportMenu onExportJson={store.exportJson} onExportCsv={store.exportCsv} onPrint={() => window.print()} />
                   </div>
@@ -275,19 +284,9 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             />
           ) : (
             <>
-              <BusStrip
-                plan={store.augmented!}
-                summary={store.augmented!.summary}
-                ncc={curriculum === 'ncc' ? nccAudit : undefined}
-                gradYear={gradYear}
-                view={view}
-                onView={setView}
-                compact={chatOpen}
-              />
-
               {/* The right edge holds one thing at a time: the chat, or the
                   rail. With chat open the rail drops below the plan. */}
-              <div className={['mt-6 grid grid-cols-1 gap-8', chatOpen ? '' : 'lg:grid-cols-[minmax(0,1fr)_21rem]'].join(' ')}>
+              <div className={['grid grid-cols-1 gap-8', chatOpen ? '' : 'lg:grid-cols-[minmax(0,1fr)_21rem]'].join(' ')}>
                 <main className="min-w-0">
                   {view === 'grid' ? (
                     <ScheduleGrid
@@ -326,7 +325,12 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                     chatOpen ? 'w-full md:grid md:grid-cols-2 md:items-start md:gap-x-6' : '',
                   ].join(' ')}
                 >
-                  <RequirementTracker summary={store.augmented!.summary} ncc={nccAudit} curriculum={curriculum} />
+                  <RequirementTracker
+                    plan={store.augmented!}
+                    summary={store.augmented!.summary}
+                    ncc={curriculum === 'ncc' ? nccAudit : undefined}
+                    curriculum={curriculum}
+                  />
                   {showCurriculumNotice && (
                     <div className="no-print panel px-3 py-3 text-[0.75rem] leading-snug text-ink" role="status">
                       <p className="label mb-1.5 flex items-center gap-1.5 !text-caution">
@@ -450,7 +454,9 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               store.apply({ kind: 'tag_fulfillment', courseId, fulfillmentId: tag, on })
             }}
             onSwap={(slotId, newCode) => applyToast({ kind: 'swap_elective', slotId, newCode })}
-            onRename={(courseId, newCode) => applyToast({ kind: 'rename_course', courseId, newCode })}
+            onRename={(courseId, newCode, newTitle) =>
+              applyToast({ kind: 'rename_course', courseId, newCode, ...(newTitle ? { newTitle } : {}) })
+            }
             onMoveTo={(to) => {
               applyToast({
                 kind: 'move_course',

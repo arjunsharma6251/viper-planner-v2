@@ -3,8 +3,8 @@ import type { AugmentedCourse } from '../../plan/types'
 import type { SemesterKey } from '../../data/semesters'
 import { isSummerSem } from '../../data/semesters'
 import { CourseRow, ROW_COLUMNS, ROW_COLUMNS_COMPACT } from './CourseRow'
-import { IconPlus } from './icons'
-import { RATED, OVERLOAD, TRIP, loadStatus, type LoadTone } from '../load'
+import { IconExternal, IconPlus } from './icons'
+import { MAX_CU_FORM_URL, loadStatus, type LoadTone } from '../load'
 
 export interface DragPayload {
   from: SemesterKey
@@ -34,56 +34,10 @@ const TONE_TEXT: Record<LoadTone, string> = {
   caution: 'text-caution',
   problem: 'text-penn-red',
 }
-const TONE_FILL: Record<LoadTone, string> = {
-  normal: 'bg-penn-blue',
-  caution: 'bg-caution',
-  problem: 'bg-penn-red',
-}
-
-/** The labeled load meter: a ruled track with the thresholds printed. */
-export function LoadMeter({
-  load,
-  tone,
-  firstSemester,
-  compact,
-}: {
-  load: number
-  tone: LoadTone
-  firstSemester: boolean
-  compact?: boolean
-}) {
-  const pct = Math.min(load / TRIP, 1) * 100
-  const ticks = firstSemester ? [RATED] : [RATED, OVERLOAD]
-  return (
-    <div className={compact ? '' : 'pb-3'}>
-      <div className="meter" role="img" aria-label={`${load} CU against the ${TRIP} CU hard cap`}>
-        <div className={`fill ${TONE_FILL[tone]}`} style={{ transform: `scaleX(${pct / 100})` }} />
-        {ticks.map((t) => (
-          <span key={t} className="tick" style={{ left: `${(t / TRIP) * 100}%` }} aria-hidden />
-        ))}
-      </div>
-      {!compact && (
-        <div className="relative h-3" aria-hidden>
-          {ticks.map((t) => (
-            <span
-              key={t}
-              className="tag absolute top-0.5 -translate-x-1/2 !text-[0.625rem] text-ink-3"
-              style={{ left: `${(t / TRIP) * 100}%` }}
-            >
-              {t}
-            </span>
-          ))}
-          <span className="tag absolute top-0.5 right-0 !text-[0.625rem] text-ink-3">{TRIP}</span>
-        </div>
-      )}
-    </div>
-  )
-}
-
 /**
- * A feeder panel: the term's name and readout over a labeled meter, then
- * the breakers (courses) in the fixed column ruling, then the add cell.
- * Summers are judged separately and carry no meter.
+ * A feeder panel: the term's name and CU readout, a cap note only when
+ * the term is over one, then the breakers (courses) in the fixed column
+ * ruling, then the add cell. Summers are judged separately.
  */
 export function SemesterCard({
   semKey,
@@ -147,18 +101,25 @@ export function SemesterCard({
           <h3 className="font-cond text-[0.9375rem] leading-none font-semibold tracking-[0.04em] text-ink uppercase">
             {seasonLabel}
           </h3>
-          <div className={['flex items-baseline gap-1.5 whitespace-nowrap', TONE_TEXT[status.tone]].join(' ')}>
-            {status.word && <span className="label !text-[0.625rem] !text-current">{status.word}</span>}
-            <span className="tag">{load.toFixed(1)} CU</span>
-          </div>
+          <span className={['tag whitespace-nowrap', TONE_TEXT[status.tone]].join(' ')}>{load.toFixed(1)} CU</span>
         </div>
-        {summer ? (
-          <div className="mt-2 border-b border-rule" aria-hidden />
-        ) : (
-          <div className="mt-2.5">
-            <LoadMeter load={load} tone={status.tone} firstSemester={firstSemester} />
-          </div>
+        {status.word && (
+          <p className={['mt-1.5 flex flex-wrap items-center gap-x-2 text-[0.75rem] leading-snug', TONE_TEXT[status.tone]].join(' ')} role="status">
+            {status.word}
+            {status.form && (
+              <a
+                href={MAX_CU_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-medium text-penn-blue hover:underline"
+              >
+                Max CU Increase form
+                <IconExternal size={11} />
+              </a>
+            )}
+          </p>
         )}
+        <div className="mt-2 border-b border-rule" aria-hidden />
       </header>
 
       <div
@@ -168,9 +129,9 @@ export function SemesterCard({
         ].join(' ')}
         aria-hidden
       >
-        <span>tag</span>
+        <span>code</span>
         <span>course</span>
-        {!summer && <span>ties</span>}
+        {!summer && <span>counts</span>}
         <span className="text-right">CU</span>
       </div>
 

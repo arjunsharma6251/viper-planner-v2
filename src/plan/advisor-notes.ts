@@ -2,6 +2,8 @@ import type { AugmentedPlan } from './types'
 import type { NccAudit } from './ncc-audit'
 import { SEMESTER_KEYS, semesterLabel } from '../data/semesters'
 import { FA_REQUIREMENTS, SECTORS } from '../data/requirements'
+import { VIPER_PROGRAM } from '../data/viper-program'
+import { CAP, FIRST_SEMESTER_CAP, FORM_THRESHOLD } from '../ui/load'
 
 /**
  * Advisor notes: the plan's constraint checks, written the way an advisor
@@ -23,12 +25,9 @@ export interface AdvisorNote {
   text: string
 }
 
-export const FIRST_SEMESTER_CAP = 5.5
-export const DUAL_OVERLOAD = 5.5
-export const APPROVAL_CAP = 6.5
-export const HARD_CAP = 7.5
 export const BA_MIN = 36
 export const BSE_MIN = 40
+export const DUAL_MIN = VIPER_PROGRAM.minTotalCU
 
 export function computeAdvisorNotes(
   plan: AugmentedPlan,
@@ -40,9 +39,9 @@ export function computeAdvisorNotes(
   const s = plan.summary
 
   // ---- Semester loads (academic year only; summers are judged differently) ----
-  // Dual overloads are the VIPER norm, so they fold into one line; the
-  // rarer approval-level and hard-cap terms each get their own.
-  const overloads: string[] = []
+  // Same ladder as the term cards (src/ui/load.ts): 5.5 first semester,
+  // 6.5 after that, and 7+ needs a Max CU Increase. Loads between 5.5 and
+  // 6.5 are the normal dual-degree overload and are not flagged.
   for (const key of SEMESTER_KEYS) {
     const load = plan.loads[key] ?? 0
     const label = semesterLabel(key, gradYear ?? undefined).season
@@ -52,28 +51,19 @@ export function computeAdvisorNotes(
         source: 'First semester',
         text: `${label} is ${load} CU. First-semester students are capped at ${FIRST_SEMESTER_CAP} CU — move ${round1(load - FIRST_SEMESTER_CAP)} CU later.`,
       })
-    } else if (load > HARD_CAP) {
+    } else if (load >= FORM_THRESHOLD) {
       notes.push({
         severity: 'error',
-        source: 'Hard cap',
-        text: `${label} is ${load} CU, above Penn's ${HARD_CAP} CU university-wide cap. Needs school-level approval or a summer course.`,
+        source: 'Max CU Increase',
+        text: `${label} is ${load} CU. ${FORM_THRESHOLD}+ CU needs a Max CU Increase request (Path@Penn forms) with a full academic plan; rarely granted.`,
       })
-    } else if (load > APPROVAL_CAP) {
+    } else if (load > CAP) {
       notes.push({
         severity: 'warning',
-        source: 'Approval needed',
-        text: `${label} is ${load} CU. Requires a faculty advisor sign-off (SEAS) or a CU increase request (College).`,
+        source: 'Over cap',
+        text: `${label} is ${load} CU, above the ${CAP} CU cap. Needs an advisor sign-off before the add deadline.`,
       })
-    } else if (load > DUAL_OVERLOAD) {
-      overloads.push(`${label} (${load})`)
     }
-  }
-  if (overloads.length > 0) {
-    notes.push({
-      severity: 'warning',
-      source: 'Dual overload',
-      text: `${overloads.length === 1 ? 'One term is' : `${overloads.length} terms are`} above ${DUAL_OVERLOAD} CU — the expected VIPER dual-degree overload, but each needs the form: ${overloads.join(', ')}.`,
-    })
   }
 
   // ---- Degree minimums ----
@@ -81,7 +71,7 @@ export function computeAdvisorNotes(
     notes.push({
       severity: 'error',
       source: 'Dual minimum',
-      text: `${s.totalCU} CU planned; the dual degree needs ${BSE_MIN}+ CU with overlap.`,
+      text: `${s.totalCU} CU planned; the dual degree needs ${DUAL_MIN}+ CU (incoming credit counts).`,
     })
   }
   if (s.sasCU < BA_MIN) {

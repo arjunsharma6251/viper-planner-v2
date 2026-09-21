@@ -14,15 +14,12 @@ export interface PlanSetupProps {
 
 const GRAD_YEARS = [2027, 2028, 2029, 2030]
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="grid gap-3 border-t border-ink py-5 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-6">
-      <div>
-        <h2 className="font-cond text-[0.9375rem] leading-none font-semibold tracking-[0.04em] text-ink uppercase">
-          {title}
-        </h2>
-        {hint && <p className="mt-1.5 text-[0.75rem] leading-snug text-ink-2">{hint}</p>}
-      </div>
+      <h2 className="font-cond text-[0.9375rem] leading-none font-semibold tracking-[0.04em] text-ink uppercase">
+        {title}
+      </h2>
       <div className="min-w-0">{children}</div>
     </section>
   )
@@ -31,7 +28,8 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 /**
  * Setup is one sheet, not a wizard: class, majors, curriculum, and incoming
  * credit are all visible with sensible defaults filled in, so a new student
- * can read the whole ask and build in one click.
+ * can read the whole ask and build in one click. No explanatory copy: the
+ * labels carry it (reviewer note, 2026-09-21).
  */
 export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   const [gradYear, setGradYear] = useState<number>(initial?.gradYear ?? 2028)
@@ -39,7 +37,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   const [seasMajorKey, setSeasMajorKey] = useState(initial?.seasMajorKey ?? 'CBE')
   const [sasConcKey, setSasConcKey] = useState<string | null>(initial?.sasConcKey ?? null)
   const [seasConcKey, setSeasConcKey] = useState<string | null>(initial?.seasConcKey ?? null)
-  const [apCreditIds, setApCreditIds] = useState<string[]>(initial?.apCreditIds ?? ['ap-calc-bc'])
+  const [apCreditIds, setApCreditIds] = useState<string[]>(initial?.apCreditIds ?? [])
   // Curriculum follows the graduating class unless the student overrides it.
   const [curriculumOverride, setCurriculumOverride] = useState<CurriculumMode | null>(
     initial?.curriculumMode ?? null,
@@ -63,14 +61,9 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
         <h1 className="font-cond text-[2rem] leading-none font-bold tracking-[0.02em] text-ink uppercase sm:text-[2.5rem]">
           {initial ? 'Edit setup' : 'Build your starting plan'}
         </h1>
-        <p className="mt-3 max-w-[60ch] text-[0.9375rem] leading-relaxed text-ink-2">
-          Four answers seed a valid eight-semester plan for your dual degree. Everything below is
-          filled in with the usual choices; change what differs for you, then build. The plan is
-          yours to edit from then on.
-        </p>
       </div>
 
-      <Section title="Graduating class" hint="Sets the calendar and which College curriculum you are audited under.">
+      <Section title="Graduating class">
         <div className="seg w-full" role="radiogroup" aria-label="Graduating class">
           {GRAD_YEARS.map((y) => (
             <button
@@ -80,16 +73,15 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
               aria-checked={y === gradYear}
               aria-pressed={y === gradYear}
               onClick={() => setGradYear(y)}
-              className="flex flex-1 flex-col items-center gap-1 !py-3"
+              className="flex flex-1 items-center justify-center !py-3"
             >
               <span className="font-mono text-[1.125rem] font-semibold !tracking-normal">{y}</span>
-              <span className="!text-[0.625rem] opacity-70">VIPER '{String(y).slice(2)}</span>
             </button>
           ))}
         </div>
       </Section>
 
-      <Section title="Majors" hint="One College major and one Engineering major. Concentrations where the major has them.">
+      <Section title="Majors">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label mb-1.5 block !text-penn-blue" htmlFor="sas-major">
@@ -162,14 +154,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
         </div>
       </Section>
 
-      <Section
-        title="College curriculum"
-        hint={
-          defaultCurriculumMode(gradYear) === 'ncc'
-            ? `The Class of ${gradYear} is audited under the New College Curriculum. Change this only if your advisor told you otherwise.`
-            : `The Class of ${gradYear} is audited under the old core curriculum. Change this only if your advisor told you otherwise.`
-        }
-      >
+      <Section title="College curriculum">
         <div className="seg" role="radiogroup" aria-label="College curriculum">
           {(
             [
@@ -192,20 +177,14 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
         </div>
       </Section>
 
-      <Section
-        title="Incoming credit"
-        hint="Exams and placements Penn Admissions counts. Credit-bearing ones remove the matching course from the seed."
-      >
+      <Section title="Incoming credit">
         <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
           {AP_CREDIT_GROUPS.map((group) => {
             const entries = AP_CREDITS.filter((ap) => group.kinds.includes(ap.kind))
             if (entries.length === 0) return null
             return (
               <fieldset key={group.label} className="min-w-0">
-                <legend className="label mb-1 flex items-baseline gap-2 !text-[0.625rem] !text-ink-3">
-                  {group.label}
-                  {group.hint && <span className="!normal-case !tracking-normal !text-ink-3">{group.hint}</span>}
-                </legend>
+                <legend className="label mb-1 !text-[0.625rem] !text-ink-3">{group.label}</legend>
                 <div className="border-t border-rule">
                   {entries.map((ap) => {
                     const resolved = resolveAPCredit(ap, gradYear)
@@ -230,6 +209,11 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
                     )
                   })}
                 </div>
+                {group.kinds.includes('waiver') && (
+                  <p className="mt-2 text-[0.6875rem] leading-snug text-ink-3">
+                    Language not waived? Plan its 0–2 CU in the planner: Add course → Language Foundation.
+                  </p>
+                )}
               </fieldset>
             )
           })}

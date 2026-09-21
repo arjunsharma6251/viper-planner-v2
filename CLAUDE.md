@@ -181,8 +181,8 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - Most courses are 1.0 CU
 - Some are 0.5 CU (half-semester, modular, or research)
 - VIPR 1300 is 0.5 CU per term, with a 0.5–1.5 CU range allowed in summer
-- Total degrees: BA 36 CU minimum, BSE 40 CU minimum, dual 40+ CU (with overlap)
-- Per-semester soft cap: 5.5 CU normal, 6.5 CU "dual overload" (allowed but tight), 7.5 CU hard cap (needs approval)
+- Total degrees: BA 36 CU minimum, BSE 40 CU minimum, dual **46 CU** (`VIPER_PROGRAM.minTotalCU`; incoming credit counts)
+- Per-semester ladder (reviewer-confirmed 2026-09-21, `src/ui/load.ts`): first semester capped at 5.5 CU; later terms capped at 6.5 CU; 7+ CU needs a Max CU Increase request (SRFS Path forms page, `MAX_CU_FORM_URL`). 5.5–6.5 in a later term is the normal dual-degree overload and is not flagged anywhere.
 - **First semester (Fall Y1) is hard-capped at 5.5 CU** — no overload. The scheduler enforces this via `semesterCap()` in `src/scheduler/helpers.ts` (core courses beyond the cap defer to the next term with room; `first-semester-cap.test.ts` asserts it for every combo). The UI shows anything above 5.5 in Fall Y1 as "over first-semester cap" in red.
 - Summers have different thresholds — don't apply the academic-year load classification
 
@@ -194,7 +194,7 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 
 - Plan editing: add, remove, move, reorder, rename, tag fulfillments, color-code courses
 - Major selection (BA + BSE) and concentrations
-- AP credit picker
+- Incoming credit picker (AP/IB/A-level physics + CS, Penn credit exams for CHEM 1012/1022, MATH 1400/1410/2200/2300, BIOL 1101/1102/1121, and waivers). AP Calc, AP Chem, AP Stat, IB/A-level Chem are deliberately NOT offered: they grant no VIPER-usable credit.
 - Graduation year selector
 - Requirement trackers (FA, Sector, energy, double-count counts) — students need these
 - Course detail modal (PCR link, tags, swap, rename, delete)
@@ -352,7 +352,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 - At any moment, the visible primary actions should be ≤4. If you're adding a fifth, group some into a menu.
 - The export menu hides JSON/CSV/Print behind a single "Export ▾". The two primary actions (Share link and Add course) stay visible.
 - Onboarding is single-question: "Class of?" → "Major?" → done. No 12-step wizard.
-- The course detail modal has ≤3 tabs (Tags, Pick course, Actions). Don't grow this.
+- The course detail modal is one sheet, no tabs: editable code + title first, then move/remove, then "Counts toward" checkboxes, then catalog alternatives / picks, then color. Don't add tabs back.
 
 #### Miller's Number — chunk by 5-7
 
@@ -461,7 +461,7 @@ These aren't aspirations — they're requirements:
 - All interactive elements are keyboard-reachable in a logical tab order
 - Focus indicators are visible (Penn blue outline, 2px, 2px offset)
 - Color contrast meets WCAG AA minimums for text (4.5:1) — Penn red on cream meets this; double-check any new pairings
-- Drag-and-drop has a keyboard alternative (the course detail modal's Actions tab can move a course via dropdown)
+- Drag-and-drop has a keyboard alternative (the course detail modal's "Move to term" select)
 - Modals trap focus, restore focus on close
 - Screen reader text for icon-only buttons (`aria-label` on `+`, `×`, etc.)
 

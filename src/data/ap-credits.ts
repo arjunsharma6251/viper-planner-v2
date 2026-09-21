@@ -1,76 +1,69 @@
 import type { ApCredit, ResolvedApCredit } from './types';
 
-// ---- Incoming credit: AP / IB / A-level exams, Penn credit & placement exams, waivers ----
+// ---- Incoming credit: AP / IB / A-level exams, Penn credit exams, waivers ----
 //
-// Source of truth for exam policy: Penn Admissions "Pre-College Credits"
-// (https://admissions.upenn.edu/how-to-apply/first-year-applicants/pre-college-credits),
-// checked 2026-09. Only entries that touch VIPER majors' requirements are listed —
-// a student with AP Art History does not need it modeled here.
+// Only entries that grant credit toward, or remove a requirement from, a
+// VIPER major are listed. Reviewer-confirmed 2026-09-21: AP Calculus AB/BC,
+// AP Chemistry, AP Statistics, IB Chemistry and A-level Chemistry grant no
+// usable credit for VIPER students (BC → MATH 1300 only for '28+, AP Chem →
+// EAS 0091 which CHEM/CBE refuse), so they are not offered here.
 //
-// `credit: false` entries are placement/waivers: they remove a requirement from the
-// plan but add no CU toward the degree. They still matter for planning (a waived
-// lab is a free semester slot), which is why they stay in the list, grouped apart.
+// Sources checked 2026-09: Penn Admissions "Pre-College Credits";
+// math.upenn.edu credit exams (1300/1070/1080/1400/1410/2200 — no 2300 exam
+// listed); chem.upenn.edu General Chemistry credit exams (1012 and 1022 are
+// separate exams); bio.upenn.edu equivalency exams (1101, 1102, 1121).
 //
-// AP Calculus BC policy history:
-//   • Class of 2025/2024: BC = MATH 1400 + retroactive credit option for MATH 1410
-//   • Class of 2026/2027: BC = MATH 1400
-//   • Class of 2028+    : BC = MATH 1300 only (NOT MATH 1400). Penn restricted this
-//     in 2024 because retroactive credit was creating bad incentives — students
-//     gambling on MATH 1410 to backfill MATH 1400 and failing.
-//     Per Penn Math Dept (2024): "students in the Class of 2028 and beyond are
-//     only eligible to receive credit for MATH 1300 and a waiver for the MATH
-//     1400 prerequisite in upper-level courses."
+// `credit: false` entries are waivers: they remove a requirement from the
+// plan but add no CU toward the degree.
 export const AP_CREDITS: readonly ApCredit[] = [
   // ---- AP ----
-  { id: 'ap-calc-bc',     kind: 'ap', credit: true, label: 'AP Calculus BC (5)',
-    grants: (gradYear) => {
-      // Class of 2028+: MATH 1300 only. Earlier classes: MATH 1400.
-      if (!gradYear || gradYear >= 2028) return ['MATH 1300'];
-      return ['MATH 1400'];
-    },
-    note: (gradYear) => {
-      if (!gradYear || gradYear >= 2028) {
-        return 'Class of 2028+: grants MATH 1300 (1 CU) and a MATH 1400 prerequisite waiver. (Penn restricted BC credit in 2024.)';
-      }
-      return 'Class of 2027 or earlier: grants MATH 1400 (1 CU).';
-    } },
-  { id: 'ap-calc-ab',     kind: 'ap', credit: false, label: 'AP Calculus AB (5)',
-    grants: [],
-    note: 'Penn awards no credit for Calculus AB — placement only. Take the Penn Math credit exam if you want MATH 1400 credit.' },
   { id: 'ap-phys-c-mech', kind: 'ap', credit: true, label: 'AP Physics C: Mechanics (5)', grants: ['PHYS 0150'],
     note: 'Grants PHYS 0150 (1.5 CU).' },
   { id: 'ap-phys-c-em',   kind: 'ap', credit: true, label: 'AP Physics C: E&M (5)', grants: ['PHYS 0151'],
     note: 'Grants PHYS 0151 (1.5 CU).' },
-  { id: 'ap-chem',        kind: 'ap', credit: true, label: 'AP Chemistry (5)', grants: ['EAS_0091'],
-    note: 'Grants EAS 0091 (1 CU, Engineering only). NOT accepted toward CHEM or CBE major requirements — use the Penn CHEM placement exam for those.' },
   { id: 'ap-cs-a',        kind: 'ap', credit: true, label: 'AP Computer Science A (5)', grants: ['CIS 1100'],
     note: 'Grants CIS 1100 (1 CU).' },
-  { id: 'ap-stat',        kind: 'ap', credit: false, label: 'AP Statistics (5)', grants: ['STAT_WAIVER'],
-    note: 'Waives STAT 1010 / STAT 1110. No CU.' },
 
   // ---- IB (Higher Level) & A-level ----
-  { id: 'ib-chem-hl',     kind: 'ib', credit: true, label: 'IB Chemistry HL (6–7)', grants: ['EAS_0091'],
-    note: 'Grants EAS 0091 (1 CU, Engineering only). Not accepted toward CHEM or CBE.' },
   { id: 'ib-phys-hl',     kind: 'ib', credit: true, label: 'IB Physics HL (6–7)', grants: ['PHYS 0150'],
     note: 'Grants PHYS 0150 (1.5 CU) and PHYS 0102 (1.5 CU). Only PHYS 0150 counts toward the majors modeled here.' },
   { id: 'alevel-phys',    kind: 'alevel', credit: true, label: 'A-level Physics (A*/A)', grants: ['PHYS 0150', 'PHYS 0151'],
     note: 'Grants PHYS 0150 and PHYS 0151 (1.5 CU each).' },
-  { id: 'alevel-chem',    kind: 'alevel', credit: true, label: 'A-level Chemistry (A*/A)', grants: ['EAS_0091'],
-    note: 'Grants EAS 0091 (1 CU, Engineering only). Not accepted toward CHEM or CBE.' },
 
-  // ---- Penn credit & placement exams (taken once enrolled) ----
-  { id: 'chem-placement', kind: 'exam', credit: true, label: 'Penn Chemistry placement exam', grants: ['CHEM 1012', 'CHEM 1022'],
-    note: 'Departmental exam for credit — the route CHEM and CBE majors with strong prior chemistry should take.' },
-  { id: 'math-credit-1400', kind: 'exam', credit: true, label: 'Penn Math credit exam — MATH 1400', grants: ['MATH 1400'],
-    note: 'Offered by the Math Department at the start of each semester. Grants MATH 1400 (1 CU).' },
-  { id: 'math-credit-1410', kind: 'exam', credit: true, label: 'Penn Math credit exam — MATH 1410', grants: ['MATH 1410'],
-    note: 'Offered by the Math Department at the start of each semester. Grants MATH 1410 (1 CU).' },
+  // ---- Penn credit exams (taken once enrolled; ungraded credit) ----
+  { id: 'chem-1012', kind: 'exam', credit: true, label: 'CHEM 1012 · General Chemistry I', grants: ['CHEM 1012'],
+    note: 'Chemistry Department credit exam, 2 hours, once. Ungraded credit (1 CU). The lab (CHEM 1101) is not waived.' },
+  { id: 'chem-1022', kind: 'exam', credit: true, label: 'CHEM 1022 · General Chemistry II', grants: ['CHEM 1022'],
+    note: 'Chemistry Department credit exam, 2 hours, once. Ungraded credit (1 CU). The lab (CHEM 1102) is not waived.' },
+  { id: 'math-1400', kind: 'exam', credit: true, label: 'MATH 1400 · Calculus I', grants: ['MATH 1400'],
+    note: 'Math Department credit exam at the start of each semester. Grants MATH 1400 (1 CU).' },
+  { id: 'math-1410', kind: 'exam', credit: true, label: 'MATH 1410 · Calculus II', grants: ['MATH 1410'],
+    note: 'Math Department credit exam at the start of each semester. Grants MATH 1410 (1 CU).' },
+  { id: 'math-2200', kind: 'exam', credit: true, label: 'MATH 2200 · Linear Algebra', grants: ['MATH 2200'],
+    note: 'Math Department credit exam. MATH 2200 replaced MATH 2400 in Summer 2026. Grants 1 CU.' },
+  { id: 'math-2300', kind: 'exam', credit: true, label: 'MATH 2300 · Differential Equations', grants: ['MATH 2300'],
+    note: 'MATH 2300 replaced MATH 2410 in Summer 2026. Penn Math currently lists no 2300 credit exam — confirm with the department.' },
+  { id: 'biol-1101', kind: 'exam', credit: true, label: 'BIOL 1101 · Intro Biology A', grants: ['BIOL 1101'],
+    note: 'Biology equivalency exam, incoming students only, each fall. Lecture credit (1 CU).' },
+  { id: 'biol-1102', kind: 'exam', credit: true, label: 'BIOL 1102 · Intro Biology B', grants: ['BIOL 1102'],
+    note: 'Biology equivalency exam, incoming students only, each fall. Lecture credit (1 CU).' },
+  { id: 'biol-1121', kind: 'exam', credit: true, label: 'BIOL 1121 · Intro Biology — Molecular', grants: ['BIOL 1121'],
+    note: 'Biology equivalency exam, incoming students only, each fall. Lecture credit (1 CU).' },
 
   // ---- Waivers (requirement removed, no CU) ----
-  { id: 'chem-lab-waiver', kind: 'waiver', credit: false, label: 'CHEM 1101 / 1102 lab waiver', grants: ['CHEM 1101', 'CHEM 1102'],
-    note: 'Case-by-case with the Chemistry Department. Removes the intro labs from the plan; adds no CU.' },
-  { id: 'lang-fluency',   kind: 'waiver', credit: false, label: 'Language requirement met (AP 5 / IB HL / fluency exam)', grants: ['LANG_FL'],
-    note: 'Satisfies the Foreign Language foundation. Any CU the exam itself grants is not modeled here.' },
+  { id: 'chem-1101-waiver', kind: 'waiver', credit: false, label: 'CHEM 1101 lab waiver', grants: ['CHEM 1101'],
+    note: 'Case-by-case with the Chemistry Department. Removes General Chemistry Lab I from the plan; adds no CU.' },
+  { id: 'chem-1102-waiver', kind: 'waiver', credit: false, label: 'CHEM 1102 lab waiver', grants: ['CHEM 1102'],
+    note: 'Case-by-case with the Chemistry Department. Removes General Chemistry Lab II from the plan; adds no CU.' },
+  // Statistics and economics waivers are recorded for the plan and the chat
+  // digest. No VIPER major core seeds STAT 1010/1110 or ECON 0100/0110, so
+  // they remove nothing from the seed.
+  { id: 'stat-waiver',    kind: 'waiver', credit: false, label: 'Statistics waiver (STAT 1010 / 1110)', grants: ['STAT_WAIVER'],
+    note: 'Introductory statistics requirement waived. No CU.' },
+  { id: 'econ-waiver',    kind: 'waiver', credit: false, label: 'Economics waiver (ECON 0100 / 0110)', grants: ['ECON_WAIVER'],
+    note: 'Introductory economics requirement waived. No CU.' },
+  { id: 'lang-fluency',   kind: 'waiver', credit: false, label: 'Language requirement met', grants: ['LANG_FL'],
+    note: 'Satisfies the Language foundation (AP 5 / IB HL / fluency exam). Any CU the exam itself grants is not modeled here.' },
 ];
 
 /** Display groups for setup, in order. */
@@ -80,8 +73,8 @@ export const AP_CREDIT_GROUPS: ReadonlyArray<{
   hint?: string;
 }> = [
   { kinds: ['ap', 'ib', 'alevel'], label: 'AP, IB & A-level exams' },
-  { kinds: ['exam'], label: 'Penn credit & placement exams', hint: 'Taken once you are on campus.' },
-  { kinds: ['waiver'], label: 'Waivers', hint: 'Remove a requirement but add no CU.' },
+  { kinds: ['exam'], label: 'Credit exams' },
+  { kinds: ['waiver'], label: 'Waivers' },
 ];
 
 // Helper: resolve an AP credit entry's `grants` and `note` for a given graduating year.

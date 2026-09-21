@@ -34,12 +34,22 @@ export interface NccFoundationAudit {
   by: string | null
 }
 
+/** A planned course listed under an audit row (open slots print their slot title). */
+export interface AuditCourseRef {
+  code: string
+  title: string
+  cu: number
+  open: boolean
+}
+
 export interface NccDivisionAudit {
   id: 'SS' | 'H'
   label: string
   planned: number
   /** 5 or 3 — assigned to whichever division the student is filling more. */
   target: number
+  /** The courses counted, flexible (SS/H) ones included where they landed. */
+  courses: AuditCourseRef[]
 }
 
 export interface SeasElectiveAudit {
@@ -50,6 +60,8 @@ export interface SeasElectiveAudit {
   by: string | null
   /** Expanded-row guidance. */
   hint: string
+  /** The courses filling this bucket. */
+  courses: AuditCourseRef[]
 }
 
 export interface NccAudit {
@@ -85,6 +97,10 @@ function isOpen(c: AugmentedCourse): boolean {
 
 function describe(c: AugmentedCourse): string {
   return isOpen(c) ? `open slot · ${c.title}` : c.code
+}
+
+function ref(c: AugmentedCourse): AuditCourseRef {
+  return { code: c.code, title: c.title, cu: c.cu || 0, open: isOpen(c) }
 }
 
 export function computeNccAudit(
@@ -126,26 +142,25 @@ export function computeNccAudit(
   // Foundational Approaches that straddle SS and H are allocated last, to
   // whichever division still has the larger shortfall.
   const planned = { SS: 0, H: 0 }
-  let flexible = 0
+  const counted: { SS: AuditCourseRef[]; H: AuditCourseRef[] } = { SS: [], H: [] }
+  const flexibleCourses: AugmentedCourse[] = []
   for (const c of courses) {
     const d = divisionOf(c)
-    if (d === 'SS' || d === 'H') planned[d] += c.cu || 0
-    else if (d === 'SS/H') flexible += c.cu || 0
+    if (d === 'SS' || d === 'H') {
+      planned[d] += c.cu || 0
+      counted[d].push(ref(c))
+    } else if (d === 'SS/H') flexibleCourses.push(c)
   }
-  if (flexible > 0) {
-    // Assign the 5 to the fuller division first, then pour flexible CU into
-    // the larger remaining gap, one CU at a time.
-    let remaining = flexible
-    while (remaining > 0) {
-      const tSS = planned.SS >= planned.H ? DIST_TARGETS[0] : DIST_TARGETS[1]
-      const tH = planned.SS >= planned.H ? DIST_TARGETS[1] : DIST_TARGETS[0]
-      const gapSS = tSS - planned.SS
-      const gapH = tH - planned.H
-      const step = Math.min(1, remaining)
-      if (gapH > gapSS) planned.H += step
-      else planned.SS += step
-      remaining -= step
-    }
+  // Flexible courses pour into the larger remaining gap, one course at a
+  // time, with the 5 assigned to the fuller division as we go.
+  for (const c of flexibleCourses) {
+    const tSS = planned.SS >= planned.H ? DIST_TARGETS[0] : DIST_TARGETS[1]
+    const tH = planned.SS >= planned.H ? DIST_TARGETS[1] : DIST_TARGETS[0]
+    const gapSS = tSS - planned.SS
+    const gapH = tH - planned.H
+    const d = gapH > gapSS ? 'H' : 'SS'
+    planned[d] += c.cu || 0
+    counted[d].push(ref(c))
   }
   // 5 and 3 may go to either division: give the larger target to the
   // division the student has planned more of (ties favour Social Sciences).
@@ -156,12 +171,14 @@ export function computeNccAudit(
       label: 'Social Sciences',
       planned: round1(planned.SS),
       target: ssGetsFive ? DIST_TARGETS[0] : DIST_TARGETS[1],
+      courses: counted.SS,
     },
     {
       id: 'H',
       label: 'Humanities & the Arts',
       planned: round1(planned.H),
       target: ssGetsFive ? DIST_TARGETS[1] : DIST_TARGETS[0],
+      courses: counted.H,
     },
   ]
 
@@ -173,25 +190,27 @@ export function computeNccAudit(
   const writ = foundations.find((f) => f.id === 'ncc-writ')
   const ethicsBy = has('VIPR 1200') ? 'VIPR 1200' : has('VIPR 1210') ? 'VIPR 1210' : null
   const spec: SeasGenEdSpec = SEAS_GEN_ED[seasMajorKey ?? ''] ?? { ss: 0, h: 0, ssh: 3, sshTbs: 2, ethics: ['EAS 2030'] }
-  const pools = { ss: 0, h: 0, either: 0, tbs: 0 }
+  const pools: Record<'ss' | 'h' | 'either' | 'tbs', AugmentedCourse[]> = { ss: [], h: [], either: [], tbs: [] }
   for (const c of courses) {
     if (c.slotId === 'gened-writ' || c.slotId === 'ncc-writ' || c.intent?.fa === 'WRIT' || c.intent?.foundation === 'ncc-writ') continue // tracked as Writing
     const d = divisionOf(c)
-    if (d === 'SS') pools.ss += 1
-    else if (d === 'H') pools.h += 1
-    else if (d === 'SS/H' || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh')) pools.either += 1
-    else if (c.intent?.seas?.includes('tbs') || c.userFulfills.includes('seas-tbs')) pools.tbs += 1
+    if (d === 'SS') pools.ss.push(c)
+    else if (d === 'H') pools.h.push(c)
+    else if (d === 'SS/H' || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh')) pools.either.push(c)
+    else if (c.intent?.seas?.includes('tbs') || c.userFulfills.includes('seas-tbs')) pools.tbs.push(c)
   }
-  const take = (n: number, ...from: Array<keyof typeof pools>): number => {
-    let got = 0
+  const take = (n: number, ...from: Array<keyof typeof pools>): AuditCourseRef[] => {
+    const got: AuditCourseRef[] = []
     for (const p of from) {
-      const use = Math.min(n - got, pools[p])
-      pools[p] -= use
-      got += use
-      if (got >= n) break
+      while (got.length < n && pools[p].length > 0) got.push(ref(pools[p].shift()!))
+      if (got.length >= n) break
     }
     return got
   }
+  const writCourse = courses.find(
+    (c) => c.slotId === 'gened-writ' || c.slotId === 'ncc-writ' || c.intent?.fa === 'WRIT' || c.intent?.foundation === 'ncc-writ',
+  )
+  const ethicsCourse = courses.find((c) => c.code === 'VIPR 1200') ?? courses.find((c) => c.code === 'VIPR 1210')
   const seas: SeasElectiveAudit[] = [
     {
       id: 'seas-writ',
@@ -202,6 +221,7 @@ export function computeNccAudit(
       hint: writ?.state === 'missing'
         ? 'Plan a Critical Writing seminar — it covers the College Foundation and this slot.'
         : `Covered by ${writ?.by}.`,
+      courses: writCourse ? [ref(writCourse)] : [],
     },
     {
       id: 'seas-ethics',
@@ -212,27 +232,28 @@ export function computeNccAudit(
       hint: ethicsBy
         ? `Covered by ${ethicsBy}.`
         : `VIPR 1200 or VIPR 1210 covers this once placed (the catalog lists ${spec.ethics.join(' / ')}).`,
+      courses: ethicsCourse ? [ref(ethicsCourse)] : [],
     },
   ]
   if (spec.ss > 0) {
     const got = take(spec.ss, 'ss')
-    seas.push({ id: 'seas-ss', label: 'Social Science', planned: got, target: spec.ss, by: null,
-      hint: `${got} of ${spec.ss} planned. Must carry the SEAS Social Science (EUSS) attribute.` })
+    seas.push({ id: 'seas-ss', label: 'Social Science', planned: got.length, target: spec.ss, by: null,
+      hint: `${got.length} of ${spec.ss} planned. Must carry the SEAS Social Science (EUSS) attribute.`, courses: got })
   }
   if (spec.h > 0) {
     const got = take(spec.h, 'h')
-    seas.push({ id: 'seas-h', label: 'Humanities', planned: got, target: spec.h, by: null,
-      hint: `${got} of ${spec.h} planned. Must carry the SEAS Humanities (EUHS) attribute.` })
+    seas.push({ id: 'seas-h', label: 'Humanities', planned: got.length, target: spec.h, by: null,
+      hint: `${got.length} of ${spec.h} planned. Must carry the SEAS Humanities (EUHS) attribute.`, courses: got })
   }
   if (spec.ssh > 0) {
     const got = take(spec.ssh, 'ss', 'h', 'either')
-    seas.push({ id: 'seas-ssh', label: 'Social Science or Humanities', planned: got, target: spec.ssh, by: null,
-      hint: `${got} of ${spec.ssh} planned. Any Social Science or Humanities course counts.` })
+    seas.push({ id: 'seas-ssh', label: 'Social Science or Humanities', planned: got.length, target: spec.ssh, by: null,
+      hint: `${got.length} of ${spec.ssh} planned. Any Social Science or Humanities course counts.`, courses: got })
   }
   if (spec.sshTbs > 0) {
     const got = take(spec.sshTbs, 'tbs', 'ss', 'h', 'either')
-    seas.push({ id: 'seas-ssh-tbs', label: 'SS, Humanities or TBS', planned: got, target: spec.sshTbs, by: null,
-      hint: `${got} of ${spec.sshTbs} planned. Social Science, Humanities, or Technology in Business & Society — tag a TBS course under Tags → SEAS TBS.` })
+    seas.push({ id: 'seas-ssh-tbs', label: 'SS, Humanities or TBS', planned: got.length, target: spec.sshTbs, by: null,
+      hint: `${got.length} of ${spec.sshTbs} planned. Social Science, Humanities, or Technology in Business & Society — open a course and tick SEAS TBS under Counts toward.`, courses: got })
   }
 
   return {

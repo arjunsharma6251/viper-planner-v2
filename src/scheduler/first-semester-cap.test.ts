@@ -23,7 +23,7 @@ describe('first-semester cap (Fall Y1 ≤ 5.5 CU)', () => {
       sasConcKey: sasC,
       seasMajorKey: seas,
       seasConcKey: seasC,
-      apCreditIds: ['ap-calc-bc'],
+      apCreditIds: [],
       gradYear: 2028,
       curriculumMode: 'legacy',
       shiftForward: true,

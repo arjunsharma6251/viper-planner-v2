@@ -40,7 +40,7 @@ const SEED_CONFIG = {
   sasConcKey: 'STANDARD',
   seasMajorKey: 'CBE',
   seasConcKey: 'ENERGY',
-  apCreditIds: ['ap-calc-bc'],
+  apCreditIds: [],
   gradYear: 2028,
 }
 

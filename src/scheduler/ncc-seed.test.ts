@@ -32,7 +32,7 @@ describe(`NCC seed regression — ${combos.length} combinations, confirmed polic
       sasConcKey: sasC,
       seasMajorKey: seas,
       seasConcKey: seasC,
-      apCreditIds: ['ap-calc-bc'],
+      apCreditIds: [],
       gradYear: 2028,
       curriculumMode: 'ncc',
       viperMods: { ...CONFIRMED_VIPER_MODS } as SchedulerViperMods,

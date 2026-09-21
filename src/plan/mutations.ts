@@ -361,35 +361,56 @@ export function swapElective(plan: Plan, slotId: string, newCode: string): Mutat
 }
 
 /**
- * Rename: rewrite `code` directly (old handleEditCode — scheduler-era prereqs
- * are gone, so this is safe). We keep `originalCode` so the user can see what
- * it was renamed from, and so fulfillment marks stay attached.
+ * Rename: rewrite `code` and/or `title` directly (old handleEditCode —
+ * scheduler-era prereqs are gone, so this is safe). We keep `originalCode`
+ * so the user can see what it was renamed from, and so fulfillment marks
+ * stay attached. An open slot may be named this way too: it becomes a real
+ * course but keeps its slotId/intent, so the audit still counts it.
  */
-export function renameCourse(plan: Plan, courseId: string, newCode: string): MutationResult {
+export function renameCourse(
+  plan: Plan,
+  courseId: string,
+  newCode: string,
+  newTitle?: string,
+): MutationResult {
   const trimmed = newCode?.trim()
   if (!trimmed) return fail(plan, 'New course code is required.')
+  const title = newTitle?.trim()
 
   const loc = findCourse(plan, matchesId(courseId))
   if (!loc) return fail(plan, `Course "${courseId}" not found in the plan.`)
   const target = courseAt(plan, loc)
-  if (target.isPlaceholder) {
-    return fail(plan, 'Pick a course for this slot first — placeholders cannot be renamed.')
-  }
   if (isLockedViper(target)) {
     return fail(plan, 'VIPR courses are required by the program and cannot be renamed.')
   }
   const original = target.originalCode || target.code
-  if (!original || original === '—') {
-    return fail(plan, `Course "${courseId}" cannot be renamed.`)
-  }
+  if (!original) return fail(plan, `Course "${courseId}" cannot be renamed.`)
 
   const next = clonePlan(plan)
   const c = courseAt(next, loc)
+  const codeChanged = trimmed !== c.code
+  if (c.isPlaceholder) {
+    // Naming an open slot: same shape as swapElective, minus the pool.
+    if (trimmed.startsWith('—')) return fail(plan, 'Enter a course code to fill this slot.')
+    const catalog = lookupCourse(trimmed)
+    c.code = trimmed
+    c.originalCode = trimmed
+    // Keep the slot's own label when the catalog has no title for the code.
+    c.title = title || catalog?.title || c.title
+    c.cu = catalog?.cu || c.cu
+    c.isPlaceholder = false
+    c.isRenamed = false
+    recomputeDerived(next)
+    return { ok: true, message: `Filled ${target.title} with ${trimmed}`, plan: next }
+  }
   c.code = trimmed
   if (!c.originalCode) c.originalCode = original
   c.isRenamed = trimmed !== c.originalCode
+  if (title) c.title = title
+  else if (codeChanged) c.title = lookupCourse(trimmed)?.title ?? c.title
   recomputeDerived(next)
-  return { ok: true, message: `Renamed ${original} to ${trimmed}`, plan: next }
+  const what = codeChanged ? `Renamed ${original} to ${trimmed}` : `Retitled ${trimmed}`
+  return { ok: true, message: what, plan: next }
 }
 
 // ---- Mutation dispatch (used by the LLM tool layer and simulate_change) ----
@@ -408,7 +429,7 @@ export function applyMutation(plan: Plan, mutation: Mutation): MutationResult {
     case 'swap_elective':
       return swapElective(plan, mutation.slotId, mutation.newCode)
     case 'rename_course':
-      return renameCourse(plan, mutation.courseId, mutation.newCode)
+      return renameCourse(plan, mutation.courseId, mutation.newCode, mutation.newTitle)
   }
 }
 

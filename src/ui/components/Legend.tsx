@@ -1,26 +1,6 @@
 import { useState } from 'react'
-import { IconChevronDown, IconChevronRight, IconLock, IconOpenBreaker } from './icons'
-
-function Terminals({ ba, bse, energy, tie }: { ba?: boolean; bse?: boolean; energy?: boolean; tie?: boolean }) {
-  const cells = [
-    [ba, 'var(--color-penn-blue)'],
-    [bse, 'var(--color-ink)'],
-    [energy, 'var(--color-energy)'],
-  ] as const
-  return (
-    <svg width="34" height="10" viewBox="0 0 34 10" aria-hidden="true">
-      {tie && <rect x="5" y="4" width="12" height="2" fill="var(--color-penn-blue)" />}
-      {cells.map(([on, color], i) => {
-        const cx = 5 + i * 12
-        return on ? (
-          <rect key={i} x={cx - 3.5} y="1.5" width="7" height="7" fill={color} />
-        ) : (
-          <rect key={i} x={cx - 3} y="2" width="6" height="6" fill="none" stroke="var(--color-rule-2)" />
-        )
-      })}
-    </svg>
-  )
-}
+import { CAP, FIRST_SEMESTER_CAP, FORM_THRESHOLD } from '../load'
+import { IconBolt, IconChevronDown, IconLock, IconOpenBreaker } from './icons'
 
 /**
  * Every mark the sheet uses, explained once. Collapsed by default; a
@@ -41,34 +21,28 @@ export function Legend() {
         ].join(' ')}
       >
         <span className="label !text-ink">Legend</span>
-        <span className="text-ink-3" aria-hidden>
-          {open ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
+        <span className={['text-ink transition-transform duration-150', open ? 'rotate-180' : ''].join(' ')} aria-hidden>
+          <IconChevronDown size={14} />
         </span>
       </button>
       {open && (
         <div className="fade px-2 py-1">
-          <p className="label mt-1 !text-[0.625rem] !text-ink-3">Ties</p>
+          <p className="label mt-1 !text-[0.625rem] !text-ink-3">Counts</p>
           <div className={row}>
-            <Terminals ba />
-            <span>Feeds the BA (College) bus</span>
+            <span className="tag text-center text-penn-blue">×2</span>
+            <span>Double-counts: satisfies two requirements</span>
           </div>
           <div className={row}>
-            <Terminals bse />
-            <span>Feeds the BSE (Engineering) bus</span>
+            <span className="tag text-center text-penn-red">×3</span>
+            <span>Triple-counts: three or more requirements</span>
           </div>
           <div className={row}>
-            <Terminals ba bse tie />
-            <span>Counts toward both degrees (overlap)</span>
-          </div>
-          <div className={row}>
-            <Terminals energy />
+            <span className="flex justify-center text-energy">
+              <IconBolt size={13} />
+            </span>
             <span>VIPER energy-designated course</span>
           </div>
-          <div className={row}>
-            <span className="tag text-penn-red">×2</span>
-            <span>Double-counts within one degree</span>
-          </div>
-          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Breakers</p>
+          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Courses</p>
           <div className={row}>
             <span className="flex justify-center text-ink-3">
               <IconOpenBreaker size={14} />
@@ -85,28 +59,18 @@ export function Legend() {
             <span className="label !text-[0.625rem] !text-ink-3">moved</span>
             <span>Moved from its seeded term</span>
           </div>
-          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Load meters · rated 5.5 · overload 6.5 · trip 7.5</p>
+          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Course load</p>
           <div className={row}>
-            <span className="meter !h-[5px]" aria-hidden>
-              <span className="fill bg-penn-blue" style={{ transform: 'scaleX(0.6)' }} />
-            </span>
-            <span>Normal load (up to 5.5 CU)</span>
+            <span className="tag text-center text-penn-red">{FIRST_SEMESTER_CAP}</span>
+            <span>First-semester cap. Later terms are capped at {CAP} CU.</span>
           </div>
           <div className={row}>
-            <span className="meter !h-[5px]" aria-hidden>
-              <span className="fill bg-caution" style={{ transform: 'scaleX(0.8)' }} />
-            </span>
-            <span>Overload (5.5–6.5 CU), allowed but tight</span>
-          </div>
-          <div className={row}>
-            <span className="meter !h-[5px]" aria-hidden>
-              <span className="fill bg-penn-red" style={{ transform: 'scaleX(0.95)' }} />
-            </span>
-            <span>Needs approval above 6.5 CU; hard cap at 7.5. First semester trips at 5.5.</span>
+            <span className="tag text-center text-penn-red">{FORM_THRESHOLD}+</span>
+            <span>Needs a Max CU Increase request on Path@Penn.</span>
           </div>
           <div className={row}>
             <span className="h-4 border border-dashed border-rule-2" aria-hidden />
-            <span>Summer term: policy CU, not in-term load</span>
+            <span>Summer term: counts toward the degree, not toward the term cap</span>
           </div>
           <div className={row}>
             <span className="flex justify-center" aria-hidden>

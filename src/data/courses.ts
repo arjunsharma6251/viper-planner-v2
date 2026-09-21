@@ -16,6 +16,9 @@ export const COURSES = {
   'MATH 2030': { title: 'Proving Things: Algebra', cu: 1, off: SPRING },
   'MATH 2400': { title: 'Calculus, Part III', cu: 1, off: BOTH, prereqs: ['MATH 1410'] },
   'MATH 2410': { title: 'Calculus, Part IV', cu: 1, off: SPRING, prereqs: ['MATH 2400'] },
+  // Summer 2026: MATH 2200 replaces 2400 and MATH 2300 replaces 2410 (math.upenn.edu).
+  'MATH 2200': { title: 'Linear Algebra', cu: 1, off: BOTH, prereqs: ['MATH 1410'] },
+  'MATH 2300': { title: 'Introduction to Differential Equations', cu: 1, off: BOTH, prereqs: ['MATH 2200'] },
   'MATH 2600': { title: 'Honors Calculus, Part II', cu: 1, off: SPRING, prereqs: ['MATH 1610'] },
   'MATH 3120': { title: 'Linear Algebra', cu: 1, off: BOTH, prereqs: ['MATH 2400'] },
   'MATH 3130': { title: 'Computational Linear Algebra', cu: 1, off: BOTH, prereqs: ['MATH 2400'] },
@@ -207,6 +210,8 @@ export const COURSES = {
   'HIST 1708': { title: 'History of American Capitalism', cu: 1, off: BOTH, sec: 'II' },
   'ENGL 0040': { title: 'Intro to Literary Study', cu: 1, off: BOTH, sec: 'III' },
   'ANTH 0030': { title: 'Human Origins, Evolution and Diversity', cu: 1, off: BOTH },
+  'BIOL 1101': { title: 'Intro Biology A', cu: 1, off: FALL, sec: 'V' },
+  'BIOL 1102': { title: 'Intro Biology B', cu: 1, off: SPRING, sec: 'V' },
   'BIOL 1121': { title: 'Intro Biology — Molecular', cu: 1, off: FALL, sec: 'V' },
 } satisfies Record<string, Course>;
 

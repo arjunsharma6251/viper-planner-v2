@@ -81,6 +81,7 @@ const mutationSchema: z.ZodType<Mutation> = z.discriminatedUnion('kind', [
     kind: z.literal('rename_course'),
     courseId: z.string(),
     newCode: z.string(),
+    newTitle: z.string().optional(),
   }),
 ])
 
@@ -125,6 +126,7 @@ export const TOOL_INPUT_SCHEMAS = {
   rename_course: z.object({
     courseId: z.string(),
     newCode: z.string(),
+    newTitle: z.string().optional().describe('New title; defaults to the catalog title for newCode'),
   }),
 } as const
 
@@ -146,7 +148,7 @@ const TOOL_DESCRIPTIONS: Record<ToolName, string> = {
     'Move a course between semesters (or reorder within one — same from/to is a reorder).',
   tag_fulfillment: 'Mark or unmark what requirement a course fulfills.',
   swap_elective: 'Swap which course fills an elective/gen-ed slot.',
-  rename_course: 'Rename a course (e.g. correct a code).',
+  rename_course: 'Edit a course code and/or title (e.g. correct a code, or name the course filling an open slot).',
 }
 
 export interface ToolDefinition {
