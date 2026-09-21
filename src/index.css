@@ -317,9 +317,45 @@ select.field {
   animation: fade 120ms ease-out both;
 }
 
+/* Setup flow: one question at a time. A step rises in (or sinks back);
+   its choices follow in a short stagger so the eye lands on one thing. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sink {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 260ms var(--ease-out-expo) both;
+}
+.sink {
+  animation: sink 260ms var(--ease-out-expo) both;
+}
+.stagger > * {
+  animation: rise 320ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .settle,
-  .fade {
+  .fade,
+  .rise,
+  .sink,
+  .stagger > * {
     animation: none;
   }
   .meter > .fill {

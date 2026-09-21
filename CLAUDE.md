@@ -351,7 +351,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 
 - At any moment, the visible primary actions should be ≤4. If you're adding a fifth, group some into a menu.
 - The export menu hides JSON/CSV/Print behind a single "Export ▾". The two primary actions (Share link and Add course) stay visible.
-- Onboarding is single-question: "Class of?" → "Major?" → done. No 12-step wizard.
+- Onboarding asks one question at a time (class → BA major → BSE major → incoming credit → review), single-choice steps auto-advance, every answer stays one click away in the trail on top, and Edit setup opens at the review. Motion: `.rise` / `.sink` / `.stagger` in `src/index.css`, all off under `prefers-reduced-motion`.
 - The course detail modal is one sheet, no tabs: editable code + title first, then move/remove, then "Counts toward" checkboxes, then catalog alternatives / picks, then color. Don't add tabs back.
 
 #### Miller's Number — chunk by 5-7
