@@ -1,25 +1,16 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { VIPER_PROGRAM } from '../../data/viper-program'
 import { COMMON_DOUBLE_COUNTS } from '../../data/common-double-counts'
 import { pcrUrlFor } from '../../utils/pcr'
-import { IconChevronDown, IconChevronRight } from './icons'
+import { Disclosure } from './Disclosure'
+import { LegendContent } from './Legend'
 
-export function Disclosure({ title, children }: { title: string; children: ReactNode }) {
-  const [open, setOpen] = useState(false)
+/** A sub-heading inside the reference dropdown. */
+function Sub({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="border-b border-rule last:border-b-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between px-2 py-2 text-left transition-colors duration-100 hover:bg-tint-blue"
-      >
-        <span className="text-[0.8125rem] font-medium text-ink">{title}</span>
-        <span className="text-ink-3" aria-hidden>
-          {open ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
-        </span>
-      </button>
-      {open && <div className="fade px-2 pb-3">{children}</div>}
+    <div className="px-3 pt-3 pb-1">
+      <p className="label mb-1.5 !text-[0.625rem] !text-ink-3">{title}</p>
+      {children}
     </div>
   )
 }
@@ -27,15 +18,14 @@ export function Disclosure({ title, children }: { title: string; children: React
 const mono = 'tag text-ink'
 
 /**
- * Reference: the program rules and the common double-counts list, the two
- * things students otherwise ask their advisor. Read-only, one click away.
+ * Reference: program rules, the curriculum, common double-counts and the
+ * legend, all behind one dropdown. Read-only, one click away, never in
+ * the way.
  */
 export function ReferencePanels() {
   return (
-    <section className="panel print-block" aria-label="Reference">
-      <h2 className="label border-b border-ink px-2 py-2 !text-ink">Reference</h2>
-
-      <Disclosure title="VIPER program rules">
+    <Disclosure title="Reference & legend">
+      <Sub title="VIPER program rules">
         <ul className="flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-ink-2">
           <li>
             Dual-degree minimum: <span className={mono}>{VIPER_PROGRAM.minTotalCU} CU</span> total (BA 36 + BSE 40
@@ -54,9 +44,9 @@ export function ReferencePanels() {
             <span className={mono}>VIPR 1200, VIPR 1210, VIPR 1300×{VIPER_PROGRAM.minSummerResearch}+</span>
           </li>
         </ul>
-      </Disclosure>
+      </Sub>
 
-      <Disclosure title="New College Curriculum">
+      <Sub title="New College Curriculum">
         <ul className="flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-ink-2">
           <li>
             <span className="text-ink">Foundations:</span> Kite, Key, First-Year Seminar, Perspectives and
@@ -81,9 +71,9 @@ export function ReferencePanels() {
             exploration.
           </li>
         </ul>
-      </Disclosure>
+      </Sub>
 
-      <Disclosure title="Common double-counts">
+      <Sub title="Common double-counts">
         <p className="mb-2 text-[0.6875rem] text-ink-3">
           Courses VIPER students routinely double-count. Check PCR before committing.
         </p>
@@ -104,7 +94,11 @@ export function ReferencePanels() {
             )
           })}
         </ul>
-      </Disclosure>
-    </section>
+      </Sub>
+
+      <Sub title="Legend">
+        <LegendContent />
+      </Sub>
+    </Disclosure>
   )
 }

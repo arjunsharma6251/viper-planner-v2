@@ -7,7 +7,6 @@ import { ScheduleGrid } from '../components/ScheduleGrid'
 import { FocusView } from '../components/FocusView'
 import { RequirementTracker } from '../components/RequirementTracker'
 import { ReferencePanels } from '../components/ReferencePanels'
-import { Legend } from '../components/Legend'
 import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
 import { CourseDetailModal } from '../components/CourseDetailModal'
@@ -319,78 +318,68 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
                 <aside
                   id="audit"
-                  aria-label="Audit and notes"
-                  className={[
-                    'flex scroll-mt-20 flex-col gap-4 self-start',
-                    chatOpen ? 'w-full md:grid md:grid-cols-2 md:items-start md:gap-x-6' : '',
-                  ].join(' ')}
+                  aria-label="Degree audit"
+                  className={['scroll-mt-20 self-start', chatOpen ? 'w-full' : ''].join(' ')}
                 >
-                  <RequirementTracker
-                    plan={store.augmented!}
-                    summary={store.augmented!.summary}
-                    ncc={curriculum === 'ncc' ? nccAudit : undefined}
-                    curriculum={curriculum}
-                  />
-                  {showCurriculumNotice && (
-                    <div className="no-print panel px-3 py-3 text-[0.75rem] leading-snug text-ink" role="status">
-                      <p className="label mb-1.5 flex items-center gap-1.5 !text-caution">
-                        <IconAlert size={12} /> Curriculum mismatch
-                      </p>
-                      <p>
-                        This plan was built under the{' '}
-                        {builtUnder === 'ncc' ? 'New College Curriculum' : 'old core curriculum'}, but the Class of{' '}
-                        {gradYear} is audited under the {curriculum === 'ncc' ? 'New College Curriculum' : 'old core'}.
-                        Rebuilding replaces your edits with a fresh starting plan.
-                      </p>
-                      <div className="mt-2.5 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!store.config) return
-                            if (!window.confirm('Rebuild the starting plan under the current curriculum? Your edits will be replaced.'))
-                              return
-                            if (store.setup({ ...store.config, curriculumMode: curriculum }))
-                              toast('Plan rebuilt under the current curriculum.')
-                          }}
-                          className="btn btn-primary !py-2"
-                        >
-                          Rebuild plan
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            try {
-                              localStorage.setItem('viper-planner:curriculum-notice', 'dismissed')
-                            } catch {
-                              /* storage unavailable — dismiss for this session only */
-                            }
-                            setCurriculumNoticeDismissed(true)
-                          }}
-                          className="btn btn-quiet !py-2"
-                        >
-                          Keep as is
-                        </button>
+                  {/* One panel. Three dropdowns for the degrees, one for the
+                      advisor's notes, one for reference. Sections with gaps
+                      open on their own; everything else stays folded. */}
+                  <section className="panel print-block">
+                    <h2 className="label border-b border-ink px-3 py-2 !text-ink">Degree audit</h2>
+                    <RequirementTracker
+                      plan={store.augmented!}
+                      summary={store.augmented!.summary}
+                      ncc={curriculum === 'ncc' ? nccAudit : undefined}
+                      curriculum={curriculum}
+                    />
+                    {showCurriculumNotice && (
+                      <div className="no-print border-b border-rule px-3 py-3 text-[0.75rem] leading-snug text-ink" role="status">
+                        <p className="label mb-1.5 flex items-center gap-1.5 !text-caution">
+                          <IconAlert size={12} /> Curriculum mismatch
+                        </p>
+                        <p>
+                          This plan was built under the{' '}
+                          {builtUnder === 'ncc' ? 'New College Curriculum' : 'old core curriculum'}, but the Class of{' '}
+                          {gradYear} is audited under the {curriculum === 'ncc' ? 'New College Curriculum' : 'old core'}.
+                          Rebuilding replaces your edits with a fresh starting plan.
+                        </p>
+                        <div className="mt-2.5 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!store.config) return
+                              if (!window.confirm('Rebuild the starting plan under the current curriculum? Your edits will be replaced.'))
+                                return
+                              if (store.setup({ ...store.config, curriculumMode: curriculum }))
+                                toast('Plan rebuilt under the current curriculum.')
+                            }}
+                            className="btn btn-primary !py-2"
+                          >
+                            Rebuild plan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              try {
+                                localStorage.setItem('viper-planner:curriculum-notice', 'dismissed')
+                              } catch {
+                                /* storage unavailable — dismiss for this session only */
+                              }
+                              setCurriculumNoticeDismissed(true)
+                            }}
+                            className="btn btn-quiet !py-2"
+                          >
+                            Keep as is
+                          </button>
+                        </div>
                       </div>
+                    )}
+                    <AdvisorNotes notes={advisorNotes} />
+                    <div className="no-print contents">
+                      <ReferencePanels />
                     </div>
-                  )}
-                  <AdvisorNotes notes={advisorNotes} />
+                  </section>
                   {renderExtras?.(store)}
-                  <div className="no-print contents">
-                    <ReferencePanels />
-                    <Legend />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (window.confirm('Reset to the major template? Your edits will be replaced by a fresh scheduler seed.')) {
-                        store.resetToTemplate()
-                        toast('Reset to template complete')
-                      }
-                    }}
-                    className="no-print label self-start px-1 py-1 !text-ink-3 transition-colors hover:!text-penn-red md:col-span-2"
-                  >
-                    Reset to template
-                  </button>
                 </aside>
               </div>
             </>

@@ -1,33 +1,15 @@
-import { useState } from 'react'
 import { CAP, FIRST_SEMESTER_CAP, FORM_THRESHOLD } from '../load'
-import { IconBolt, IconChevronDown, IconLock, IconOpenBreaker } from './icons'
+import { IconBolt, IconLock, IconOpenBreaker } from './icons'
 
 /**
- * Every mark the sheet uses, explained once. Collapsed by default; a
- * lookup, not a dashboard. Color is never the only signal elsewhere.
+ * Every mark the sheet uses, explained once. Rendered inside the
+ * Reference dropdown; color is never the only signal elsewhere.
  */
-export function Legend() {
-  const [open, setOpen] = useState(false)
+export function LegendContent() {
   const row = 'grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 py-1.5 text-[0.75rem] text-ink-2'
   return (
-    <section className="panel print-block" aria-label="Legend">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className={[
-          'flex w-full items-center justify-between px-2 py-2 text-left transition-colors duration-100 hover:bg-tint-blue',
-          open ? 'border-b border-ink' : '',
-        ].join(' ')}
-      >
-        <span className="label !text-ink">Legend</span>
-        <span className={['text-ink transition-transform duration-150', open ? 'rotate-180' : ''].join(' ')} aria-hidden>
-          <IconChevronDown size={14} />
-        </span>
-      </button>
-      {open && (
-        <div className="fade px-2 py-1">
-          <p className="label mt-1 !text-[0.625rem] !text-ink-3">Counts</p>
+    <div>
+          <p className="label !text-[0.625rem] !text-ink-3">Counts</p>
           <div className={row}>
             <span className="tag text-center text-penn-blue">×2</span>
             <span>Double-counts: satisfies two requirements</span>
@@ -78,8 +60,6 @@ export function Legend() {
             </span>
             <span>Your cluster color, set in course detail</span>
           </div>
-        </div>
-      )}
-    </section>
+    </div>
   )
 }

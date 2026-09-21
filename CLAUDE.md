@@ -196,9 +196,9 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - Major selection (BA + BSE) and concentrations
 - Incoming credit picker (AP/IB/A-level physics + CS, Penn credit exams for CHEM 1012/1022, MATH 1400/1410/2200/2300, BIOL 1101/1102/1121, and waivers). AP Calc, AP Chem, AP Stat, IB/A-level Chem are deliberately NOT offered: they grant no VIPER-usable credit.
 - Graduation year selector
-- Requirement trackers (FA, Sector, energy, double-count counts) — students need these
+- Degree audit: ONE right-rail panel — BA / BSE / Energy dropdowns (`Disclosure.tsx`: boxed chevron, readout, accent bar; a section with gaps opens itself, complete ones stay folded), total CU line, Advisor notes dropdown, Reference & legend dropdown. Nothing else lives in the rail; Reset to template is gone (Edit setup → Rebuild covers it).
 - Course detail modal (PCR link, tags, swap, rename, delete)
-- Reference panels (VIPER program rules, common double-counts)
+- Reference & legend, one collapsed dropdown at the bottom of the audit panel (program rules, NCC, common double-counts, legend)
 - LLM chat: plan review + what-if scenarios
 - Export: JSON, CSV, share link
 - Print view

@@ -3,24 +3,8 @@ import type { AugmentedCourse, AugmentedPlan, PlanSummary } from '../../plan/typ
 import type { AuditCourseRef, NccAudit } from '../../plan/ncc-audit'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { VIPER_PROGRAM } from '../../data/viper-program'
-import { useTrace, type Bus } from '../trace'
+import { Disclosure } from './Disclosure'
 import { IconChevronDown, IconCircle, IconCircleCheck } from './icons'
-
-const BUS_TINT: Record<Bus, string> = {
-  ba: 'bg-tint-blue',
-  bse: 'bg-ink/6',
-  energy: 'bg-tint-energy',
-}
-const BUS_BAR: Record<Bus, string> = {
-  ba: 'bg-penn-blue',
-  bse: 'bg-ink',
-  energy: 'bg-energy',
-}
-const BUS_TEXT: Record<Bus, string> = {
-  ba: '!text-penn-blue',
-  bse: '!text-ink',
-  energy: '!text-energy-ink',
-}
 
 function isOpen(c: Pick<AugmentedCourse, 'isPlaceholder' | 'code'>): boolean {
   return !!c.isPlaceholder || c.code.startsWith('—')
@@ -28,22 +12,6 @@ function isOpen(c: Pick<AugmentedCourse, 'isPlaceholder' | 'code'>): boolean {
 
 function toRef(c: AugmentedCourse): AuditCourseRef {
   return { code: c.code, title: c.title, cu: c.cu || 0, open: isOpen(c) }
-}
-
-/** A colored group header: BA, BSE or Energy, in the bus palette. */
-function GroupHead({ bus, children }: { bus: Bus; children: ReactNode }) {
-  const { lit } = useTrace()
-  return (
-    <div
-      className={[
-        'relative mt-3 px-2 pt-2 pb-1 transition-colors duration-150 ease-out first:mt-0',
-        lit.has(bus) ? BUS_TINT[bus] : '',
-      ].join(' ')}
-    >
-      <div className={`absolute inset-x-0 top-0 h-[3px] ${BUS_BAR[bus]}`} aria-hidden />
-      <p className={`label !text-[0.6875rem] ${BUS_TEXT[bus]}`}>{children}</p>
-    </div>
-  )
 }
 
 function Tick({ done }: { done: boolean }) {
@@ -54,16 +22,10 @@ function Tick({ done }: { done: boolean }) {
   )
 }
 
-/** One checklist line: tick · label · what fills it. No expansion. */
-function CheckRow({ label, done, by, bus = 'ba' }: { label: string; done: boolean; by: ReactNode; bus?: Bus }) {
-  const { lit } = useTrace()
+/** One checklist line: tick · label · what fills it. */
+function CheckRow({ label, done, by }: { label: string; done: boolean; by: ReactNode }) {
   return (
-    <div
-      className={[
-        'grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-x-2 px-2 py-1.5 text-[0.8125rem] transition-colors duration-150 ease-out',
-        lit.has(bus) ? BUS_TINT[bus] : '',
-      ].join(' ')}
-    >
+    <div className="grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-x-2 py-1.5 pr-2 pl-3 text-[0.8125rem]">
       <Tick done={done} />
       <span className={done ? 'text-ink' : 'text-ink-2'}>{label}</span>
       <span className="tag text-right whitespace-nowrap text-ink-2">{by}</span>
@@ -72,18 +34,19 @@ function CheckRow({ label, done, by, bus = 'ba' }: { label: string; done: boolea
   )
 }
 
-/** A course list under an expanded row. */
+function Quiet({ children }: { children: ReactNode }) {
+  return <span className="label !text-[0.625rem] !text-ink-3">{children}</span>
+}
+
+/** The courses counted toward a row, shown when the row is opened. */
 function CourseList({ courses, empty }: { courses: AuditCourseRef[]; empty: string }) {
-  if (courses.length === 0) return <p className="mx-2 mb-2 border-l border-rule-2 pl-3 text-[0.75rem] leading-relaxed text-ink-2">{empty}</p>
+  if (courses.length === 0)
+    return <p className="mr-2 mb-2 ml-7 border-l border-rule-2 pl-3 text-[0.75rem] leading-relaxed text-ink-2">{empty}</p>
   return (
-    <ul className="mx-2 mb-2 border-l border-rule-2 pl-3 text-[0.75rem] text-ink-2">
+    <ul className="mr-2 mb-2 ml-7 border-l border-rule-2 pl-3 text-[0.75rem] text-ink-2">
       {courses.map((c, i) => (
         <li key={`${c.code}-${i}`} className="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-baseline gap-2 py-0.5">
-          {c.open ? (
-            <span className="label !text-[0.625rem] !text-ink-3">open</span>
-          ) : (
-            <span className="tag text-ink">{c.code}</span>
-          )}
+          {c.open ? <Quiet>open</Quiet> : <span className="tag text-ink">{c.code}</span>}
           <span className="truncate">{c.title}</span>
           <span className="tag text-ink-3">{c.cu}</span>
         </li>
@@ -92,10 +55,7 @@ function CourseList({ courses, empty }: { courses: AuditCourseRef[]; empty: stri
   )
 }
 
-/**
- * A counted requirement: tick · label · n/target, with an always-visible
- * chevron that opens the list of courses counted toward it.
- */
+/** A counted requirement: tick · label · n/target, opening to its course list. */
 function CountRow({
   label,
   done,
@@ -103,7 +63,6 @@ function CountRow({
   unit,
   courses,
   empty,
-  bus = 'ba',
 }: {
   label: string
   done: number
@@ -111,27 +70,25 @@ function CountRow({
   unit: 'CU' | 'courses'
   courses: AuditCourseRef[]
   empty: string
-  bus?: Bus
 }) {
   const [open, setOpen] = useState(false)
-  const { lit } = useTrace()
   const complete = done >= total
   return (
-    <div className={['transition-colors duration-150 ease-out', lit.has(bus) ? BUS_TINT[bus] : ''].join(' ')}>
+    <div>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="grid w-full grid-cols-[1rem_minmax(0,1fr)_auto_1rem] items-center gap-x-2 px-2 py-1.5 text-left text-[0.8125rem] transition-colors duration-100 hover:bg-tint-blue"
+        className="grid w-full grid-cols-[1rem_minmax(0,1fr)_auto_1rem] items-center gap-x-2 py-1.5 pr-2 pl-3 text-left text-[0.8125rem] transition-colors duration-100 hover:bg-tint-blue"
       >
         <Tick done={complete} />
         <span className={complete ? 'text-ink' : 'text-ink-2'}>{label}</span>
         <span className="tag text-right whitespace-nowrap text-ink-2">
           {done}/{total}
-          <span className="label ml-0.5 !text-[0.625rem] !text-ink-3">{unit === 'CU' ? 'CU' : ''}</span>
+          {unit === 'CU' && <Quiet> CU</Quiet>}
         </span>
-        <span className={['flex justify-end text-ink transition-transform duration-150', open ? 'rotate-180' : ''].join(' ')} aria-hidden>
-          <IconChevronDown size={14} />
+        <span className={['flex justify-end text-ink-3 transition-transform duration-150', open ? 'rotate-180 text-ink' : ''].join(' ')} aria-hidden>
+          <IconChevronDown size={12} />
         </span>
         <span className="sr-only">{complete ? 'satisfied' : 'not yet satisfied'}</span>
       </button>
@@ -140,9 +97,16 @@ function CountRow({
   )
 }
 
+function fillLabel(by: string | null | undefined, fallback = 'nothing planned'): ReactNode {
+  if (!by) return <Quiet>{fallback}</Quiet>
+  if (by.startsWith('open slot')) return <Quiet>open slot</Quiet>
+  return by
+}
+
 /**
- * The degree audit as a checklist: every requirement with a tick and the
- * course code that fills it, grouped under colored BA / BSE / Energy heads.
+ * The degree audit as three dropdowns, BA · BSE · Energy, each headed by
+ * how much is left. A section with gaps opens by itself; a complete one
+ * stays folded with its check. Every row is a tick and the course code.
  */
 export function RequirementTracker({
   plan,
@@ -159,39 +123,45 @@ export function RequirementTracker({
   const legacy = curriculum === 'legacy'
   const courses = Object.values(plan.semesters).flat()
   const energyCourses = courses.filter((c) => c.isEnergy).map(toRef)
-  const nccGreen =
-    !!ncc &&
-    ncc.foundations.every((f) => f.state !== 'missing') &&
-    ncc.divisions.every((d) => d.planned >= d.target) &&
-    ncc.seas.every((r) => r.planned >= r.target)
-  const allGreen =
-    summary.meetsDualMin &&
-    summary.meetsEnergyReq &&
-    (legacy ? summary.unfulfilledFA.length === 0 && summary.unfulfilledSec.length === 0 : nccGreen)
   const dualMin = VIPER_PROGRAM.minTotalCU
 
+  // ---- BA readout ----
+  let baLeft = 0
+  let baTotal = 0
+  if (ncc) {
+    baTotal += ncc.foundations.length
+    baLeft += ncc.foundations.filter((f) => f.state === 'missing').length
+    for (const d of ncc.divisions) {
+      baTotal += 1
+      if (d.planned < d.target) baLeft += 1
+    }
+  } else {
+    baTotal = FA_REQUIREMENTS.length + SECTORS.length
+    baLeft = summary.unfulfilledFA.length + summary.unfulfilledSec.length
+  }
+  const bseLeft = ncc ? ncc.seas.filter((r) => r.planned < r.target).length : 0
+  const bseTotal = ncc ? ncc.seas.length : 0
+  const energyLeft = Math.max(0, 3 - summary.energyCoursesCount)
+  const allGreen = summary.meetsDualMin && baLeft === 0 && bseLeft === 0 && energyLeft === 0
+
+  const readout = (left: number, total: number) =>
+    left === 0 ? (total > 0 ? 'complete' : '') : `${left} to plan`
+  const toneOf = (left: number): 'good' | 'caution' => (left === 0 ? 'good' : 'caution')
+
   return (
-    <section className="panel print-block" aria-label="Degree audit">
-      <h2 className="label border-b border-ink px-2 py-2 !text-ink">Degree audit</h2>
-      <div className="pb-1.5">
-        <GroupHead bus="ba">BA · College{ncc ? ' · New College Curriculum' : ' · Old core'}</GroupHead>
+    <>
+      <Disclosure
+        title="BA · College"
+        summary={readout(baLeft, baTotal)}
+        tone={toneOf(baLeft)}
+        accent="bg-penn-blue"
+        defaultOpen={baLeft > 0}
+        printOpen
+      >
         {ncc && (
           <>
             {ncc.foundations.map((f) => (
-              <CheckRow
-                key={f.id}
-                label={f.label}
-                done={f.state !== 'missing'}
-                by={
-                  f.state === 'missing' ? (
-                    <span className="label !text-[0.625rem] !text-ink-3">nothing planned</span>
-                  ) : f.by?.startsWith('open slot') ? (
-                    <span className="label !text-[0.625rem] !text-ink-3">open slot</span>
-                  ) : (
-                    f.by
-                  )
-                }
-              />
+              <CheckRow key={f.id} label={f.label} done={f.state !== 'missing'} by={fillLabel(f.by)} />
             ))}
             {ncc.divisions.map((d) => (
               <CountRow
@@ -208,76 +178,64 @@ export function RequirementTracker({
         )}
         {legacy && (
           <>
-            {FA_REQUIREMENTS.map((fa) => {
-              const hits = courses.filter((c) => (c.fa ?? c.fulfills?.fa ?? c.intent?.fa) === fa.id).map(toRef)
-              return (
-                <CountRow
-                  key={fa.id}
-                  label={fa.label}
-                  done={summary.fulfilledFA.includes(fa.id) ? 1 : 0}
-                  total={1}
-                  unit="courses"
-                  courses={hits}
-                  empty="Nothing planned for this Foundational Approach."
-                />
-              )
-            })}
-            {SECTORS.map((sec) => {
-              const hits = courses.filter((c) => (c.sec ?? c.fulfills?.sec ?? c.intent?.sec) === sec.id).map(toRef)
-              return (
-                <CountRow
-                  key={sec.id}
-                  label={sec.label}
-                  done={summary.fulfilledSec.includes(sec.id) ? 1 : 0}
-                  total={1}
-                  unit="courses"
-                  courses={hits}
-                  empty="Nothing planned for this Sector."
-                />
-              )
-            })}
+            {FA_REQUIREMENTS.map((fa) => (
+              <CountRow
+                key={fa.id}
+                label={fa.label}
+                done={summary.fulfilledFA.includes(fa.id) ? 1 : 0}
+                total={1}
+                unit="courses"
+                courses={courses.filter((c) => (c.fa ?? c.fulfills?.fa ?? c.intent?.fa) === fa.id).map(toRef)}
+                empty="Nothing planned for this Foundational Approach."
+              />
+            ))}
+            {SECTORS.map((sec) => (
+              <CountRow
+                key={sec.id}
+                label={sec.label}
+                done={summary.fulfilledSec.includes(sec.id) ? 1 : 0}
+                total={1}
+                unit="courses"
+                courses={courses.filter((c) => (c.sec ?? c.fulfills?.sec ?? c.intent?.sec) === sec.id).map(toRef)}
+                empty="Nothing planned for this Sector."
+              />
+            ))}
           </>
         )}
+      </Disclosure>
 
-        {ncc && (
-          <>
-            <GroupHead bus="bse">BSE · Engineering · general electives 7 CU</GroupHead>
-            {ncc.seas.map((r) =>
-              r.target === 1 ? (
-                <CheckRow
-                  key={r.id}
-                  label={r.label}
-                  done={r.planned >= r.target}
-                  bus="bse"
-                  by={
-                    r.courses[0] ? (
-                      r.courses[0].open ? (
-                        <span className="label !text-[0.625rem] !text-ink-3">open slot</span>
-                      ) : (
-                        r.courses[0].code
-                      )
-                    ) : (
-                      <span className="label !text-[0.625rem] !text-ink-3">nothing planned</span>
-                    )
-                  }
-                />
-              ) : (
-                <CountRow
-                  key={r.id}
-                  label={r.label}
-                  done={r.planned}
-                  total={r.target}
-                  unit="courses"
-                  courses={r.courses}
-                  empty={r.hint}
-                  bus="bse"
-                />
-              ),
-            )}
-          </>
-        )}
+      {ncc && (
+        <Disclosure
+          title="BSE · Engineering"
+          summary={readout(bseLeft, bseTotal)}
+          tone={toneOf(bseLeft)}
+          accent="bg-ink"
+          defaultOpen={bseLeft > 0}
+          printOpen
+        >
+          {ncc.seas.map((r) =>
+            r.target === 1 ? (
+              <CheckRow
+                key={r.id}
+                label={r.label}
+                done={r.planned >= r.target}
+                by={r.courses[0] ? (r.courses[0].open ? <Quiet>open slot</Quiet> : r.courses[0].code) : <Quiet>nothing planned</Quiet>}
+              />
+            ) : (
+              <CountRow key={r.id} label={r.label} done={r.planned} total={r.target} unit="courses" courses={r.courses} empty={r.hint} />
+            ),
+          )}
+        </Disclosure>
+      )}
 
-        <GroupHead bus="energy">VIPER · Energy</GroupHead>
+      <Disclosure
+        title="VIPER · Energy"
+        summary={readout(energyLeft, 3)}
+        tone={toneOf(energyLeft)}
+        accent="bg-energy"
+        defaultOpen={energyLeft > 0}
+        printOpen
+      >
         <CountRow
           label="Energy courses"
           done={Math.min(summary.energyCoursesCount, 3)}
@@ -285,18 +243,19 @@ export function RequirementTracker({
           unit="courses"
           courses={energyCourses}
           empty="Catalog energy courses count automatically; for any other approved course, open it and tick VIPER energy course under Counts toward."
-          bus="energy"
         />
+      </Disclosure>
 
-        <div className="mt-1.5 grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-x-2 border-t border-ink px-2 pt-2 text-[0.8125rem]">
-          <Tick done={summary.meetsDualMin} />
-          <span className="text-ink">Total CU · dual-degree minimum</span>
-          <span className={['tag', summary.meetsDualMin ? 'text-ink' : 'text-ink-2'].join(' ')}>
-            {summary.totalCU} / {dualMin}
-          </span>
-        </div>
-        <p className="px-2 pt-1 text-[0.6875rem] text-ink-3">Incoming credit counts toward the {dualMin}.</p>
+      <div className="grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-x-2 border-b border-rule py-2.5 pr-2 pl-3 text-[0.8125rem]">
+        <Tick done={summary.meetsDualMin} />
+        <span className="text-ink">
+          Total CU <Quiet>· {dualMin} minimum, incoming credit counts</Quiet>
+        </span>
+        <span className={['tag', summary.meetsDualMin ? 'text-ink' : 'text-ink-2'].join(' ')}>
+          {summary.totalCU} / {dualMin}
+        </span>
       </div>
+
       {allGreen && (
         <p className="m-2 flex items-start gap-2 border border-good bg-tint-good px-3 py-2 text-[0.75rem] leading-snug text-good">
           <span className="mt-[2px] shrink-0">
@@ -305,6 +264,6 @@ export function RequirementTracker({
           Every tracked requirement is planned. This plan graduates on time.
         </p>
       )}
-    </section>
+    </>
   )
 }
