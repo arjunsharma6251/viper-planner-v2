@@ -22,6 +22,14 @@ export type SemesterKey = (typeof ALL_SEMESTER_KEYS)[number];
 export const isFallSem = (key: string): boolean => key.startsWith('fall');
 export const isSummerSem = (key: string): boolean => key.startsWith('summer');
 
+/** Class-year names, Year 1 → 4. */
+export const YEAR_NAMES = ['Freshman', 'Sophomore', 'Junior', 'Senior'] as const;
+
+/** "Freshman" … "Senior" for a 1-based year number. */
+export function yearName(yearNum: number): string {
+  return YEAR_NAMES[yearNum - 1] ?? `Year ${yearNum}`;
+}
+
 /** Return shape of {@link semesterLabel}. */
 export interface SemesterLabel {
   year: string;
@@ -32,7 +40,8 @@ export interface SemesterLabel {
 /**
  * Compute human-readable labels for each semester.
  * If gradYear is supplied, returns real calendar labels like "Fall 2024".
- * Otherwise returns generic "Year 1 Fall" style.
+ * Otherwise returns generic "Freshman Fall" style. `year` is the class-year
+ * name (Freshman … Senior).
  */
 export function semesterLabel(semKey: SemesterKey, gradYear?: number | null): SemesterLabel {
   const [season = '', yr = ''] = semKey.split('-');
@@ -46,7 +55,7 @@ export function semesterLabel(semKey: SemesterKey, gradYear?: number | null): Se
     const short = season === 'summer'
       ? `Su '${String(calYear).slice(2)}`
       : `${seasonLabel.slice(0, 2)} '${String(calYear).slice(2)}`;
-    return { year: `Year ${yearNum}`, season: `${seasonLabel} ${calYear}`, short };
+    return { year: yearName(yearNum), season: `${seasonLabel} ${calYear}`, short };
   }
-  return { year: `Year ${yearNum}`, season: seasonLabel, short: `Y${yearNum}${seasonLabel.charAt(0)}` };
+  return { year: yearName(yearNum), season: seasonLabel, short: `Y${yearNum}${seasonLabel.charAt(0)}` };
 }

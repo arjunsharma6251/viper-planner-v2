@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { MAJORS, SAS_MAJORS, SEAS_MAJORS } from '../../data/majors'
 import { AP_CREDITS, AP_CREDIT_GROUPS, resolveAPCredit } from '../../data/ap-credits'
-import { defaultCurriculumMode, type CurriculumMode, type PlanConfig } from '../store/use-plan-store'
+import { defaultCurriculumMode, FIRST_NCC_CLASS, type CurriculumMode, type PlanConfig } from '../store/use-plan-store'
 import { IconCheck, IconChevronLeft, IconChevronRight } from './icons'
 
 export interface PlanSetupProps {
@@ -12,10 +12,15 @@ export interface PlanSetupProps {
   onCancel?: () => void
 }
 
-const GRAD_YEARS = [2027, 2028, 2029, 2030]
+const GRAD_YEARS = [2027, 2028, 2029, 2030, 2031]
 
-type Step = 'class' | 'sas' | 'seas' | 'credit' | 'review'
-const STEPS: Step[] = ['class', 'sas', 'seas', 'credit', 'review']
+type Step = 'name' | 'class' | 'curriculum' | 'sas' | 'seas' | 'credit' | 'review'
+const STEPS: Step[] = ['name', 'class', 'curriculum', 'sas', 'seas', 'credit', 'review']
+
+const CURRICULUM_LABEL: Record<CurriculumMode, string> = {
+  ncc: 'New College Curriculum',
+  legacy: 'Old core · Sectors & Foundational Approaches',
+}
 
 function defaultConc(majorKey: string): string | null {
   const entries = Object.entries(MAJORS[majorKey]?.concentrations ?? {})
@@ -76,12 +81,15 @@ function Choice({
 }
 
 /**
- * Setup asks one question at a time. Five steps: class, College major,
- * Engineering major, incoming credit, review. Single-choice steps advance
- * on their own; every answer stays one click away in the trail on top,
- * and nothing is final until Build.
+ * Setup asks one question at a time: name, class, curriculum, College
+ * major, Engineering major, incoming credit, review. Single-choice steps
+ * advance on their own; every answer stays one click away in the trail on
+ * top, and nothing is final until Build. The curriculum step comes
+ * preselected with the class default (NCC from the Class of 2031), so a
+ * student only acts on it to choose the other one.
  */
 export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
+  const [studentName, setStudentName] = useState(initial?.studentName ?? '')
   const [gradYear, setGradYear] = useState<number | null>(initial?.gradYear ?? null)
   const [sasMajorKey, setSasMajorKey] = useState<string | null>(initial?.sasMajorKey ?? null)
   const [seasMajorKey, setSeasMajorKey] = useState<string | null>(initial?.seasMajorKey ?? null)
@@ -92,12 +100,13 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
 
   // Editing an existing plan starts at the review, where every step is a
   // click away; a first-time student starts at the first question.
-  const [step, setStep] = useState<Step>(initial ? 'review' : 'class')
+  const [step, setStep] = useState<Step>(initial ? 'review' : 'name')
   const [dir, setDir] = useState<'forward' | 'back'>('forward')
   const [pending, setPending] = useState(false)
 
   const stepIndex = STEPS.indexOf(step)
-  const curriculumMode: CurriculumMode = curriculumOverride ?? defaultCurriculumMode(gradYear ?? 2028)
+  const classDefault = defaultCurriculumMode(gradYear)
+  const curriculumMode: CurriculumMode = curriculumOverride ?? classDefault
 
   const sasConcs = useMemo(() => Object.entries(MAJORS[sasMajorKey ?? '']?.concentrations ?? {}), [sasMajorKey])
   const seasConcs = useMemo(() => Object.entries(MAJORS[seasMajorKey ?? '']?.concentrations ?? {}), [seasMajorKey])
@@ -114,7 +123,9 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   }
 
   const canContinue: Record<Step, boolean> = {
+    name: true,
     class: gradYear !== null,
+    curriculum: gradYear !== null,
     sas: sasMajorKey !== null,
     seas: seasMajorKey !== null,
     credit: true,
@@ -131,16 +142,20 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
       seasConcKey: seasConcKey ?? defaultConc(seasMajorKey),
       apCreditIds,
       gradYear,
-      ...(curriculumOverride ? { curriculumMode: curriculumOverride } : {}),
+      ...(studentName.trim() ? { studentName: studentName.trim() } : {}),
+      // Only a choice that differs from the class default is stored, so the
+      // plan keeps following the default if the class changes later.
+      ...(curriculumOverride && curriculumOverride !== classDefault ? { curriculumMode: curriculumOverride } : {}),
     })
   }
 
   // Enter continues when the step has an answer; nothing else is captured.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key !== 'Enter' || e.metaKey || e.ctrlKey) return
+      if (e.key !== 'Enter' || e.metaKey || e.ctrlKey || e.isComposing) return
       const el = e.target as HTMLElement | null
-      if (el && (el.tagName === 'BUTTON' || el.tagName === 'SELECT' || el.tagName === 'INPUT')) return
+      if (el && (el.tagName === 'BUTTON' || el.tagName === 'SELECT')) return
+      if (el && el.tagName === 'INPUT' && step !== 'name') return
       if (!canContinue[step]) return
       e.preventDefault()
       if (step === 'review') build()
@@ -154,7 +169,13 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   const seasName = seasMajorKey ? (MAJORS[seasMajorKey]?.fullName ?? seasMajorKey) : null
 
   const trail: Array<{ step: Step; label: string; value: string | null }> = [
+    { step: 'name', label: 'Name', value: stepIndex > 0 && studentName.trim() ? studentName.trim() : null },
     { step: 'class', label: 'Class', value: gradYear ? `Class of ${gradYear}` : null },
+    {
+      step: 'curriculum',
+      label: 'Core',
+      value: stepIndex > STEPS.indexOf('curriculum') ? (curriculumMode === 'ncc' ? 'NCC' : 'Old core') : null,
+    },
     { step: 'sas', label: 'BA', value: sasName },
     { step: 'seas', label: 'BSE', value: seasName },
     {
@@ -209,10 +230,29 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
 
       {/* ── The question ── */}
       <div key={step} className={dir === 'forward' ? 'rise' : 'sink'}>
+        {step === 'name' && (
+          <>
+            <Question title="What's your name?" hint="It goes at the top of your plan and on anything you print or share. Optional." />
+            <label className="label mb-1.5 block" htmlFor="student-name">
+              Name
+            </label>
+            <input
+              id="student-name"
+              autoFocus
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              maxLength={60}
+              autoComplete="name"
+              placeholder="First and last name"
+              className="field w-full max-w-sm !py-2.5 !text-[0.9375rem]"
+            />
+          </>
+        )}
+
         {step === 'class' && (
           <>
             <Question title="Which class are you?" hint="Your graduating year sets the calendar for the four years ahead." />
-            <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup" aria-label="Graduating class">
+            <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-5" role="radiogroup" aria-label="Graduating class">
               {GRAD_YEARS.map((y, i) => (
                 <Choice
                   key={y}
@@ -220,11 +260,42 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
                   selected={y === gradYear}
                   onSelect={() => {
                     setGradYear(y)
-                    if (!pending) advanceAfter('sas')
+                    if (!pending) advanceAfter('curriculum')
                   }}
                   className="!justify-center !px-2 !py-5"
                 >
                   <span className="font-mono text-[1.375rem] font-semibold">{y}</span>
+                </Choice>
+              ))}
+            </div>
+          </>
+        )}
+
+        {step === 'curriculum' && gradYear && (
+          <>
+            <Question
+              title="Which College curriculum?"
+              hint={`The Class of ${gradYear} defaults to the ${classDefault === 'ncc' ? 'New College Curriculum' : 'old core'}. Pick the other one if your advisor has you on it.`}
+            />
+            <div className="stagger flex flex-col gap-2.5" role="radiogroup" aria-label="College curriculum">
+              {(['ncc', 'legacy'] as const).map((m, i) => (
+                <Choice
+                  key={m}
+                  index={i}
+                  selected={curriculumMode === m}
+                  onSelect={() => {
+                    setCurriculumOverride(m === classDefault ? null : m)
+                    if (!pending) advanceAfter('sas')
+                  }}
+                >
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-[0.9375rem] font-medium">{CURRICULUM_LABEL[m]}</span>
+                    <span className="text-[0.75rem] opacity-70">
+                      {m === 'ncc'
+                        ? `Foundations + distribution. Default from the Class of ${FIRST_NCC_CLASS}.`
+                        : `Sectors I–VII + Foundational Approaches. Default through the Class of ${FIRST_NCC_CLASS - 1}.`}
+                    </span>
+                  </span>
                 </Choice>
               ))}
             </div>
@@ -371,12 +442,14 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
           <>
             <Question
               title="Ready to build"
-              hint="Your starting plan is seeded from these four answers. Everything in it is yours to move, swap, or remove afterwards."
+              hint="Your starting plan is seeded from these answers. Everything in it is yours to move, swap, or remove afterwards."
             />
             <dl className="stagger flex flex-col">
               {(
                 [
+                  ['name', 'Name', studentName.trim() || '—'],
                   ['class', 'Class of', String(gradYear)],
+                  ['curriculum', 'College core', `${CURRICULUM_LABEL[curriculumMode]}${curriculumMode === classDefault ? ' · class default' : ''}`],
                   ['sas', 'BA · College', `${sasName}${sasConcs.length > 1 ? ` · ${MAJORS[sasMajorKey]?.concentrations?.[sasConcKey ?? defaultConc(sasMajorKey) ?? '']?.label ?? ''}` : ''}`],
                   ['seas', 'BSE · Engineering', `${seasName}${seasConcs.length > 1 ? ` · ${MAJORS[seasMajorKey]?.concentrations?.[seasConcKey ?? defaultConc(seasMajorKey) ?? '']?.label ?? ''}` : ''}`],
                   [
@@ -400,20 +473,6 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
                   </button>
                 </div>
               ))}
-              <div style={{ ['--i' as string]: 4 }} className="grid grid-cols-[7.5rem_minmax(0,1fr)_auto] items-baseline gap-3 border-b border-rule py-3">
-                <dt className="label !text-[0.625rem] !text-ink-3">Audited under</dt>
-                <dd className="text-[0.9375rem] leading-snug text-ink">
-                  {curriculumMode === 'ncc' ? 'New College Curriculum' : 'Old core · Sectors & FA'}
-                  {!curriculumOverride && <span className="ml-2 text-[0.75rem] text-ink-3">default for the Class of {gradYear}</span>}
-                </dd>
-                <button
-                  type="button"
-                  onClick={() => setCurriculumOverride(curriculumMode === 'ncc' ? 'legacy' : 'ncc')}
-                  className="btn btn-quiet !py-1 !text-[0.75rem]"
-                >
-                  Switch
-                </button>
-              </div>
             </dl>
           </>
         )}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AugmentedCourse } from '../../plan/types'
-import type { SemesterKey } from '../../data/semesters'
+import { yearName, type SemesterKey } from '../../data/semesters'
 import { usePlanStore } from '../store/use-plan-store'
 import { PlanSetup } from '../components/PlanSetup'
 import { ScheduleGrid } from '../components/ScheduleGrid'
@@ -20,6 +20,7 @@ import { computeNccAudit } from '../../plan/ncc-audit'
 import { computeAdvisorNotes } from '../../plan/advisor-notes'
 import { AdvisorNotes } from '../components/AdvisorNotes'
 import { curriculumModeOf } from '../store/use-plan-store'
+import { normalizeViperMods } from '../../ncc/mods'
 import { TraceContext, type Bus } from '../trace'
 import { IconAlert, IconChat, IconClose, IconUndo } from '../components/icons'
 
@@ -103,9 +104,22 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   }, [store, toast, chatOpen, modalOpen])
 
   const gradYear = store.config?.gradYear ?? null
+  const studentName = store.config?.studentName?.trim() || null
   const curriculum = store.config ? curriculumModeOf(store.config) : 'legacy'
+  const admin = isAdminMode()
+  // Students are audited under confirmed policy, always. An admin can flip
+  // the audit to the sandbox's proposal; that view never leaves admin mode.
+  const proposalView = admin && store.auditPolicy === 'proposal'
+  const proposalPolicy = { mods: normalizeViperMods(store.viperMods), targets: store.distributionTargets }
+  // The SEAS half of this audit applies under either College curriculum.
   const nccAudit = store.augmented
-    ? computeNccAudit(store.augmented, store.config?.apCreditIds ?? [], undefined, store.config?.seasMajorKey ?? null)
+    ? computeNccAudit(
+        store.augmented,
+        store.config?.apCreditIds ?? [],
+        proposalView ? proposalPolicy.mods : undefined,
+        store.config?.seasMajorKey ?? null,
+        proposalView ? proposalPolicy.targets : undefined,
+      )
     : undefined
   const advisorNotes = store.augmented
     ? computeAdvisorNotes(store.augmented, nccAudit, curriculum, gradYear)
@@ -140,7 +154,6 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   }
 
   const planReady = !!store.plan && !!store.augmented && !editingSetup
-  const admin = isAdminMode()
 
   return (
     <TraceContext.Provider value={trace}>
@@ -162,6 +175,11 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
             {store.config && planReady && (
               <>
+                {studentName && (
+                  <Cell label="Student" className={chatOpen ? 'hidden' : 'hidden shrink-0 md:flex'}>
+                    <span className="max-w-[14rem] truncate">{studentName}</span>
+                  </Cell>
+                )}
                 <Cell label="Student plan" className={chatOpen ? 'hidden' : 'hidden flex-1 lg:flex'}>
                   <MajorSelects
                     config={store.config}
@@ -183,6 +201,17 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                 <Cell label="Curriculum" className={chatOpen ? 'hidden' : 'hidden shrink-0 2xl:flex'}>
                   {curriculum === 'ncc' ? 'New College Curriculum' : 'Old core'}
                 </Cell>
+                {admin && (
+                  <Cell label="Audit under" className={chatOpen ? 'hidden' : 'hidden shrink-0 lg:flex'}>
+                    <div className="seg" role="tablist" aria-label="Audit policy">
+                      {(['confirmed', 'proposal'] as const).map((p) => (
+                        <button key={p} role="tab" aria-selected={store.auditPolicy === p} onClick={() => store.setAuditPolicy(p)} className="!py-1">
+                          {p === 'confirmed' ? 'Policy' : 'Proposal'}
+                        </button>
+                      ))}
+                    </div>
+                  </Cell>
+                )}
                 <div className={['items-center border-l border-rule px-2', chatOpen ? 'hidden' : 'hidden lg:flex'].join(' ')}>
                   <button type="button" onClick={() => setEditingSetup(true)} className="btn btn-quiet !py-2">
                     Edit setup
@@ -254,8 +283,10 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           <div className="hidden border-b-2 border-ink pb-2 print:block">
             <h1 className="font-cond text-[1.25rem] font-bold tracking-[0.06em] uppercase">VIPER Four-Year Planner</h1>
             <p className="text-[0.8125rem]">
+              {studentName && <>{studentName} · </>}
               {store.config.sasMajorKey} BA + {store.config.seasMajorKey} BSE · Class of {gradYear} ·{' '}
               {curriculum === 'ncc' ? 'New College Curriculum' : 'Old core'}
+              {proposalView && ' · audited under a draft proposal, not policy'}
             </p>
           </div>
         )}
@@ -273,7 +304,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               onDone={(config) => {
                 if (store.plan && !window.confirm('Build a fresh plan from this setup? Your current edits will be replaced.'))
                   return
-                if (store.setup(config)) {
+                if (store.setup(config, proposalView ? proposalPolicy : undefined)) {
                   setEditingSetup(false)
                   toast('Starting plan built. It is yours to edit now.')
                 } else {
@@ -326,10 +357,19 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       open on their own; everything else stays folded. */}
                   <section className="panel print-block">
                     <h2 className="label border-b border-ink px-3 py-2 !text-ink">Degree audit</h2>
+                    {proposalView && (
+                      <p className="border-b border-penn-red bg-tint-red px-3 py-2 text-[0.75rem] leading-snug text-penn-red" role="status">
+                        <span className="label !text-[0.625rem] !text-penn-red">Admin · proposal view</span>
+                        <br />
+                        Audited under the sandbox&apos;s draft modifications ({store.distributionTargets.N}+{store.distributionTargets.SS}+
+                        {store.distributionTargets.H}), not current policy. Students never see this.
+                      </p>
+                    )}
                     <RequirementTracker
                       plan={store.augmented!}
                       summary={store.augmented!.summary}
                       ncc={curriculum === 'ncc' ? nccAudit : undefined}
+                      seas={nccAudit?.seas}
                       curriculum={curriculum}
                     />
                     {showCurriculumNotice && (
@@ -350,7 +390,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                               if (!store.config) return
                               if (!window.confirm('Rebuild the starting plan under the current curriculum? Your edits will be replaced.'))
                                 return
-                              if (store.setup({ ...store.config, curriculumMode: curriculum }))
+                              if (store.setup({ ...store.config, curriculumMode: curriculum }, proposalView ? proposalPolicy : undefined))
                                 toast('Plan rebuilt under the current curriculum.')
                             }}
                             className="btn btn-primary !py-2"
@@ -399,13 +439,14 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             aria-label="Jump to"
             className="no-print fixed inset-x-0 bottom-0 z-30 flex border-t border-ink bg-sheet lg:hidden"
           >
-            {([1, 2, 3, 4] as const).map((y) => (
+            {(['Fr', 'So', 'Jr', 'Sr'] as const).map((abbr, i) => (
               <a
-                key={y}
-                href={`#year-${y}`}
+                key={abbr}
+                href={`#year-${i + 1}`}
+                aria-label={`${yearName(i + 1)} year`}
                 className="label flex flex-1 items-center justify-center border-r border-rule py-3 !text-ink"
               >
-                Y{y}
+                {abbr}
               </a>
             ))}
             <a href="#audit" className="label flex flex-[1.4] items-center justify-center py-3 !text-penn-blue">
@@ -438,6 +479,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             gradYear={gradYear}
             color={store.colorOverrides[openCourse.course.originalCode ?? openCourse.course.code]}
             seasMajorKey={store.config?.seasMajorKey ?? null}
+            curriculum={curriculum}
             onClose={() => setOpenRef(null)}
             onToggleFulfillment={(courseId, tag, on) => {
               store.apply({ kind: 'tag_fulfillment', courseId, fulfillmentId: tag, on })
@@ -469,6 +511,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           <AddCourseModal
             semKey={addTo}
             gradYear={gradYear}
+            curriculum={curriculum}
             onClose={() => setAddTo(null)}
             onAdd={(draft) => applyToast({ kind: 'add_course', semester: addTo, course: draft })}
           />

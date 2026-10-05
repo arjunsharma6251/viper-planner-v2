@@ -32,6 +32,38 @@ export const CONFIRMED_VIPER_MODS: ViperMods = {
   aandsCUWaiver: false,
 }
 
+/**
+ * The October 2026 VIPER modification memo (Michelle → the College):
+ * Foreign Language waived, 12+5+3 → 12+2+1, and for Kite / Key one or more
+ * of: lab-less sections, Key waived for VIPER, or one of them in a
+ * non-billable summer. The preset turns on the lab-less ask; Key waiver
+ * and the summer option stay separate toggles because the memo offers
+ * them as alternatives. Admin-only, like every proposal.
+ */
+export const MEMO_VIPER_MODS: ViperMods = {
+  fysWaiver: true,
+  keyWaiver: false,
+  langWaiver: true,
+  pdWaiver: false,
+  kiteFullWaiver: false,
+  viprKiteWaiver: false,
+  kiteLabWaiver: true,
+  summerFoundation: false,
+  doubleCountVIPR1300: false,
+  doubleCountKite: false,
+  doubleCountWriting: false,
+  // Not named in the memo, but each of its plans counts Kite among the five
+  // SEAS SS/H/TBS courses, which needs Kite to carry the SEAS attribute.
+  seasHumanitiesKite: true,
+  aandsCUWaiver: true,
+}
+
+/** Distribution targets under the October 2026 memo: 12 + 2 + 1. */
+export const MEMO_DISTRIBUTION_TARGETS = { N: 12, SS: 2, H: 1 } as const
+
+/** Distribution targets under confirmed policy: 12 + 5 + 3. */
+export const STANDARD_DISTRIBUTION_TARGETS = { N: 12, SS: 5, H: 3 } as const
+
 export const DEFAULT_VIPER_MODS: ViperMods = {
   // — Foundation waivers via VIPR courses —
   fysWaiver:          true,   // VIPR 1200 satisfies First-Year Seminar
@@ -73,8 +105,8 @@ export const MOD_DEFINITIONS: Record<ViperModKey, ModDefinition> = {
     saves: 1,
   },
   keyWaiver: {
-    label: 'Key satisfied by VIPR 1200 + VIPR 1210',
-    desc: 'Proposed: half-credit VIPR seminars together fulfill Key. (VIPR 1200/1210 classified as Natural Sciences for distribution — does not help SS/H targets.) Status under reconsideration as of May meeting.',
+    label: 'Key waived for VIPER',
+    desc: 'Oct 2026 memo: Key waived given VIPER students\' quantitative coursework (MATH 1400/1410, ENGR 1050, linear algebra and differential equations), VIPR 1200/1210/1300 and two summers of research. (VIPR 1200/1210 are Natural Sciences — this does not help SS/H targets.)',
     category: 'Foundation waivers',
     ask: 'medium',
     proposed: true,
@@ -113,19 +145,19 @@ export const MOD_DEFINITIONS: Record<ViperModKey, ModDefinition> = {
     saves: 1,
   },
   kiteLabWaiver: {
-    label: 'Lab components async or summer',
-    desc: 'Kite (and Key, if not waived by VIPR) lab components completable async or in a summer term.',
+    label: 'Kite / Key without the 3-hour lab',
+    desc: 'Oct 2026 memo: lab-less sections of Kite and Key (or the lab async / in summer). VIPER first years already carry PHYS 0150/0151 and CHEM 1101/1102 labs.',
     category: 'Course modifications',
     ask: 'medium',
     proposed: true,
     saves: 0, // doesn't reduce course count, just redistributes load
   },
   summerFoundation: {
-    label: 'Foundation completable over summer',
-    desc: '[New] One Foundation course (e.g. Kite, P&D, Language) may be taken in a non-billable summer term.',
+    label: 'Kite or Key in a non-billable summer',
+    desc: 'Oct 2026 memo: Kite or Key taken in the first research summer, tuition waived. That summer already holds VIPR 1300 (0.5 CU) — check the 1 CU summer limit.',
     category: 'Course modifications',
     ask: 'medium',
-    proposed: false,
+    proposed: true,
     saves: 0, // doesn't reduce courses, redistributes them
   },
   doubleCountVIPR1300: {
@@ -190,15 +222,20 @@ const everyMod = (value: boolean): ViperMods => ({
 })
 
 // Preset bundles — each represents a scenario to compare.
-export const MOD_PRESETS: Record<'none' | 'current' | 'minimal' | 'aggressive', ModPreset> = {
+export const MOD_PRESETS: Record<'none' | 'memo' | 'current' | 'minimal' | 'aggressive', ModPreset> = {
+  memo: {
+    label: 'October 2026 memo',
+    desc: 'Language waived, 12+2+1 distribution, lab-less Kite / Key (pair with distributionMemo targets).',
+    mods: { ...MEMO_VIPER_MODS },
+  },
   none: {
     label: 'No VIPER modifications',
     desc: 'Baseline — what the committee sees without any asks.',
     mods: everyMod(false),
   },
   current: {
-    label: 'Currently proposed (memo)',
-    desc: 'The exact mods in the current VIPER modification memo.',
+    label: 'May 2026 proposal',
+    desc: 'The mods in the May 2026 VIPER modification proposal (superseded by the October memo).',
     mods: { ...DEFAULT_VIPER_MODS },
   },
   minimal: {

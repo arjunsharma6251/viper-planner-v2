@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { AugmentedPlan } from '../../plan/types'
 import type { DistributionTargets } from '../../plan/serialize'
 import { computeNCCWorkload } from '../../ncc/compute-workload'
-import { MOD_DEFINITIONS, normalizeViperMods } from '../../ncc/mods'
+import { MEMO_DISTRIBUTION_TARGETS, MEMO_VIPER_MODS, MOD_DEFINITIONS, normalizeViperMods } from '../../ncc/mods'
 import { STRATEGIES, isStrategyOn, toggleStrategy } from '../../ncc/strategies'
 import type { ViperModKey, ViperMods } from '../../ncc/types'
 import { WorkloadMetric } from './WorkloadMetric'
@@ -45,20 +45,37 @@ export function Sandbox({ plan, viperMods, distributionTargets, onModsChange, on
         <WorkloadMetric workload={workload} />
       </div>
 
-      <div className="border-t border-rule">
-        {STRATEGIES.map((s) => (
-          <StrategyToggle
-            key={s.id}
-            strategy={s}
-            on={isStrategyOn(s, mods, distributionTargets)}
-            onToggle={() => {
-              const next = toggleStrategy(s, mods, distributionTargets)
-              onModsChange(toRecord(next.mods))
-              onTargetsChange(next.targets)
-            }}
-          />
-        ))}
-      </div>
+      {(['memo', 'experimental'] as const).map((group) => (
+        <div key={group} className="border-t border-rule">
+          <div className="flex items-center justify-between gap-2 px-2 pt-2 pb-1">
+            <p className="label !text-[0.625rem] !text-ink-3">{group === 'memo' ? 'October 2026 memo' : 'Also modeled'}</p>
+            {group === 'memo' && (
+              <button
+                type="button"
+                onClick={() => {
+                  onModsChange(toRecord(MEMO_VIPER_MODS))
+                  onTargetsChange({ ...MEMO_DISTRIBUTION_TARGETS })
+                }}
+                className="btn btn-quiet !py-0.5 !text-[0.6875rem]"
+              >
+                Load memo
+              </button>
+            )}
+          </div>
+          {STRATEGIES.filter((s) => s.group === group).map((s) => (
+            <StrategyToggle
+              key={s.id}
+              strategy={s}
+              on={isStrategyOn(s, mods, distributionTargets)}
+              onToggle={() => {
+                const next = toggleStrategy(s, mods, distributionTargets)
+                onModsChange(toRecord(next.mods))
+                onTargetsChange(next.targets)
+              }}
+            />
+          ))}
+        </div>
+      ))}
 
       <div className="border-t border-rule px-2 py-2">
         <p className="label mb-1 !text-[0.625rem] !text-ink-3">Foundations under this proposal</p>

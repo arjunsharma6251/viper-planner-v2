@@ -23,12 +23,14 @@ export const STRATEGIES: readonly Strategy[] = [
     ask: 'high',
     isStrategy: true,
     type: 'distribution',
+    group: 'experimental',
   },
   {
     id: 'aandsCUWaiver',
     label: 'A&S 3 CU waiver',
     desc: 'Existing OCC policy. Up to 3 of 36 BA CUs waivable upon audit.',
     ask: 'confirmed',
+    group: 'memo',
   },
   {
     id: 'doubleCountKite',
@@ -36,30 +38,51 @@ export const STRATEGIES: readonly Strategy[] = [
     desc: 'Both count toward distribution. Saves 2 CU when distribution is non-zero.',
     ask: 'low',
     pairWith: ['doubleCountWriting'],
+    group: 'experimental',
   },
   {
     id: 'doubleCountVIPR1300',
     label: 'VIPR 1300 → distribution (up to 2 CU)',
     desc: 'Up to 2 CU of VIPR 1300 count toward distribution. Saves 2 CU when distribution is non-zero.',
     ask: 'low',
+    group: 'experimental',
   },
   {
     id: 'langWaiver',
     label: 'Foreign Language waived',
-    desc: 'Saves up to 2 CU.',
+    desc: 'Saves up to 2 CU. Language often meets 4×/week with few sections, which collides with single-slot major courses.',
     ask: 'high',
+    group: 'memo',
   },
   {
     id: 'kiteLabWaiver',
-    label: 'Kite + Key labs in summer',
-    desc: 'Main push: offer Kite (and Key, if not waived) lab components in summer sessions. Frees the academic year.',
+    label: 'Kite / Key without the 3-hour lab',
+    desc: 'Lab-less sections of Kite and Key. Load relief, not a CU cut.',
     ask: 'medium',
+    group: 'memo',
   },
   {
     id: 'keyWaiver',
-    label: 'Key satisfied by VIPR 1200/1210',
-    desc: 'Proposed: VIPR seminars fulfill Key. Status under reconsideration as of May meeting.',
+    label: 'Key waived for VIPER',
+    desc: 'Quantitative coursework (MATH 1400/1410, ENGR 1050, linear algebra, ODEs) + VIPR seminars + research summers. Saves 1 CU.',
     ask: 'medium',
+    group: 'memo',
+  },
+  {
+    id: 'distributionMemo',
+    label: '12+5+3 → 12+2+1',
+    desc: 'October memo. Aligns the College distribution with the SEAS general electives VIPER students take anyway. Saves 5 CU.',
+    ask: 'medium',
+    isStrategy: true,
+    type: 'distribution',
+    group: 'memo',
+  },
+  {
+    id: 'summerFoundation',
+    label: 'Kite or Key in a non-billable summer',
+    desc: 'Taken in the first research summer, tuition waived. Place the course in a summer term to see it move out of the academic year.',
+    ask: 'medium',
+    group: 'memo',
   },
 ]
 
@@ -67,11 +90,15 @@ export const STRATEGIES: readonly Strategy[] = [
 export const isZeroDist    = (t: DistributionTargets): boolean => t.SS === 0 && t.H === 0
 export const isReducedDist = (t: DistributionTargets): boolean => t.SS === 3 && t.H === 2
 export const isMinimalDist = (t: DistributionTargets): boolean => t.SS === 3 && t.H === 1
+/** The October 2026 memo profile: 2 + 1 in either order. */
+export const isMemoDist = (t: DistributionTargets): boolean =>
+  Math.max(t.SS, t.H) === 2 && Math.min(t.SS, t.H) === 1
 export const isStandardDist = (t: DistributionTargets): boolean =>
-  !isZeroDist(t) && !isReducedDist(t) && !isMinimalDist(t)
+  !isZeroDist(t) && !isReducedDist(t) && !isMinimalDist(t) && !isMemoDist(t)
 
 /** Whether a strategy row renders as "on" for the given sandbox state. */
 export function isStrategyOn(s: Strategy, mods: ViperMods, targets: DistributionTargets): boolean {
+  if (s.type === 'distribution' && s.id === 'distributionMemo') return isMemoDist(targets)
   if (s.type === 'distribution') return isZeroDist(targets) || isReducedDist(targets) || isMinimalDist(targets)
   if (s.pairWith) return mods[s.id] && s.pairWith.every(k => mods[k])
   return !!mods[s.id]
@@ -91,6 +118,11 @@ export function toggleStrategy(
   mods: ViperMods,
   targets: DistributionTargets,
 ): SandboxToggleState {
+  if (s.type === 'distribution' && s.id === 'distributionMemo') {
+    return isMemoDist(targets)
+      ? { mods, targets: { N: 12, SS: 5, H: 3 } }
+      : { mods, targets: { N: 12, SS: 2, H: 1 } }
+  }
   if (s.type === 'distribution') {
     // Toggle between standard (12+5+3) and waived (12+0).
     // LSM's May proposal is the full waiver — that's the headline option.

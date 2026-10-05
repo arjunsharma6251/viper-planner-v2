@@ -8,41 +8,54 @@ import { isOpenSlot } from '../../plan/open-slot'
 import { alternativesFor } from '../../data/seas-catalog'
 import { Ties } from './Ties'
 import { IconCheck, IconExternal } from './icons'
+import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
+import { faTag, secTag } from '../../plan/fulfillments'
 
-const FULFILLMENT_GROUPS: ReadonlyArray<{ group: string; tags: ReadonlyArray<[FulfillmentTag, string]> }> = [
-  {
-    group: 'NCC Foundations · BA',
-    tags: [
-      ['ncc-kite', 'Kite Foundation'],
-      ['ncc-key', 'Key Foundation'],
-      ['ncc-fys', 'First-Year Seminar'],
-      ['ncc-writ', 'Writing Foundation'],
-      ['ncc-pad', 'Perspectives and Difference'],
-      ['ncc-lang', 'Language Foundation'],
-    ],
-  },
-  {
-    group: 'NCC Distribution · BA',
-    tags: [
-      ['ncc-distrib-ss', 'Social Sciences'],
-      ['ncc-distrib-h', 'Humanities'],
-      ['ncc-distrib-n', 'Natural Sciences'],
-    ],
-  },
-  {
-    group: 'SEAS general electives · BSE',
-    tags: [
-      ['seas-ssh', 'SS/H elective'],
-      ['seas-writ', 'Writing'],
-      ['seas-ethics', 'Ethics'],
-      ['seas-tbs', 'Technology in Business & Society (TBS)'],
-    ],
-  },
-  {
-    group: 'VIPER · Energy',
-    tags: [['viper-energy', 'VIPER energy course']],
-  },
-]
+type Group = { group: string; tags: ReadonlyArray<[FulfillmentTag, string]> }
+
+const SEAS_GROUP: Group = {
+  group: 'SEAS general electives · BSE',
+  tags: [
+    ['seas-ssh', 'SS/H elective'],
+    ['seas-writ', 'Writing'],
+    ['seas-ethics', 'Ethics'],
+    ['seas-tbs', 'Technology in Business & Society (TBS)'],
+  ],
+}
+const ENERGY_GROUP: Group = { group: 'VIPER · Energy', tags: [['viper-energy', 'VIPER energy course']] }
+
+/** What a course can count toward, per College curriculum. */
+const FULFILLMENT_GROUPS: Record<'ncc' | 'legacy', readonly Group[]> = {
+  ncc: [
+    {
+      group: 'NCC Foundations · BA',
+      tags: [
+        ['ncc-kite', 'Kite Foundation'],
+        ['ncc-key', 'Key Foundation'],
+        ['ncc-fys', 'First-Year Seminar'],
+        ['ncc-writ', 'Writing Foundation'],
+        ['ncc-pad', 'Perspectives and Difference'],
+        ['ncc-lang', 'Language Foundation'],
+      ],
+    },
+    {
+      group: 'NCC Distribution · BA',
+      tags: [
+        ['ncc-distrib-ss', 'Social Sciences'],
+        ['ncc-distrib-h', 'Humanities'],
+        ['ncc-distrib-n', 'Natural Sciences'],
+      ],
+    },
+    SEAS_GROUP,
+    ENERGY_GROUP,
+  ],
+  legacy: [
+    { group: 'Foundational Approaches · BA', tags: FA_REQUIREMENTS.map((fa) => [faTag(fa.id), fa.label] as [FulfillmentTag, string]) },
+    { group: 'Sectors · BA', tags: SECTORS.map((sec) => [secTag(sec.id), sec.label] as [FulfillmentTag, string]) },
+    SEAS_GROUP,
+    ENERGY_GROUP,
+  ],
+}
 
 /** The cluster palette — six keys a student can mark a course with. */
 const CLUSTER_COLORS = ['#011F5B', '#990000', '#1e7e34', '#b8860b', '#0f6b66', '#5b3a86']
@@ -54,6 +67,8 @@ export interface CourseDetailModalProps {
   color?: string
   /** Picks which catalog alternatives apply to core courses. */
   seasMajorKey?: string | null
+  /** Which College requirements the "Counts toward" list offers. */
+  curriculum?: 'ncc' | 'legacy'
   onClose: () => void
   onToggleFulfillment: (courseId: string, tag: FulfillmentTag, on: boolean) => void
   onSwap: (slotId: string, newCode: string) => void
@@ -78,6 +93,7 @@ export function CourseDetailModal({
   gradYear,
   color,
   seasMajorKey,
+  curriculum = 'ncc',
   onClose,
   onToggleFulfillment,
   onSwap,
@@ -93,6 +109,11 @@ export function CourseDetailModal({
   const courseId = course.originalCode ?? course.code
   const pcr = pcrUrlFor(course)
   const here = semesterLabel(semKey, gradYear ?? undefined)
+  // Derived = what the course counts toward before the student's ticks.
+  const derived = new Set<FulfillmentTag>([
+    ...course.effectiveFulfills.filter((t) => !course.userFulfills.includes(t)),
+    ...course.removedFulfills,
+  ])
 
   const [codeValue, setCodeValue] = useState(open ? '' : course.code)
   const [titleValue, setTitleValue] = useState(open ? '' : course.title)
@@ -237,13 +258,17 @@ export function CourseDetailModal({
         {/* ── Counts toward ── */}
         <div className="border-t border-rule pt-4">
           <Heading>Counts toward</Heading>
+          <p className="-mt-0.5 mb-2.5 text-[0.75rem] leading-snug text-ink-3">
+            Pre-checked from the catalog and this course&apos;s slot. Untick to override, or tick anything else it counts for.
+          </p>
           <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-            {FULFILLMENT_GROUPS.map((g) => (
+            {FULFILLMENT_GROUPS[curriculum].map((g) => (
               <div key={g.group}>
                 <p className="mb-1 text-[0.6875rem] text-ink-3">{g.group}</p>
                 <div className="border-t border-rule">
                   {g.tags.map(([tag, label]) => {
-                    const on = course.userFulfills.includes(tag)
+                    const on = course.effectiveFulfills.includes(tag)
+                    const auto = derived.has(tag)
                     return (
                       <label
                         key={tag}
@@ -255,7 +280,15 @@ export function CourseDetailModal({
                           onChange={() => onToggleFulfillment(courseId, tag, !on)}
                           className="box"
                         />
-                        <span className={on ? 'text-ink' : 'text-ink-2'}>{label}</span>
+                        <span className={['flex-1', on ? 'text-ink' : 'text-ink-2'].join(' ')}>{label}</span>
+                        {auto && (
+                          <span
+                            className={['label !text-[0.5625rem]', on ? '!text-ink-3' : '!text-caution'].join(' ')}
+                            title={on ? 'From the catalog or slot' : 'From the catalog or slot — overridden off'}
+                          >
+                            {on ? 'auto' : 'overridden'}
+                          </span>
+                        )}
                       </label>
                     )
                   })}

@@ -1,6 +1,6 @@
 import type { AugmentedCourse, AugmentedPlan, FoundationId } from './types'
 import { CONFIRMED_VIPER_MODS, normalizeViperMods } from '../ncc/mods'
-import type { ViperModsInput } from '../ncc/types'
+import type { DistributionTargets, ViperMods, ViperModsInput } from '../ncc/types'
 import { SEAS_GEN_ED, type SeasGenEdSpec } from '../data/seas-catalog'
 
 /**
@@ -24,7 +24,11 @@ import { SEAS_GEN_ED, type SeasGenEdSpec } from '../data/seas-catalog'
  * student has set aside a term for it, not because a course is approved.
  */
 
-export type NccFoundationState = 'planned' | 'approved-overlap' | 'credit' | 'missing'
+/**
+ * 'waived' only ever appears when an admin audits under a proposal: the
+ * confirmed policy waives nothing.
+ */
+export type NccFoundationState = 'planned' | 'approved-overlap' | 'credit' | 'waived' | 'missing'
 
 export interface NccFoundationAudit {
   id: FoundationId
@@ -89,7 +93,7 @@ const FOUNDATION_ORDER: FoundationId[] = [
   'ncc-writ',
 ]
 
-const DIST_TARGETS: readonly [number, number] = [5, 3]
+const STANDARD_TARGETS: Pick<DistributionTargets, 'SS' | 'H'> = { SS: 5, H: 3 }
 
 function isOpen(c: AugmentedCourse): boolean {
   return !!c.isPlaceholder || c.code.startsWith('—')
@@ -110,8 +114,15 @@ export function computeNccAudit(
   viperMods: ViperModsInput = CONFIRMED_VIPER_MODS,
   /** Picks the SEAS general-elective split (per-major in the catalog). */
   seasMajorKey: string | null = null,
+  /**
+   * SS / H distribution targets, assigned in either order (the larger to
+   * whichever division the student is filling more). Defaults to the
+   * confirmed 5 + 3; admin proposal views pass the sandbox's targets.
+   */
+  targets: Pick<DistributionTargets, 'SS' | 'H'> = STANDARD_TARGETS,
 ): NccAudit {
   const mods = normalizeViperMods(viperMods)
+  const distTargets: readonly [number, number] = [Math.max(targets.SS, targets.H), Math.min(targets.SS, targets.H)]
   const courses = Object.values(plan.semesters).flat()
   const has = (code: string) => courses.some((c) => c.code === code)
 
@@ -124,13 +135,11 @@ export function computeNccAudit(
     if (id === 'ncc-lang' && apCreditIds.includes('lang-fluency')) {
       return { id, label, state: 'credit', by: 'incoming credit' }
     }
-    const hit = courses.find(
-      (c) =>
-        c.intent?.foundation === id ||
-        c.slotId === id ||
-        // The seeded old-curriculum Writing Seminar slot is the same course.
-        (id === 'ncc-writ' && (c.intent?.fa === 'WRIT' || c.slotId === 'gened-writ')),
-    )
+    const waivedBy = proposalWaiver(id, mods, has)
+    if (waivedBy) return { id, label, state: 'waived', by: waivedBy }
+    // What each course counts toward (derived + the student's overrides);
+    // the old-core Writing Seminar slot derives ncc-writ too.
+    const hit = courses.find((c) => c.effectiveFulfills.includes(id))
     if (!hit) return { id, label, state: 'missing', by: null }
     return { id, label, state: 'planned', by: describe(hit) }
   })
@@ -144,8 +153,17 @@ export function computeNccAudit(
   const planned = { SS: 0, H: 0 }
   const counted: { SS: AuditCourseRef[]; H: AuditCourseRef[] } = { SS: [], H: [] }
   const flexibleCourses: AugmentedCourse[] = []
+  // Proposal only: up to 2 CU of VIPR 1300 count toward Social Sciences.
+  let vipr1300Budget = mods.doubleCountVIPR1300 ? 2 : 0
   for (const c of courses) {
-    const d = divisionOf(c)
+    if (c.code === 'VIPR 1300' && vipr1300Budget > 0) {
+      const cu = Math.min(c.cu || 0, vipr1300Budget)
+      vipr1300Budget -= cu
+      planned.SS += cu
+      counted.SS.push(ref(c))
+      continue
+    }
+    const d = divisionOf(c, mods)
     if (d === 'SS' || d === 'H') {
       planned[d] += c.cu || 0
       counted[d].push(ref(c))
@@ -154,8 +172,8 @@ export function computeNccAudit(
   // Flexible courses pour into the larger remaining gap, one course at a
   // time, with the 5 assigned to the fuller division as we go.
   for (const c of flexibleCourses) {
-    const tSS = planned.SS >= planned.H ? DIST_TARGETS[0] : DIST_TARGETS[1]
-    const tH = planned.SS >= planned.H ? DIST_TARGETS[1] : DIST_TARGETS[0]
+    const tSS = planned.SS >= planned.H ? distTargets[0] : distTargets[1]
+    const tH = planned.SS >= planned.H ? distTargets[1] : distTargets[0]
     const gapSS = tSS - planned.SS
     const gapH = tH - planned.H
     const d = gapH > gapSS ? 'H' : 'SS'
@@ -170,14 +188,14 @@ export function computeNccAudit(
       id: 'SS',
       label: 'Social Sciences',
       planned: round1(planned.SS),
-      target: ssGetsFive ? DIST_TARGETS[0] : DIST_TARGETS[1],
+      target: ssGetsFive ? distTargets[0] : distTargets[1],
       courses: counted.SS,
     },
     {
       id: 'H',
       label: 'Humanities & the Arts',
       planned: round1(planned.H),
-      target: ssGetsFive ? DIST_TARGETS[1] : DIST_TARGETS[0],
+      target: ssGetsFive ? distTargets[1] : distTargets[0],
       courses: counted.H,
     },
   ]
@@ -188,16 +206,24 @@ export function computeNccAudit(
   // strictest bucket they qualify for first, so a Social Science course
   // lands in "Social Science" before it lands in "SS or H".
   const writ = foundations.find((f) => f.id === 'ncc-writ')
-  const ethicsBy = has('VIPR 1200') ? 'VIPR 1200' : has('VIPR 1210') ? 'VIPR 1210' : null
+  // VIPR 1200 and 1210 together are VIPER's engineering ethics.
+  const ethicsCourses = courses.filter((c) => c.effectiveFulfills.includes('seas-ethics'))
+  const ethicsBy = ethicsCourses.length > 0 ? joinCodes(ethicsCourses.map((c) => c.code)) : null
   const spec: SeasGenEdSpec = SEAS_GEN_ED[seasMajorKey ?? ''] ?? { ss: 0, h: 0, ssh: 3, sshTbs: 2, ethics: ['EAS 2030'] }
   const pools: Record<'ss' | 'h' | 'either' | 'tbs', AugmentedCourse[]> = { ss: [], h: [], either: [], tbs: [] }
+  const isWriting = (c: AugmentedCourse) => c.effectiveFulfills.includes('seas-writ') || c.effectiveFulfills.includes('ncc-writ')
   for (const c of courses) {
-    if (c.slotId === 'gened-writ' || c.slotId === 'ncc-writ' || c.intent?.fa === 'WRIT' || c.intent?.foundation === 'ncc-writ') continue // tracked as Writing
-    const d = divisionOf(c)
+    if (isWriting(c)) continue // tracked as Writing
+    const eff = c.effectiveFulfills
+    // Kite carries the SEAS Humanities attribute only under the proposal
+    // (seasHumanitiesKite); otherwise it is a College Foundation alone.
+    const kiteForSeas = mods.seasHumanitiesKite && eff.includes('ncc-kite')
+    if (!kiteForSeas && !eff.includes('seas-ssh') && !eff.includes('seas-tbs')) continue
+    const d = kiteForSeas ? 'H' : divisionOf(c)
     if (d === 'SS') pools.ss.push(c)
     else if (d === 'H') pools.h.push(c)
-    else if (d === 'SS/H' || c.intent?.seas?.includes('ssh') || c.userFulfills.includes('seas-ssh')) pools.either.push(c)
-    else if (c.intent?.seas?.includes('tbs') || c.userFulfills.includes('seas-tbs')) pools.tbs.push(c)
+    else if (eff.includes('seas-ssh')) pools.either.push(c)
+    else pools.tbs.push(c)
   }
   const take = (n: number, ...from: Array<keyof typeof pools>): AuditCourseRef[] => {
     const got: AuditCourseRef[] = []
@@ -207,10 +233,7 @@ export function computeNccAudit(
     }
     return got
   }
-  const writCourse = courses.find(
-    (c) => c.slotId === 'gened-writ' || c.slotId === 'ncc-writ' || c.intent?.fa === 'WRIT' || c.intent?.foundation === 'ncc-writ',
-  )
-  const ethicsCourse = courses.find((c) => c.code === 'VIPR 1200') ?? courses.find((c) => c.code === 'VIPR 1210')
+  const writCourse = courses.find(isWriting)
   const seas: SeasElectiveAudit[] = [
     {
       id: 'seas-writ',
@@ -232,7 +255,7 @@ export function computeNccAudit(
       hint: ethicsBy
         ? `Covered by ${ethicsBy}.`
         : `VIPR 1200 or VIPR 1210 covers this once placed (the catalog lists ${spec.ethics.join(' / ')}).`,
-      courses: ethicsCourse ? [ref(ethicsCourse)] : [],
+      courses: ethicsCourses.map(ref),
     },
   ]
   if (spec.ss > 0) {
@@ -265,34 +288,57 @@ export function computeNccAudit(
 }
 
 /**
+ * The waiver a proposal grants a Foundation, as display text, or null.
+ * Confirmed policy grants none of these (CONFIRMED_VIPER_MODS has them all
+ * off), so this only fires in an admin proposal view.
+ */
+function proposalWaiver(id: FoundationId, mods: ViperMods, has: (code: string) => boolean): string | null {
+  switch (id) {
+    case 'ncc-key':
+      return mods.keyWaiver ? 'waived · proposal' : null
+    case 'ncc-lang':
+      return mods.langWaiver ? 'waived · proposal' : null
+    case 'ncc-pad':
+      return mods.pdWaiver && has('VIPR 1300') ? 'VIPR 1300 · proposal' : null
+    case 'ncc-kite':
+      if (mods.kiteFullWaiver) return 'waived · proposal'
+      return mods.viprKiteWaiver && has('VIPR 1300') ? 'VIPR 1300 · proposal' : null
+    default:
+      return null
+  }
+}
+
+/**
  * Which NCC division a planned course counts toward, or null for none.
  * 'SS/H' means the course satisfies either (Sector IV, the cross-cultural
  * Foundational Approaches) and is allocated where the shortfall is larger.
+ * `mods` only matters in admin proposal views (the Kite / Writing
+ * double-count asks); confirmed policy leaves both off.
  */
-function divisionOf(c: AugmentedCourse): 'SS' | 'H' | 'SS/H' | null {
-  // Per the College chart only First-Year Seminar and Perspectives and
-  // Difference may count within the distribution; a Writing or Kite slot
-  // is a Foundation only, whatever division its slot definition carries.
-  const f = c.intent?.foundation ?? c.slotId
-  if (f === 'ncc-writ' || f === 'ncc-kite' || f === 'ncc-key' || f === 'ncc-lang') return null
-  const d = c.intent?.distribution
-  if (d === 'SS' || d === 'H') return d
-  if (d === 'N') return null
-  const sec = c.intent?.sec ?? c.fulfills?.sec ?? c.sec ?? null
-  switch (sec) {
-    case 'I':
-      return 'SS' // Society
-    case 'II':
-    case 'III':
-      return 'H' // History & Tradition · Arts & Letters
-    case 'IV':
-      return 'SS/H' // Humanities & Social Science
-    default:
-      break
-  }
-  const fa = c.intent?.fa ?? c.fulfills?.fa ?? c.fa ?? null
-  if (fa === 'CCA' || fa === 'CDUS') return 'SS/H'
+function divisionOf(c: AugmentedCourse, mods?: ViperMods): 'SS' | 'H' | 'SS/H' | null {
+  const eff = c.effectiveFulfills
+  // Proposal asks: Kite / Writing count toward Humanities.
+  if (mods?.doubleCountKite && eff.includes('ncc-kite')) return 'H'
+  if (mods?.doubleCountWriting && eff.includes('ncc-writ')) return 'H'
+  // Everything else is what the course counts toward: derived from its
+  // slot or old-core Sector (Writing, Kite, Key and Language slots carry
+  // no division unless the student ticks one), plus the student's ticks.
+  const ss = eff.includes('ncc-distrib-ss')
+  const h = eff.includes('ncc-distrib-h')
+  if (ss && h) return 'SS/H'
+  if (ss) return 'SS'
+  if (h) return 'H'
   return null
+}
+
+/** "VIPR 1200" + "VIPR 1210" → "VIPR 1200/1210"; mixed subjects join with " / ". */
+function joinCodes(codes: readonly string[]): string {
+  const unique = [...new Set(codes)]
+  const subjects = new Set(unique.map((c) => c.split(' ')[0]))
+  if (subjects.size === 1 && unique.length > 1) {
+    return `${[...subjects][0]} ${unique.map((c) => c.split(' ')[1]).join('/')}`
+  }
+  return unique.join(' / ')
 }
 
 function round1(n: number): number {

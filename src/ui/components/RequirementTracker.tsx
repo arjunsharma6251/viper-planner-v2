@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from 'react'
 import type { AugmentedCourse, AugmentedPlan, PlanSummary } from '../../plan/types'
-import type { AuditCourseRef, NccAudit } from '../../plan/ncc-audit'
+import type { AuditCourseRef, NccAudit, SeasElectiveAudit } from '../../plan/ncc-audit'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { VIPER_PROGRAM } from '../../data/viper-program'
 import { Disclosure } from './Disclosure'
+import { faTag, secTag } from '../../plan/fulfillments'
 import { IconChevronDown, IconCircle, IconCircleCheck } from './icons'
 
 function isOpen(c: Pick<AugmentedCourse, 'isPlaceholder' | 'code'>): boolean {
@@ -112,11 +113,14 @@ export function RequirementTracker({
   plan,
   summary,
   ncc,
+  seas,
   curriculum = 'legacy',
 }: {
   plan: AugmentedPlan
   summary: PlanSummary
   ncc?: NccAudit
+  /** SEAS general electives — the BSE half, under either College curriculum. */
+  seas?: SeasElectiveAudit[]
   /** 'ncc' hides the old FA / Sector rows — the plan has no such slots. */
   curriculum?: 'legacy' | 'ncc'
 }) {
@@ -139,8 +143,9 @@ export function RequirementTracker({
     baTotal = FA_REQUIREMENTS.length + SECTORS.length
     baLeft = summary.unfulfilledFA.length + summary.unfulfilledSec.length
   }
-  const bseLeft = ncc ? ncc.seas.filter((r) => r.planned < r.target).length : 0
-  const bseTotal = ncc ? ncc.seas.length : 0
+  const bseRows = seas ?? ncc?.seas ?? []
+  const bseLeft = bseRows.filter((r) => r.planned < r.target).length
+  const bseTotal = bseRows.length
   const energyLeft = Math.max(0, 3 - summary.energyCoursesCount)
   const allGreen = summary.meetsDualMin && baLeft === 0 && bseLeft === 0 && energyLeft === 0
 
@@ -185,7 +190,7 @@ export function RequirementTracker({
                 done={summary.fulfilledFA.includes(fa.id) ? 1 : 0}
                 total={1}
                 unit="courses"
-                courses={courses.filter((c) => (c.fa ?? c.fulfills?.fa ?? c.intent?.fa) === fa.id).map(toRef)}
+                courses={courses.filter((c) => c.effectiveFulfills.includes(faTag(fa.id))).map(toRef)}
                 empty="Nothing planned for this Foundational Approach."
               />
             ))}
@@ -196,7 +201,7 @@ export function RequirementTracker({
                 done={summary.fulfilledSec.includes(sec.id) ? 1 : 0}
                 total={1}
                 unit="courses"
-                courses={courses.filter((c) => (c.sec ?? c.fulfills?.sec ?? c.intent?.sec) === sec.id).map(toRef)}
+                courses={courses.filter((c) => c.effectiveFulfills.includes(secTag(sec.id))).map(toRef)}
                 empty="Nothing planned for this Sector."
               />
             ))}
@@ -204,7 +209,7 @@ export function RequirementTracker({
         )}
       </Disclosure>
 
-      {ncc && (
+      {bseRows.length > 0 && (
         <Disclosure
           title="BSE · Engineering"
           summary={readout(bseLeft, bseTotal)}
@@ -213,13 +218,23 @@ export function RequirementTracker({
           defaultOpen={bseLeft > 0}
           printOpen
         >
-          {ncc.seas.map((r) =>
+          {bseRows.map((r) =>
             r.target === 1 ? (
               <CheckRow
                 key={r.id}
                 label={r.label}
                 done={r.planned >= r.target}
-                by={r.courses[0] ? (r.courses[0].open ? <Quiet>open slot</Quiet> : r.courses[0].code) : <Quiet>nothing planned</Quiet>}
+                by={
+                  r.courses[0]?.open ? (
+                    <Quiet>open slot</Quiet>
+                  ) : r.by && !r.by.startsWith('open slot') ? (
+                    r.by
+                  ) : r.courses[0] ? (
+                    r.courses[0].code
+                  ) : (
+                    <Quiet>nothing planned</Quiet>
+                  )
+                }
               />
             ) : (
               <CountRow key={r.id} label={r.label} done={r.planned} total={r.target} unit="courses" courses={r.courses} empty={r.hint} />

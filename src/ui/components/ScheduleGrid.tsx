@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { AugmentedCourse, AugmentedPlan } from '../../plan/types'
 import type { SemesterKey } from '../../data/semesters'
-import { SEMESTER_KEYS, SUMMER_KEYS, semesterLabel } from '../../data/semesters'
+import { SEMESTER_KEYS, SUMMER_KEYS, semesterLabel, yearName } from '../../data/semesters'
 import { SemesterCard, type DragPayload } from './SemesterCard'
 
 export interface ScheduleGridProps {
@@ -16,9 +16,9 @@ export interface ScheduleGridProps {
 }
 
 /**
- * The sheet, read year by year. Each year is a ruled band (YEAR N) over
- * three feeder panels: Fall | Spring | Summer, left to right. Year 4's
- * third slot is commencement.
+ * The sheet, read year by year. Each year is a ruled band (FRESHMAN …
+ * SENIOR) over three feeder panels: Fall | Spring | Summer, left to right.
+ * Senior year's third slot is commencement.
  */
 export function ScheduleGrid({
   plan,
@@ -62,10 +62,10 @@ export function ScheduleGrid({
         const summer = SUMMER_KEYS[y - 1]
 
         return (
-          <section key={y} id={`year-${y}`} aria-label={`Year ${y}`} className="scroll-mt-32">
+          <section key={y} id={`year-${y}`} aria-label={`${yearName(y)} year`} className="scroll-mt-32">
             <div className="mb-3 border-b-2 border-ink pb-1.5">
               <h2 className="font-cond text-[1.125rem] leading-none font-bold tracking-[0.04em] text-ink uppercase">
-                Year {y}
+                {yearName(y)}
               </h2>
             </div>
 

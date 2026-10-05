@@ -51,7 +51,10 @@ export function buildPlanContext(plan: Plan): string {
   const fulfillments = Object.entries(plan.fulfillments ?? {})
     .filter(([, tags]) => tags.length > 0)
     .map(([code, tags]) => `${code}→${tags.join('+')}`)
-  if (fulfillments.length > 0) lines.push(`User fulfillment marks: ${fulfillments.join('; ')}`)
+  if (fulfillments.length > 0)
+    lines.push(
+      `Student overrides of what courses count toward (tag = ticked on, !tag = a catalog/slot-derived requirement ticked off): ${fulfillments.join('; ')}`,
+    )
 
   return lines.join('\n')
 }

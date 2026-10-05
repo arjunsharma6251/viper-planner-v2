@@ -175,6 +175,7 @@ export interface NCCCourseInput {
   slotId?: string
   intent?: FulfillmentIntent | null
   userFulfills?: readonly string[]
+  effectiveFulfills?: readonly string[]
 }
 
 export interface NCCPlanInput {
@@ -187,11 +188,21 @@ interface StrategyBase {
   label: string
   desc: string
   ask: AskLevel
+  /**
+   * 'memo' = an ask in the current VIPER modification memo (Oct 2026);
+   * 'experimental' = modeled for comparison, not in the memo. The sandbox
+   * groups rows by this so the list stays within Miller's cap per group.
+   */
+  group: 'memo' | 'experimental'
 }
 
-/** The 12+5+3 → 12+0 row — toggles distribution TARGETS, not a mod flag. */
+/**
+ * A distribution-profile row — toggles distribution TARGETS, not a mod flag.
+ * 'distribution' is 12+5+3 → 12+0 (LSM, May 2026); 'distributionMemo' is
+ * 12+5+3 → 12+2+1 (the October 2026 memo).
+ */
 export interface DistributionStrategy extends StrategyBase {
-  id: 'distribution'
+  id: 'distribution' | 'distributionMemo'
   isStrategy: true
   type: 'distribution'
   pairWith?: undefined

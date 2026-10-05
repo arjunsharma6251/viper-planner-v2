@@ -4,12 +4,15 @@ import { semesterLabel } from '../../data/semesters'
 import { COURSES } from '../../data/courses'
 import type { CourseDraft, FoundationId } from '../../plan/types'
 import { NCC_FOUNDATION_LABELS } from '../../plan/ncc-audit'
+import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { Modal } from './Modal'
 import { IconOpenBreaker, IconSearch } from './icons'
 
 export interface AddCourseModalProps {
   semKey: SemesterKey
   gradYear: number | null
+  /** Which College requirements the open-slot options offer. */
+  curriculum?: 'ncc' | 'legacy'
   onClose: () => void
   onAdd: (draft: CourseDraft) => void
 }
@@ -26,7 +29,35 @@ interface SlotOption {
 
 const FOUNDATION_IDS: FoundationId[] = ['ncc-kite', 'ncc-key', 'ncc-fys', 'ncc-writ', 'ncc-pad', 'ncc-lang']
 
-const SLOT_OPTIONS: ReadonlyArray<{ group: string; options: SlotOption[] }> = [
+type SlotGroup = { group: string; options: SlotOption[] }
+
+const FREE_ELECTIVE: SlotGroup = {
+  group: 'Other',
+  options: [{ id: 'free', label: 'Free elective', draft: { title: 'Free Elective', cu: 1, isPlaceholder: true } }],
+}
+
+/** Old core: hold a Sector or a Foundational Approach for later. */
+const LEGACY_SLOT_OPTIONS: readonly SlotGroup[] = [
+  {
+    group: 'Sector',
+    options: SECTORS.map((sec) => ({
+      id: `sec-${sec.id}`,
+      label: sec.label,
+      draft: { title: `Sector ${sec.label}`, cu: 1, isPlaceholder: true, intent: { sec: sec.id } },
+    })),
+  },
+  {
+    group: 'Foundational Approach',
+    options: FA_REQUIREMENTS.map((fa) => ({
+      id: `fa-${fa.id}`,
+      label: fa.label,
+      draft: { title: fa.label, cu: 1, isPlaceholder: true, intent: { fa: fa.id } },
+    })),
+  },
+  FREE_ELECTIVE,
+]
+
+const NCC_SLOT_OPTIONS: readonly SlotGroup[] = [
   {
     group: 'NCC Foundation',
     options: FOUNDATION_IDS.map((id) => ({
@@ -56,10 +87,7 @@ const SLOT_OPTIONS: ReadonlyArray<{ group: string; options: SlotOption[] }> = [
       },
     ],
   },
-  {
-    group: 'Other',
-    options: [{ id: 'free', label: 'Free elective', draft: { title: 'Free Elective', cu: 1, isPlaceholder: true } }],
-  },
+  FREE_ELECTIVE,
 ]
 
 /**
@@ -67,9 +95,11 @@ const SLOT_OPTIONS: ReadonlyArray<{ group: string; options: SlotOption[] }> = [
  * catalog first; fall back to a custom entry for codes we do not have; or
  * reserve an open slot to fill later. Never invent catalog data.
  */
-export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseModalProps) {
+export function AddCourseModal({ semKey, gradYear, curriculum = 'ncc', onClose, onAdd }: AddCourseModalProps) {
   const [query, setQuery] = useState('')
   const [customCu, setCustomCu] = useState('1')
+  const [customTitle, setCustomTitle] = useState('')
+  const slotOptions = curriculum === 'legacy' ? LEGACY_SLOT_OPTIONS : NCC_SLOT_OPTIONS
   const label = semesterLabel(semKey, gradYear ?? undefined)
 
   const matches = useMemo(() => {
@@ -146,6 +176,18 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
           <p className="text-[0.8125rem] text-ink">
             <span className="tag">{customCode}</span> is not in the catalog. Add it as a custom course?
           </p>
+          <label className="label mt-2.5 mb-1.5 block" htmlFor="custom-title">
+            Title
+          </label>
+          <input
+            id="custom-title"
+            value={customTitle}
+            onChange={(e) => setCustomTitle(e.target.value)}
+            placeholder="e.g. Intro to Environmental Policy"
+            maxLength={80}
+            className="field w-full"
+            autoComplete="off"
+          />
           <div className="mt-2.5 flex items-center gap-2">
             <label className="label" htmlFor="custom-cu">
               CU
@@ -160,7 +202,7 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
               type="button"
               disabled={!customValid || exactKnown}
               onClick={() => {
-                onAdd({ code: customCode, title: customCode, cu: cuValue })
+                onAdd({ code: customCode, title: customTitle.trim() || customCode, cu: cuValue })
                 onClose()
               }}
               className="btn btn-primary"
@@ -184,7 +226,7 @@ export function AddCourseModal({ semKey, gradYear, onClose, onAdd }: AddCourseMo
             An open slot holds the requirement in this term and counts in the audit until you choose the course.
           </p>
           <div className="flex flex-col gap-2.5">
-            {SLOT_OPTIONS.map((g) => (
+            {slotOptions.map((g) => (
               <div key={g.group} className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-2">
                 <span className="label pt-2 !text-[0.625rem] !text-ink-3">{g.group}</span>
                 <div className="flex flex-wrap gap-1.5">

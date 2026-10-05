@@ -2,9 +2,18 @@ import { describe, expect, it } from 'vitest'
 import type { AugmentedCourse, AugmentedPlan } from './types'
 import { computeAdvisorNotes } from './advisor-notes'
 import { computeNccAudit } from './ncc-audit'
+import { effectiveFulfillments } from './fulfillments'
 
 function course(code: string, cu = 1, extra: Partial<AugmentedCourse> = {}): AugmentedCourse {
-  return { code, title: code, cu, userFulfills: [], requirementCount: 0, overlapKind: null, ...extra }
+  const base = { code, title: code, cu, ...extra }
+  return {
+    userFulfills: [],
+    requirementCount: 0,
+    overlapKind: null,
+    ...base,
+    effectiveFulfills: extra.effectiveFulfills ?? effectiveFulfillments(base, extra.userFulfills),
+    removedFulfills: extra.removedFulfills ?? [],
+  }
 }
 
 function plan(semesters: Record<string, AugmentedCourse[]>, summary: Partial<AugmentedPlan['summary']> = {}): AugmentedPlan {

@@ -39,6 +39,20 @@ const fulfillmentTagSchema = z.enum([
   'seas-ethics',
   'seas-tbs',
   'viper-energy',
+  // Old core: Foundational Approaches and Sectors.
+  'fa:WRIT',
+  'fa:FL',
+  'fa:FRA',
+  'fa:QDA',
+  'fa:CCA',
+  'fa:CDUS',
+  'sec:I',
+  'sec:II',
+  'sec:III',
+  'sec:IV',
+  'sec:V',
+  'sec:VI',
+  'sec:VII',
 ])
 
 const courseDraftSchema = z.object({
@@ -146,7 +160,8 @@ const TOOL_DESCRIPTIONS: Record<ToolName, string> = {
   remove_course: 'Remove a course from a semester. Fixed courses (summer-y1 VIPR 1300) cannot be removed.',
   move_course:
     'Move a course between semesters (or reorder within one — same from/to is a reorder).',
-  tag_fulfillment: 'Mark or unmark what requirement a course fulfills.',
+  tag_fulfillment:
+    'Mark or unmark what requirement a course fulfills. Courses come pre-marked with what they derive from the catalog and their slot; on:false on a derived mark overrides it off. Old-core plans use fa:* and sec:*; NCC plans use ncc-*.',
   swap_elective: 'Swap which course fills an elective/gen-ed slot.',
   rename_course: 'Edit a course code and/or title (e.g. correct a code, or name the course filling an open slot).',
 }

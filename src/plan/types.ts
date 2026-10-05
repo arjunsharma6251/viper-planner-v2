@@ -6,6 +6,7 @@
 
 import type { FaId, SectorId } from '../data/types'
 import type { SemesterKey } from '../data/semesters'
+import type { FulfillmentMark } from './fulfillments'
 
 /** Where a course's CU counts: BA (sas), BSE (seas), both, VIPER program, gen-ed. */
 export type CourseCategory = 'sas' | 'seas' | 'both' | 'viper' | 'gened'
@@ -60,6 +61,10 @@ export type FulfillmentTag =
   | 'seas-tbs'
   /** Student-marked VIPER energy-designated course (counts toward the 3). */
   | 'viper-energy'
+  /** Old core: a Foundational Approach (fa:WRIT, fa:QDA, ...). */
+  | `fa:${FaId}`
+  /** Old core: a Sector (sec:I ... sec:VII). */
+  | `sec:${SectorId}`
 
 /** What a course is intended to satisfy (from slot defs or user marks). */
 export interface FulfillmentIntent {
@@ -127,7 +132,16 @@ export interface PlannedCourse {
 
 /** A planned course after augmentPlan adds display-layer computed fields. */
 export interface AugmentedCourse extends PlannedCourse {
+  /** The student's own additions (ticked beyond what is derived). */
   userFulfills: FulfillmentTag[]
+  /**
+   * What the course counts toward after overrides: derived (catalog, slot,
+   * program rules) minus what the student unticked, plus what they ticked.
+   * The audit and the "Counts toward" checkboxes read this.
+   */
+  effectiveFulfills: FulfillmentTag[]
+  /** Derived tags the student unticked. */
+  removedFulfills: FulfillmentTag[]
   /** Distinct requirement contributions — drives the star indicator (cap 3). */
   requirementCount: number
   /** 'overlap' = cross-degree (gold), 'within-degree' = double-count (red). */
@@ -187,7 +201,7 @@ export interface Plan {
    * the mutation API stores it ON the plan so tag_fulfillment can be a pure
    * Plan → Plan function. augmentPlan merges it with ctx.userPlanFulfillments.
    */
-  fulfillments?: Record<string, FulfillmentTag[]>
+  fulfillments?: Record<string, FulfillmentMark[]>
 }
 
 /** An augmented plan (augmentPlan output) — always has summary + placement. */

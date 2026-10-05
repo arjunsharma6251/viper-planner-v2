@@ -15,7 +15,7 @@ export interface SemesterCardProps {
   semKey: SemesterKey
   /** e.g. "Fall 2024" */
   seasonLabel: string
-  /** e.g. "Year 1" */
+  /** e.g. "Freshman" */
   yearLabel: string
   courses: AugmentedCourse[]
   load: number

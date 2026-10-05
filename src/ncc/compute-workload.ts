@@ -43,8 +43,9 @@ export function computeNCCWorkload(
     for (const sk of SUMMER_KEYS) {
       const courses = plan.semesters[sk] || []
       for (const c of courses) {
-        // Detect via slotId, intent.foundation, or userFulfills marks
-        const tags = c.userFulfills || []
+        // Detect via intent.foundation or what the course counts toward
+        // (effective tags when augmented, else the student's own marks)
+        const tags = c.effectiveFulfills ?? c.userFulfills ?? []
         if (c.intent?.foundation === 'ncc-kite' || tags.includes('ncc-kite')) summerFoundationsSatisfied.add('kite')
         if (c.intent?.foundation === 'ncc-key'  || tags.includes('ncc-key'))  summerFoundationsSatisfied.add('key')
         if (c.intent?.foundation === 'ncc-fys'  || tags.includes('ncc-fys'))  summerFoundationsSatisfied.add('fys')

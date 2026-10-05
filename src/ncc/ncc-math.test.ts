@@ -219,11 +219,26 @@ describe('strategy toggles', () => {
   const distribution = STRATEGIES[0]
   const kiteWriting = STRATEGIES.find(s => s.id === 'doubleCountKite')
 
-  it('has the seven sandbox strategies (Miller cap)', () => {
+  it('has the sandbox strategies, each group within the Miller cap', () => {
     expect(STRATEGIES.map(s => s.id)).toEqual([
       'distribution', 'aandsCUWaiver', 'doubleCountKite', 'doubleCountVIPR1300',
-      'langWaiver', 'kiteLabWaiver', 'keyWaiver',
+      'langWaiver', 'kiteLabWaiver', 'keyWaiver', 'distributionMemo', 'summerFoundation',
     ])
+    for (const g of ['memo', 'experimental'] as const) {
+      expect(STRATEGIES.filter(s => s.group === g).length).toBeLessThanOrEqual(7)
+    }
+  })
+
+  it('12+2+1 toggle flips between standard and the memo profile, independent of 12+0', () => {
+    const memo = STRATEGIES.find(s => s.id === 'distributionMemo')
+    if (!memo || !distribution) throw new Error('missing distribution strategies')
+    const mods = normalizeViperMods(undefined)
+    const on = toggleStrategy(memo, mods, STANDARD)
+    expect(on.targets).toEqual({ N: 12, SS: 2, H: 1 })
+    expect(isStrategyOn(memo, mods, on.targets)).toBe(true)
+    expect(isStrategyOn(distribution, mods, on.targets)).toBe(false)
+    expect(isStrategyOn(memo, mods, { N: 12, SS: 1, H: 2 })).toBe(true) // either order
+    expect(toggleStrategy(memo, mods, on.targets).targets).toEqual(STANDARD)
   })
 
   it('12+0 toggle flips between standard and full waiver, mods untouched', () => {

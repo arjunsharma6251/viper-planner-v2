@@ -5,8 +5,10 @@
 // layer wraps these in download/clipboard plumbing.
 
 import { semesterLabel, type SemesterKey } from '../data/semesters'
-import type { AugmentedPlan, FulfillmentTag, Plan, PlanMeta, PlannedCourse } from './types'
+import type { AugmentedPlan, Plan, PlanMeta, PlannedCourse } from './types'
+import type { FulfillmentMark } from './fulfillments'
 import { createEmptyPlan, recomputeDerived } from './mutations'
+import { uniquifyOpenSlots } from './open-slot'
 
 export interface DistributionTargets {
   N: number
@@ -29,6 +31,8 @@ export interface AppState {
   seasConcKey?: string
   apCreditIds?: string[]
   gradYear?: number | null
+  /** Added 2026-10: the student's name for the sheet (optional). */
+  studentName?: string
   shiftForward?: boolean
   genedDistribution?: string
   curriculumMode?: string
@@ -38,7 +42,8 @@ export interface AppState {
   distributionTargets?: DistributionTargets
   /** The old app's userPlan held ONLY semesters; loads/placement are derived. */
   userPlan?: { semesters: Partial<Record<string, PlannedCourse[]>> } | null
-  userPlanFulfillments?: Record<string, FulfillmentTag[]>
+  /** Course key → marks: a tag adds it, `!tag` removes a derived one. */
+  userPlanFulfillments?: Record<string, FulfillmentMark[]>
   userColorOverrides?: Record<string, string>
 }
 
@@ -105,7 +110,9 @@ export function planFromAppState(state: AppState): Plan | null {
       Object.entries(state.userPlanFulfillments).map(([k, v]) => [k, [...v]]),
     )
   }
-  return recomputeDerived(plan)
+  // Plans seeded before open slots had distinct codes carry several "—"
+  // rows that act on each other; repair them on load.
+  return uniquifyOpenSlots(recomputeDerived(plan))
 }
 
 /** Export filename, matching the old app's pattern for both JSON and CSV. */

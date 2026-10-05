@@ -11,11 +11,19 @@
 import { ALL_SEMESTER_KEYS, type SemesterKey } from '../data/semesters'
 import { FA_REQUIREMENTS, SECTORS } from '../data/requirements'
 import { VIPER_PROGRAM } from '../data/viper-program'
+import { MAJORS } from '../data/majors'
+import {
+  FOUNDATION_IDS,
+  effectiveFulfillments,
+  faTag,
+  secTag,
+  splitMarks,
+  type FulfillmentMark,
+} from './fulfillments'
 import type {
   AugmentedCourse,
   AugmentedPlan,
   FulfillmentIntent,
-  FulfillmentTag,
   Plan,
   PlanSummary,
   PlannedCourse,
@@ -30,8 +38,16 @@ export interface AugmentPlanContext {
    * Course key (originalCode || code) → user fulfillment marks.
    * Merged over (and taking precedence over) `plan.fulfillments`.
    */
-  userPlanFulfillments?: Record<string, readonly FulfillmentTag[]>
+  userPlanFulfillments?: Record<string, readonly FulfillmentMark[]>
   sasMajorKey?: string
+  /** Incoming credit ids (a language waiver covers the old core's FL). */
+  apCreditIds?: readonly string[]
+  /**
+   * Which College curriculum the plan is audited under. Stars count only
+   * that curriculum's requirements (old-core FA / Sector vs NCC Foundation /
+   * division); omitted counts both.
+   */
+  curriculumMode?: 'legacy' | 'ncc'
   seasMajorKey?: string
   gradYear?: number | null
   viperMods?: Record<string, boolean> | null
@@ -54,72 +70,62 @@ export function augmentPlan(
   // Iterate over all known semesters AND any extras the user might have added
   const rawSemesters = userPlan.semesters as Record<string, PlannedCourse[] | undefined>
   const ALL_SEMS = [...new Set<string>([...ALL_SEMESTER_KEYS, ...Object.keys(rawSemesters)])]
-  const fulfillmentMap: Record<string, readonly FulfillmentTag[]> = {
+  const fulfillmentMap: Record<string, readonly FulfillmentMark[]> = {
     ...(userPlan.fulfillments ?? {}),
     ...(ctx.userPlanFulfillments ?? {}),
   }
 
-  // First, copy semesters and inject user-marked fulfillments
+  // Copy semesters; resolve what each course counts toward (derived from
+  // catalog + slot + program rules, then the student's overrides).
   const semesters: Record<string, AugmentedCourse[]> = {}
   for (const k of ALL_SEMS) {
     const courses = rawSemesters[k] ?? []
     semesters[k] = courses.map((c) => {
       const key = c.originalCode || c.code
-      const userMarks: FulfillmentTag[] = [...(fulfillmentMap[key] ?? [])]
+      const marks = fulfillmentMap[key]
+      const { added, removed } = splitMarks(marks)
+      const effective = effectiveFulfillments(c, marks)
 
-      // Build an intent object aggregating the user's marks (only if there are any)
+      // The intent object mirrors the effective Foundation / division so
+      // older readers (placement, the LLM digest) see the same picture.
       let intent: FulfillmentIntent | null = c.intent ?? null
-      if (userMarks.length > 0) {
+      if (added.length > 0 || removed.length > 0) {
         intent = { ...(intent ?? {}) }
-        for (const id of userMarks) {
-          if (id.startsWith('ncc-distrib-')) {
-            intent.distribution = id.replace('ncc-distrib-', '').toUpperCase()
-          } else if (id === 'ncc-kite') intent.foundation = 'ncc-kite'
-          else if (id === 'ncc-key') intent.foundation = 'ncc-key'
-          else if (id === 'ncc-fys') intent.foundation = 'ncc-fys'
-          else if (id === 'ncc-writ') intent.foundation = 'ncc-writ'
-          else if (id === 'ncc-pad') intent.foundation = 'ncc-pad'
-          else if (id === 'ncc-lang') intent.foundation = 'ncc-lang'
-          else if (id === 'seas-ssh') intent.seas = [...(intent.seas ?? []), 'ssh']
-          else if (id === 'seas-writ') intent.seas = [...(intent.seas ?? []), 'writ']
-          else if (id === 'seas-ethics') intent.seas = [...(intent.seas ?? []), 'ethics']
-          else if (id === 'seas-tbs') intent.seas = [...(intent.seas ?? []), 'tbs']
+        const foundation = FOUNDATION_IDS.find((f) => effective.includes(f))
+        if (foundation) intent.foundation = foundation
+        else delete intent.foundation
+        const marked = added.find((t) => t.startsWith('ncc-distrib-'))
+        if (marked) intent.distribution = marked.replace('ncc-distrib-', '').toUpperCase()
+        for (const t of removed) {
+          if (t.startsWith('ncc-distrib-') && intent.distribution === t.replace('ncc-distrib-', '').toUpperCase()) {
+            delete intent.distribution
+          }
         }
+        const seas = effective
+          .filter((t) => t === 'seas-ssh' || t === 'seas-writ' || t === 'seas-ethics' || t === 'seas-tbs')
+          .map((t) => t.replace('seas-', '') as NonNullable<FulfillmentIntent['seas']>[number])
+        if (seas.length > 0) intent.seas = seas
+        else delete intent.seas
       }
-      // A student can mark any course as VIPER energy-designated; it then
-      // counts toward the 3-course requirement exactly like a catalog flag.
-      const isEnergy = !!c.isEnergy || userMarks.includes('viper-energy')
+      // Catalog energy courses count unless unticked; any course the
+      // student ticks counts toward the 3-course requirement.
+      const isEnergy = effective.includes('viper-energy')
 
-      // Compute requirement count for star display:
-      //   "Overlap" = counts toward both BA and BSE (cross-degree contribution)
-      //   "Double-count" = satisfies multiple requirements within one degree
-      //   "Triple-count" = three or more
-      //
-      // We count distinct kinds of contribution:
-      //   - cross-degree overlap (category === 'both' OR 'viper')   → +1 BA + 1 BSE = 2
-      //   - within-degree extras: FA, sector, foundation, distribution, SEAS slot, energy
+      // Requirement count for the star display:
+      //   cross-degree overlap (category 'both' / 'viper') → gold stars
+      //   within-degree extras (FA, Sector, Foundation, division, each
+      //   SEAS bucket, energy) → red stars
       let crossDegreeCount = 0
       if (c.category === 'both' || c.category === 'viper') crossDegreeCount = 2
       else if (c.category === 'sas' || c.category === 'seas') crossDegreeCount = 1
       let extraReqs = 0
-      const fa = c.fa || c.fulfills?.fa || intent?.fa
-      const sec = c.sec || c.fulfills?.sec || intent?.sec
-      if (fa) extraReqs += 1
-      if (sec) extraReqs += 1
-      if (intent?.foundation) extraReqs += 1
-      // Per the College chart only First-Year Seminar and Perspectives and
-      // Difference may count within the distribution; other Foundation
-      // slots carry a division for placement only and must not earn a
-      // double-count star for it.
-      // A division the student tagged themselves is their claim and counts.
-      const foundationOnly =
-        (intent?.foundation === 'ncc-kite' ||
-          intent?.foundation === 'ncc-key' ||
-          intent?.foundation === 'ncc-writ' ||
-          intent?.foundation === 'ncc-lang') &&
-        !userMarks.some((t) => t.startsWith('ncc-distrib-'))
-      if (intent?.distribution && !foundationOnly) extraReqs += 1
-      if (intent?.seas?.length) extraReqs += intent.seas.length
+      const countOldCore = ctx.curriculumMode !== 'ncc'
+      const countNcc = ctx.curriculumMode !== 'legacy'
+      if (countOldCore && effective.some((t) => t.startsWith('fa:'))) extraReqs += 1
+      if (countOldCore && effective.some((t) => t.startsWith('sec:'))) extraReqs += 1
+      if (countNcc && effective.some((t) => (FOUNDATION_IDS as readonly string[]).includes(t))) extraReqs += 1
+      if (countNcc && effective.some((t) => t.startsWith('ncc-distrib-'))) extraReqs += 1
+      extraReqs += effective.filter((t) => t.startsWith('seas-')).length
       if (isEnergy) extraReqs += 1
       const requirementCount = crossDegreeCount + extraReqs
       const overlapKind =
@@ -129,7 +135,16 @@ export function augmentPlan(
             ? ('within-degree' as const) // red stars — within one degree
             : null
 
-      return { ...c, intent, isEnergy, userFulfills: userMarks, requirementCount, overlapKind }
+      return {
+        ...c,
+        intent,
+        isEnergy,
+        userFulfills: added,
+        effectiveFulfills: effective,
+        removedFulfills: removed,
+        requirementCount,
+        overlapKind,
+      }
     })
   }
 
@@ -186,15 +201,19 @@ export function augmentPlan(
   summary.meetsDualMin = summary.totalCU >= (VIPER_PROGRAM.minTotalCU || 40)
   summary.meetsEnergyReq = summary.energyCoursesCount >= 3
 
-  // FA + Sector fulfillment — derived from course tags
+  // Old-core FA + Sector fulfillment, from what each course counts toward
+  // (catalog attributes included). The College major auto-completes its
+  // Sector, and a language waiver from incoming credit covers FL.
   const allCourses: AugmentedCourse[] = ALL_SEMS.flatMap((k) => semesters[k] ?? [])
+  const autoSector = ctx.sasMajorKey ? (MAJORS[ctx.sasMajorKey]?.autoSector ?? null) : null
+  const langCredit = (ctx.apCreditIds ?? []).includes('lang-fluency')
   for (const fa of FA_REQUIREMENTS) {
-    const hit = allCourses.some((c) => c.fulfills?.fa === fa.id || c.intent?.fa === fa.id)
+    const hit = (fa.id === 'FL' && langCredit) || allCourses.some((c) => c.effectiveFulfills.includes(faTag(fa.id)))
     if (hit) summary.fulfilledFA.push(fa.id)
     else summary.unfulfilledFA.push(fa.id)
   }
   for (const sec of SECTORS) {
-    const hit = allCourses.some((c) => c.fulfills?.sec === sec.id || c.intent?.sec === sec.id)
+    const hit = sec.id === autoSector || allCourses.some((c) => c.effectiveFulfills.includes(secTag(sec.id)))
     if (hit) summary.fulfilledSec.push(sec.id)
     else summary.unfulfilledSec.push(sec.id)
   }

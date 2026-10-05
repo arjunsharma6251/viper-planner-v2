@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { AugmentedCourse, AugmentedPlan } from '../../plan/types'
 import type { SemesterKey } from '../../data/semesters'
-import { ALL_SEMESTER_KEYS, isSummerSem, semesterLabel } from '../../data/semesters'
+import { ALL_SEMESTER_KEYS, isSummerSem, semesterLabel, yearName } from '../../data/semesters'
 import { SemesterCard, type DragPayload } from './SemesterCard'
 import { IconChevronLeft, IconChevronRight } from './icons'
 
@@ -52,7 +52,7 @@ export function FocusView({
           const yearActive = keys.includes(selected)
           return (
             <div key={y} className="flex flex-col gap-1.5">
-              <span className={['label', yearActive ? '!text-ink' : ''].join(' ')}>Year {y}</span>
+              <span className={['label', yearActive ? '!text-ink' : ''].join(' ')}>{yearName(y)}</span>
               <div className="seg">
                 {keys.map((k) => {
                   const l = semesterLabel(k, gradYear ?? undefined)

@@ -14,6 +14,7 @@
 
 import { ALL_SEMESTER_KEYS, semesterLabel, type SemesterKey } from '../data/semesters'
 import { lookupCourse } from '../data/courses'
+import { nextMarks } from './fulfillments'
 import type {
   CourseDraft,
   FulfillmentTag,
@@ -28,6 +29,30 @@ import type {
 
 function roundCU(n: number): number {
   return Math.round(n * 10) / 10
+}
+
+/**
+ * The catalog attributes a course code carries (old-core FA / Sector, VIPER
+ * energy). They feed what the course derives in "Counts toward", so they
+ * are re-read whenever a line's code changes; an unknown code carries none.
+ */
+function catalogAttrs(code: string): Pick<PlannedCourse, 'fa' | 'sec' | 'isEnergy' | 'fulfills'> {
+  const data = lookupCourse(code)
+  return { fa: data?.fa ?? null, sec: data?.sec ?? null, isEnergy: !!data?.energy, fulfills: undefined }
+}
+
+/**
+ * Fulfillment marks are keyed by a course's stable identity
+ * (originalCode || code). Filling a slot changes that identity, so carry
+ * the slot's marks over to the new key rather than orphaning them.
+ */
+function moveMarks(plan: Plan, fromKey: string, toKey: string): void {
+  if (fromKey === toKey || !plan.fulfillments?.[fromKey]) return
+  const next = { ...plan.fulfillments }
+  const moved = next[fromKey] ?? []
+  delete next[fromKey]
+  next[toKey] = [...new Set([...(next[toKey] ?? []), ...moved])]
+  plan.fulfillments = next
 }
 
 /**
@@ -200,6 +225,7 @@ export function addCourse(plan: Plan, semester: SemesterKey, course: CourseDraft
     isPlaceholder: placeholder,
     ...(course.slotId ? { slotId: course.slotId, slotLabel: course.title?.trim() } : {}),
     ...(course.intent ? { intent: course.intent } : {}),
+    ...(placeholder ? {} : catalogAttrs(code)),
     isUserAdded: true,
     tags: ['USER-ADDED'],
   })
@@ -310,12 +336,9 @@ export function tagFulfillment(
   const key = course.originalCode || course.code
 
   const next = clonePlan(plan)
-  const current = next.fulfillments?.[key] ?? []
-  const updated = on
-    ? current.includes(fulfillmentId)
-      ? current
-      : [...current, fulfillmentId]
-    : current.filter((x) => x !== fulfillmentId)
+  // Derived tags (catalog, slot, program rules) are on by default: unticking
+  // one records an override, ticking it again clears the override.
+  const updated = nextMarks(course, next.fulfillments?.[key], fulfillmentId, on)
   next.fulfillments = { ...(next.fulfillments ?? {}), [key]: updated }
   const message = on
     ? `Marked ${key} as fulfilling ${fulfillmentId}`
@@ -342,6 +365,7 @@ export function swapElective(plan: Plan, slotId: string, newCode: string): Mutat
       const courseData = lookupCourse(code)
       courses[idx] = {
         ...existing,
+        ...catalogAttrs(code),
         code,
         title: courseData?.title || code,
         cu: courseData?.cu || existing.cu,
@@ -349,6 +373,7 @@ export function swapElective(plan: Plan, slotId: string, newCode: string): Mutat
         originalCode: code,
         // Keep slotId so we know what it fulfills
       }
+      moveMarks(next, existing.originalCode || existing.code, code)
       recomputeDerived(next)
       return {
         ok: true,
@@ -393,6 +418,8 @@ export function renameCourse(
     // Naming an open slot: same shape as swapElective, minus the pool.
     if (trimmed.startsWith('—')) return fail(plan, 'Enter a course code to fill this slot.')
     const catalog = lookupCourse(trimmed)
+    Object.assign(c, catalogAttrs(trimmed))
+    moveMarks(next, original, trimmed)
     c.code = trimmed
     c.originalCode = trimmed
     // Keep the slot's own label when the catalog has no title for the code.
@@ -403,6 +430,7 @@ export function renameCourse(
     recomputeDerived(next)
     return { ok: true, message: `Filled ${target.title} with ${trimmed}`, plan: next }
   }
+  if (codeChanged) Object.assign(c, catalogAttrs(trimmed))
   c.code = trimmed
   if (!c.originalCode) c.originalCode = original
   c.isRenamed = trimmed !== c.originalCode

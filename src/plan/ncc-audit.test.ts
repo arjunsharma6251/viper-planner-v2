@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import type { AugmentedCourse, AugmentedPlan } from './types'
 import { computeNccAudit } from './ncc-audit'
+import { effectiveFulfillments } from './fulfillments'
 import { DEFAULT_VIPER_MODS } from '../ncc/mods'
 
 function course(partial: Partial<AugmentedCourse> & { code: string }): AugmentedCourse {
+  const base = { title: partial.code, cu: 1, ...partial }
   return {
-    title: partial.code,
-    cu: 1,
     userFulfills: [],
     requirementCount: 0,
     overlapKind: null,
-    ...partial,
+    ...base,
+    effectiveFulfills: partial.effectiveFulfills ?? effectiveFulfillments(base, partial.userFulfills),
+    removedFulfills: partial.removedFulfills ?? [],
   }
 }
 

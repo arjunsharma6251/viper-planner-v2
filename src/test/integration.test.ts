@@ -38,22 +38,27 @@ describe('seed → augment → mutate (the UI path)', () => {
     expect(aug).not.toBeNull()
     expect(aug!.summary.meetsDualMin).toBe(true)
     expect(aug!.summary.meetsEnergyReq).toBe(true)
-    // FAITHFUL OLD BEHAVIOR (verified against references/old-app, lines
-    // 4783-4787 vs 1912-1942): the display summary counts only
-    // fulfills/intent marks, NOT flat catalog `fa` on core courses or
-    // AP-credit placements. So a fresh CHEM+CBE seed shows FL/FRA/QDA
-    // un-ticked until the student tags them — the SCHEDULER summary is the
-    // one the 420-combo regression holds to zero. Flagged to Arjun before
-    // "fixing" (CLAUDE.md: ask, don't simplify away).
-    expect(aug!.summary.unfulfilledFA).toEqual(['FL', 'FRA', 'QDA'])
-    // Same story for sectors: VI is auto-completed by the science major and
-    // VII rides on flat catalog `sec` — the display summary sees neither.
-    expect(aug!.summary.unfulfilledSec).toEqual(['VI', 'VII'])
+    // Old-core audit counts what each course carries in the catalog
+    // (2026-10, Arjun: "editing a course should have what it counts
+    // towards already checked off"): MATH 1400 brings QDA, the major
+    // brings Sector VI, and so on. Only Foreign Language is left — nothing
+    // in a CHEM+CBE seed carries FL until the student plans it or claims
+    // the language waiver as incoming credit.
+    expect(aug!.summary.unfulfilledFA).toEqual(['FL'])
+    expect(aug!.summary.unfulfilledSec).toEqual([])
+    const waived = augmentPlan(plan, { sasMajorKey: 'CHEM', seasMajorKey: 'CBE', gradYear: 2028, apCreditIds: ['lang-fluency'] })!
+    expect(waived.summary.unfulfilledFA).toEqual([])
     expect(aug!.placement).toBeDefined()
   })
 
-  it('seeds the Class of 2028 under the NCC with confirmed policy only', () => {
-    const plan = seedPlan(CONFIG)!
+  it('defaults the Class of 2028 to the old core and the Class of 2031 to the NCC', () => {
+    expect(seedPlan(CONFIG)!.meta.curriculumMode).toBe('legacy')
+    expect(seedPlan({ ...CONFIG, gradYear: 2031 })!.meta.curriculumMode).toBe('ncc')
+  })
+
+  it('seeds a non-template combination under the NCC with confirmed policy only', () => {
+    // PHARMA has no program-office template, so this is the scheduler path.
+    const plan = seedPlan({ ...CONFIG, seasConcKey: 'PHARMA', curriculumMode: 'ncc' })!
     expect(plan.meta.curriculumMode).toBe('ncc')
     const slotIds = Object.values(plan.semesters)
       .flat()

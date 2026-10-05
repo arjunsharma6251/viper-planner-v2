@@ -401,7 +401,10 @@ describe('applyMutations', () => {
     ])
     expect(result.ok).toBe(true)
     expect(result.plan.semesters['spring-y1'].map((c) => c.code)).toEqual(['ECON 0100'])
-    expect(result.plan.fulfillments?.['ECON 0100']).toEqual(['seas-ssh'])
+    // ECON 0100 is a catalog Sector I (Social Sciences) course, so SEAS
+    // SS/H is already derived: ticking it on records no override.
+    expect(result.plan.fulfillments?.['ECON 0100']).toEqual([])
+    expect(augmentPlan(result.plan)!.semesters['spring-y1']![0]!.effectiveFulfills).toContain('seas-ssh')
   })
 
   it('is all-or-nothing: a failed mutation returns the original plan', () => {
@@ -470,12 +473,14 @@ describe('augmentPlan', () => {
       )
       const [both, vipr] = augmentPlan(plan)!.semesters['fall-y1']!
       expect(both).toMatchObject({ requirementCount: 2, overlapKind: 'overlap' })
-      expect(vipr).toMatchObject({ requirementCount: 2, overlapKind: 'overlap' })
+      // VIPR 1200 is also SEAS engineering ethics and old-core Sector VII: 2 + 2.
+      expect(vipr).toMatchObject({ requirementCount: 4, overlapKind: 'overlap' })
     })
 
     it("within-degree extras (fa/sec/foundation/distribution/seas/energy) → red 'within-degree'", () => {
       const plan = createEmptyPlan()
-      // sas (1) + fa (1) + sec (1) + energy (1) = 4
+      // sas (1) + fa (1) + sec (1) + energy (1) + the Social Sciences
+      // division a Sector I course carries (1) + SEAS SS/H (1) = 6
       plan.semesters['fall-y1'].push(
         course({
           code: 'SOCI 0006',
@@ -485,7 +490,7 @@ describe('augmentPlan', () => {
         }),
       )
       const [c] = augmentPlan(plan)!.semesters['fall-y1']!
-      expect(c).toMatchObject({ requirementCount: 4, overlapKind: 'within-degree' })
+      expect(c).toMatchObject({ requirementCount: 6, overlapKind: 'within-degree' })
     })
 
     it('plain gened course with no contributions is silent (count 0, kind null)', () => {
@@ -501,14 +506,21 @@ describe('augmentPlan', () => {
       plan = tagFulfillment(plan, 'PSYC 0001', 'seas-ssh', true).plan
       plan = tagFulfillment(plan, 'PSYC 0001', 'ncc-kite', true).plan
       const [c] = augmentPlan(plan)!.semesters['fall-y2']!
-      expect(c?.userFulfills).toEqual(['ncc-distrib-ss', 'seas-ssh', 'ncc-kite'])
+      // Ticking Social Sciences implies SEAS SS/H, so the explicit SEAS
+      // tick is already on and records nothing of its own.
+      expect(c?.userFulfills).toEqual(['ncc-distrib-ss', 'ncc-kite'])
+      expect(c?.effectiveFulfills).toEqual(expect.arrayContaining(['ncc-distrib-ss', 'seas-ssh', 'ncc-kite']))
       expect(c?.intent).toMatchObject({
         distribution: 'SS',
         foundation: 'ncc-kite',
         seas: ['ssh'],
       })
-      // gened (0 cross) + distribution + seas + foundation = 3 → within-degree
-      expect(c).toMatchObject({ requirementCount: 3, overlapKind: 'within-degree' })
+      // gened (0 cross) + distribution + seas + foundation + its catalog
+      // Sector (no curriculum given, so old-core tags count too) = 4
+      expect(c).toMatchObject({ requirementCount: 4, overlapKind: 'within-degree' })
+      // Under the NCC alone the Sector does not earn a star.
+      const ncc = augmentPlan(plan, { curriculumMode: 'ncc' })!.semesters['fall-y2']![0]
+      expect(ncc?.requirementCount).toBe(3)
     })
 
     it('ctx.userPlanFulfillments takes precedence over plan.fulfillments', () => {
