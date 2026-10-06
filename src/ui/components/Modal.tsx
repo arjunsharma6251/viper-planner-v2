@@ -78,7 +78,7 @@ export function Modal({ title, meta, onClose, children, wide }: ModalProps) {
       >
         <header className="flex items-start justify-between gap-4 border-b border-ink px-4 py-3">
           <div className="min-w-0">
-            <h2 className="font-cond text-[1.125rem] leading-tight font-semibold tracking-[0.02em] text-ink">
+            <h2 className="font-serif text-[1.3125rem] leading-tight font-semibold text-ink">
               {title}
             </h2>
             {meta && <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] text-ink-2">{meta}</div>}

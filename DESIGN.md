@@ -2,13 +2,13 @@
 name: VIPER Four-Year Planner
 description: A four-year dual-degree plan drawn as a substation one-line diagram: three buses, eight feeders, every course a breaker.
 colors:
-  sheet: "#faf9f6"
+  sheet: "#fafaf8"
   panel: "#ffffff"
-  ink: "#1a1a1a"
-  ink-2: "#55554f"
-  ink-3: "#6e6e68"
-  rule: "#d9d6cf"
-  rule-2: "#b9b5ab"
+  ink: "#1b2130"
+  ink-2: "#4a5164"
+  ink-3: "#697083"
+  rule: "#dcdde2"
+  rule-2: "#b5b9c3"
   penn-blue: "#011f5b"
   penn-blue-2: "#0b3a8c"
   penn-red: "#990000"
@@ -23,49 +23,51 @@ colors:
   tint-good: "#eaf3ec"
   tint-caution: "#fcf1e6"
 typography:
+  # Penn web identity (2026-10): EB Garamond primary, Roboto secondary.
+  # Garamond runs with font-size-adjust 0.47 so it sits at the sheet's optical size.
   display:
-    fontFamily: "Barlow Semi Condensed, Barlow, system-ui, sans-serif"
+    fontFamily: "EB Garamond, Garamond, Times New Roman, serif"
     fontSize: "clamp(2rem, 2rem + 1vw, 2.5rem)"
-    fontWeight: 700
-    lineHeight: 1
-    letterSpacing: "0.02em"
+    fontWeight: 500
+    lineHeight: 1.05
+    letterSpacing: "-0.01em"
   headline:
-    fontFamily: "Barlow Semi Condensed, Barlow, system-ui, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 700
+    fontFamily: "EB Garamond, Garamond, Times New Roman, serif"
+    fontSize: "1.5rem"
+    fontWeight: 500
     lineHeight: 1
-    letterSpacing: "0.04em"
+    letterSpacing: "normal"
   title:
-    fontFamily: "Barlow Semi Condensed, Barlow, system-ui, sans-serif"
-    fontSize: "0.9375rem"
+    fontFamily: "EB Garamond, Garamond, Times New Roman, serif"
+    fontSize: "1.0625rem"
     fontWeight: 600
     lineHeight: 1
-    letterSpacing: "0.04em"
+    letterSpacing: "normal"
   body:
-    fontFamily: "Barlow, system-ui, sans-serif"
+    fontFamily: "EB Garamond, Garamond, Times New Roman, serif"
     fontSize: "0.8125rem"
     fontWeight: 400
     lineHeight: 1.375
     letterSpacing: "normal"
   label:
-    fontFamily: "Barlow Semi Condensed, Barlow, system-ui, sans-serif"
-    fontSize: "0.6875rem"
-    fontWeight: 600
-    lineHeight: 1
-    letterSpacing: "0.07em"
-  tag:
-    fontFamily: "Red Hat Mono, ui-monospace, SF Mono, Menlo, monospace"
+    fontFamily: "Roboto, system-ui, sans-serif"
     fontSize: "0.6875rem"
     fontWeight: 500
     lineHeight: 1
-    letterSpacing: "-0.01em"
+    letterSpacing: "0.08em"
+  tag:
+    fontFamily: "Roboto Mono, ui-monospace, SF Mono, Menlo, monospace"
+    fontSize: "0.6875rem"
+    fontWeight: 400
+    lineHeight: 1
+    letterSpacing: "normal"
     fontFeature: "tnum"
   control:
-    fontFamily: "Barlow Semi Condensed, Barlow, system-ui, sans-serif"
+    fontFamily: "Roboto, system-ui, sans-serif"
     fontSize: "0.75rem"
-    fontWeight: 600
+    fontWeight: 500
     lineHeight: 1
-    letterSpacing: "0.06em"
+    letterSpacing: "0.07em"
 rounded:
   none: "0px"
 spacing:

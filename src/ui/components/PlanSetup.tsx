@@ -32,7 +32,7 @@ function defaultConc(majorKey: string): string | null {
 function Question({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="mb-7">
-      <h2 className="font-cond text-[1.75rem] leading-none font-bold tracking-[0.02em] text-ink uppercase sm:text-[2.125rem]">
+      <h2 className="font-serif text-[2rem] leading-[1.05] font-medium tracking-[-0.01em] text-balance text-ink sm:text-[2.5rem]">
         {title}
       </h2>
       <p className="mt-2.5 max-w-[48ch] text-[0.9375rem] leading-relaxed text-ink-2">{hint}</p>
@@ -264,7 +264,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
                   }}
                   className="!justify-center !px-2 !py-5"
                 >
-                  <span className="font-mono text-[1.375rem] font-semibold">{y}</span>
+                  <span className="font-serif text-[1.625rem] leading-none font-medium tabular-nums">{y}</span>
                 </Choice>
               ))}
             </div>

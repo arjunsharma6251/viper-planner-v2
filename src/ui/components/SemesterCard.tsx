@@ -98,7 +98,7 @@ export function SemesterCard({
     >
       <header className="px-3 pt-3 pb-2.5">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-cond text-[0.9375rem] leading-none font-semibold tracking-[0.04em] text-ink uppercase">
+          <h3 className="font-serif text-[1.0625rem] leading-none font-semibold text-ink">
             {seasonLabel}
           </h3>
           <span className={['tag whitespace-nowrap', TONE_TEXT[status.tone]].join(' ')}>{load.toFixed(1)} CU</span>

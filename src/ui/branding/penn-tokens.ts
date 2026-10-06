@@ -5,14 +5,17 @@
  */
 export const PENN_RED = '#990000' // PMS 201 — problem status and key callouts only
 export const PENN_BLUE = '#011F5B' // PMS 288 — the BA bus and the primary control
-export const SHEET = '#FAF9F6' // the drawing ground, off-white
-export const INK = '#1A1A1A' // all text, and the BSE bus
-export const RULE = '#D9D6CF' // hairlines that rule every region
+export const SHEET = '#FAFAF8' // the drawing ground, off-white
+export const INK = '#1B2130' // all text (a Penn-Blue-tinted black), and the BSE bus
+export const RULE = '#DCDDE2' // hairlines that rule every region
 export const ENERGY = '#B8860B' // the Energy bus (VIPER concentration)
 
-export const FONT_COND = "'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif"
-export const FONT_SANS = "'Barlow', system-ui, sans-serif"
-export const FONT_MONO = "'Red Hat Mono', ui-monospace, monospace"
+// Penn web identity: EB Garamond primary, Roboto secondary.
+export const FONT_SERIF = "'EB Garamond', Garamond, 'Times New Roman', serif"
+export const FONT_SANS = "'Roboto', system-ui, sans-serif"
+/** Labels and controls (historical name: this was the condensed face). */
+export const FONT_COND = FONT_SANS
+export const FONT_MONO = "'Roboto Mono', ui-monospace, monospace"
 
 /** Status colors — green = good, amber = caution, Penn red = problem. Never re-purpose. */
 export const STATUS_GOOD = '#1e7e34'

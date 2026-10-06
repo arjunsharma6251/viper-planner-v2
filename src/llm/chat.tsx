@@ -247,7 +247,7 @@ export function ChatPanel({ mode, ctx, onClose }: ChatPanelProps) {
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-4">
         {entries.length === 0 && (
           <div className="flex h-full flex-col justify-end gap-2 pb-2">
-            <p className="font-cond text-[1.375rem] leading-tight font-semibold tracking-[0.02em] text-ink">
+            <p className="font-serif text-[1.5rem] leading-tight font-medium text-ink">
               Ask about your plan.
             </p>
             <p className="mb-2 text-[0.8125rem] leading-relaxed text-ink-2">

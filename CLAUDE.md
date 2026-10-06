@@ -302,8 +302,8 @@ Core palette (these are official Penn colors, not approximations):
 
 Typography and the visual world (2026-09-13, Impeccable redesign):
 - The app's visual world is the **One-Line Diagram** (a power-system single-line drawing: BA / BSE / Energy buses, terms as feeder panels, courses as breakers with tie marks, labeled load meters). `DESIGN.md` and `.impeccable/design.json` are the authority for tokens, type, components, and motion; `PRODUCT.md` holds product truth; the direction contract lives in `.impeccable/surfaces/`.
-- **Type:** Barlow Semi Condensed 600 caps for titles and labels, Barlow 400/500 for text, Red Hat Mono for course codes, CU values, and readouts. No display serif.
-- **Ground:** off-white sheet `#FAF9F6`, 1px hairlines, square corners, no grain or elevation on panels. Text is achromatic ink; color exists only for bus identity (BA Penn Blue, BSE ink, Energy gold `#B8860B`) and printed status (good green, caution amber, problem Penn Red), always with a word.
+- **Type (2026-10, Penn web identity):** EB Garamond (Penn's primary face) for titles and reading text, mixed case; Roboto (secondary) for labels, controls and inputs; Roboto Mono for course codes, CU values and readouts. Garamond renders with `font-size-adjust: 0.47` set on `html`; every Roboto / mono class resets it to `none` (src/index.css).
+- **Ground:** off-white sheet `#FAFAF8`, 1px hairlines, square corners, no grain or elevation on panels. Text is a Penn-Blue-tinted ink (`#1B2130`); color exists only for bus identity (BA Penn Blue, BSE ink, Energy gold `#B8860B`) and printed status (good green, caution amber, problem Penn Red), always with a word.
 - Custom classes (`.label .tag .btn .seg .field .box .meter .panel`) live in `@layer components` in `src/index.css` so Tailwind utilities override them.
 
 What "official Penn app" means visually:

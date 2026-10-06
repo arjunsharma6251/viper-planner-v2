@@ -64,7 +64,7 @@ export function ScheduleGrid({
         return (
           <section key={y} id={`year-${y}`} aria-label={`${yearName(y)} year`} className="scroll-mt-32">
             <div className="mb-3 border-b-2 border-ink pb-1.5">
-              <h2 className="font-cond text-[1.125rem] leading-none font-bold tracking-[0.04em] text-ink uppercase">
+              <h2 className="font-serif text-[1.5rem] leading-none font-medium text-ink">
                 {yearName(y)}
               </h2>
             </div>
@@ -79,7 +79,7 @@ export function ScheduleGrid({
                   className="hidden border border-dashed border-rule-2 px-3 py-3 xl:block xl:self-start"
                   aria-hidden
                 >
-                  <p className="font-cond text-[0.9375rem] leading-none font-semibold tracking-[0.04em] text-ink-2 uppercase">
+                  <p className="font-serif text-[1.0625rem] leading-none font-medium text-ink-2 italic">
                     Commencement
                   </p>
                   {gradYear && <p className="tag mt-1.5 text-ink-3">May {gradYear}</p>}

@@ -157,7 +157,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
   return (
     <TraceContext.Provider value={trace}>
-      <div className="min-h-screen font-sans print:min-h-0">
+      <div className="min-h-screen print:min-h-0">
         {/* ── Title block ── */}
         <header className="no-print sticky top-0 z-30 border-b border-ink bg-sheet">
           <div
@@ -166,9 +166,12 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               chatOpen ? 'lg:pr-[27rem]' : '',
             ].join(' ')}
           >
-            <div className="flex shrink-0 items-center pr-4">
-              <h1 className="font-cond text-[1.0625rem] leading-none font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase">
-                VIPER <span className="text-penn-blue">Four-Year Planner</span>
+            <div className="flex shrink-0 items-center pr-2 sm:pr-4">
+              <h1 className="font-serif text-[1.1875rem] leading-none font-semibold whitespace-nowrap text-ink sm:text-[1.3125rem]">
+                VIPER{' '}
+                <span className="text-penn-blue">
+                  <span className="hidden sm:inline">Four-Year </span>Planner
+                </span>
               </h1>
               {admin && <span className="label ml-2 border border-penn-red px-1.5 py-1 !text-[0.625rem] !text-penn-red">Admin</span>}
             </div>
@@ -281,7 +284,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
         {/* Print-only title block: the sheet as issued. */}
         {store.config && planReady && (
           <div className="hidden border-b-2 border-ink pb-2 print:block">
-            <h1 className="font-cond text-[1.25rem] font-bold tracking-[0.06em] uppercase">VIPER Four-Year Planner</h1>
+            <h1 className="font-serif text-[1.5rem] font-semibold">VIPER Four-Year Planner</h1>
             <p className="text-[0.8125rem]">
               {studentName && <>{studentName} · </>}
               {store.config.sasMajorKey} BA + {store.config.seasMajorKey} BSE · Class of {gradYear} ·{' '}

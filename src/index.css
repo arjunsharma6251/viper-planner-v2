@@ -2,18 +2,24 @@
 
 /*
  * The one-line diagram world. One off-white sheet, hairline rules, square
- * corners, achromatic text. Color exists only for bus identity (BA blue,
- * BSE ink, Energy gold) and printed status (good / caution / problem).
- * Keep the brand values in sync with src/ui/branding/penn-tokens.ts.
+ * corners, text in a Penn-Blue-tinted ink. Color exists only for bus
+ * identity (BA blue, BSE ink, Energy gold) and printed status (good /
+ * caution / problem). Keep the brand values in sync with
+ * src/ui/branding/penn-tokens.ts.
+ *
+ * Type follows Penn's web identity (branding.web-resources.upenn.edu/
+ * web-identity): EB Garamond is the primary face — titles and reading
+ * text; Roboto is the secondary face for contrast — labels, controls,
+ * inputs; Roboto Mono carries codes and CU readouts so columns align.
  */
 @theme {
-  --color-sheet: #faf9f6;
+  --color-sheet: #fafaf8;
   --color-panel: #ffffff;
-  --color-ink: #1a1a1a;
-  --color-ink-2: #55554f;
-  --color-ink-3: #6e6e68;
-  --color-rule: #d9d6cf;
-  --color-rule-2: #b9b5ab;
+  --color-ink: #1b2130;
+  --color-ink-2: #4a5164;
+  --color-ink-3: #697083;
+  --color-rule: #dcdde2;
+  --color-rule-2: #b5b9c3;
 
   --color-penn-blue: #011f5b;
   --color-penn-blue-2: #0b3a8c;
@@ -31,12 +37,14 @@
   --color-tint-good: #eaf3ec;
   --color-tint-caution: #fcf1e6;
 
-  --font-sans: 'Barlow', system-ui, sans-serif;
-  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
-  --font-mono: 'Red Hat Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-serif: 'EB Garamond', Garamond, 'Times New Roman', serif;
+  --font-sans: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Labels and controls; was the condensed face, now Penn's secondary sans. */
+  --font-cond: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --shadow-pop: 0 2px 6px rgba(26, 26, 26, 0.08), 0 14px 32px -10px rgba(26, 26, 26, 0.28);
-  --shadow-sheet: 0 1px 0 rgba(26, 26, 26, 0.06);
+  --shadow-pop: 0 2px 6px rgba(27, 33, 48, 0.08), 0 14px 32px -10px rgba(27, 33, 48, 0.28);
+  --shadow-sheet: 0 1px 0 rgba(27, 33, 48, 0.06);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -45,7 +53,13 @@
 html {
   background-color: var(--color-sheet);
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  /* Reading text is Garamond (Penn's primary face). Its x-height is small,
+     so font-size-adjust renders it at the optical size the sheet was
+     designed around; anything set in Roboto or Roboto Mono resets it below. */
+  font-family: var(--font-serif);
+  font-size-adjust: 0.47;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
   -webkit-font-smoothing: antialiased;
   font-size: clamp(15px, 13.4px + 0.2vw, 17px);
   caret-color: var(--color-penn-blue);
@@ -84,17 +98,33 @@ a {
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
 }
+
+/* Controls, inputs and every sans / mono run are Roboto's own size. */
+input,
+select,
+textarea,
+.font-sans,
+.font-cond,
+.font-mono {
+  font-size-adjust: none;
+}
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+}
 }
 
 @layer components {
 /* ---- Voice: the drawing's lettering ---- */
 
-/* Condensed caps: panel titles, column heads, control labels. */
+/* Small caps in Roboto: column heads, control labels, readouts. */
 .label {
   font-family: var(--font-cond);
-  font-weight: 600;
+  font-size-adjust: none;
+  font-weight: 500;
   font-size: 0.6875rem;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-2);
   line-height: 1;
@@ -103,9 +133,10 @@ a {
 /* Equipment tags and readouts. */
 .tag {
   font-family: var(--font-mono);
+  font-size-adjust: none;
   font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 .tnum {
@@ -173,6 +204,8 @@ a {
   background: var(--color-panel);
   color: var(--color-ink);
   padding: 0.5rem 0.625rem;
+  font-family: var(--font-sans);
+  font-size-adjust: none;
   font-size: 0.8125rem;
   line-height: 1.25;
   transition: border-color 120ms ease-out;
@@ -190,7 +223,7 @@ a {
 }
 select.field {
   padding-right: 1.75rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231a1a1a' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231b2130' stroke-width='1.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.625rem center;
 }
@@ -198,9 +231,10 @@ select.field {
 /* Controls: the drawing's switches. */
 .btn {
   font-family: var(--font-cond);
-  font-weight: 600;
+  font-size-adjust: none;
+  font-weight: 500;
   font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   line-height: 1;
   padding: 0.625rem 0.875rem;
@@ -255,6 +289,7 @@ select.field {
 }
 .kbd {
   font-family: var(--font-mono);
+  font-size-adjust: none;
   font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: 0;
@@ -269,7 +304,8 @@ select.field {
 }
 .seg > button {
   font-family: var(--font-cond);
-  font-weight: 600;
+  font-size-adjust: none;
+  font-weight: 500;
   font-size: 0.6875rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
