@@ -13,7 +13,7 @@ import { CourseDetailModal } from '../components/CourseDetailModal'
 import { AddCourseModal } from '../components/AddCourseModal'
 import { ToastProvider } from '../components/Toasts'
 import { useToast } from '../components/use-toast'
-import { MajorSelects } from '../components/MajorSelects'
+import { DegreeSelect } from '../components/MajorSelects'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
@@ -41,12 +41,14 @@ function isTyping(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable
 }
 
-/** A title-block cell: a labeled field in the sheet's header. */
-function Cell({ label, children, className = '' }: { label: string; children: React.ReactNode; className?: string }) {
+/** A title-block field: a small label over its value. Values wrap. */
+function TitleField({ label, children, tone }: { label: string; children: React.ReactNode; tone?: 'ba' }) {
   return (
-    <div className={['flex min-w-0 flex-col justify-center gap-1 overflow-hidden border-l border-rule px-3', className].join(' ')}>
-      <span className="label !text-[0.625rem] whitespace-nowrap !text-ink-3">{label}</span>
-      <div className="min-w-0 text-[0.8125rem] leading-none whitespace-nowrap text-ink">{children}</div>
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <span className={['label !text-[0.625rem] whitespace-nowrap', tone === 'ba' ? '!text-penn-blue' : '!text-ink-3'].join(' ')}>
+        {label}
+      </span>
+      <div className="min-w-0 text-[0.9375rem] leading-snug text-ink">{children}</div>
     </div>
   )
 }
@@ -155,6 +157,13 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
   const planReady = !!store.plan && !!store.augmented && !editingSetup
 
+  function switchMajors(next: NonNullable<typeof store.config>) {
+    if (!window.confirm('Switching majors rebuilds your starting plan from the scheduler template. Manual edits will be replaced. Continue?'))
+      return
+    if (store.setup(next)) toast('Plan rebuilt for the new combination.')
+    else toast('Could not build a plan for that combination.')
+  }
+
   return (
     <TraceContext.Provider value={trace}>
       <div className="min-h-screen print:min-h-0">
@@ -175,53 +184,6 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
               </h1>
               {admin && <span className="label ml-2 border border-penn-red px-1.5 py-1 !text-[0.625rem] !text-penn-red">Admin</span>}
             </div>
-
-            {store.config && planReady && (
-              <>
-                {studentName && (
-                  <Cell label="Student" className={chatOpen ? 'hidden' : 'hidden shrink-0 md:flex'}>
-                    <span className="max-w-[14rem] truncate">{studentName}</span>
-                  </Cell>
-                )}
-                <Cell label="Student plan" className={chatOpen ? 'hidden' : 'hidden flex-1 lg:flex'}>
-                  <MajorSelects
-                    config={store.config}
-                    onChange={(next) => {
-                      if (
-                        !window.confirm(
-                          'Switching majors rebuilds your starting plan from the scheduler template. Manual edits will be replaced. Continue?',
-                        )
-                      )
-                        return
-                      if (store.setup(next)) toast('Plan rebuilt for the new combination.')
-                      else toast('Could not build a plan for that combination.')
-                    }}
-                  />
-                </Cell>
-                <Cell label="Class of" className={chatOpen ? 'hidden' : 'hidden shrink-0 lg:flex'}>
-                  <span className="tag">{gradYear}</span>
-                </Cell>
-                <Cell label="Curriculum" className={chatOpen ? 'hidden' : 'hidden shrink-0 2xl:flex'}>
-                  {curriculum === 'ncc' ? 'New College Curriculum' : 'Old core'}
-                </Cell>
-                {admin && (
-                  <Cell label="Audit under" className={chatOpen ? 'hidden' : 'hidden shrink-0 lg:flex'}>
-                    <div className="seg" role="tablist" aria-label="Audit policy">
-                      {(['confirmed', 'proposal'] as const).map((p) => (
-                        <button key={p} role="tab" aria-selected={store.auditPolicy === p} onClick={() => store.setAuditPolicy(p)} className="!py-1">
-                          {p === 'confirmed' ? 'Policy' : 'Proposal'}
-                        </button>
-                      ))}
-                    </div>
-                  </Cell>
-                )}
-                <div className={['items-center border-l border-rule px-2', chatOpen ? 'hidden' : 'hidden lg:flex'].join(' ')}>
-                  <button type="button" onClick={() => setEditingSetup(true)} className="btn btn-quiet !py-2">
-                    Edit setup
-                  </button>
-                </div>
-              </>
-            )}
 
             <div className="ml-auto flex shrink-0 items-center justify-end gap-1 border-l border-rule pl-2">
               {store.plan && planReady && (
@@ -300,6 +262,41 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             chatOpen ? 'lg:pr-[27rem]' : '',
           ].join(' ')}
         >
+          {/* ── Title block: whose plan this is. Full width, wraps, never crops. ── */}
+          {store.config && planReady && (
+            <section aria-label="Student plan" className="no-print mb-6 flex flex-wrap items-end gap-x-8 gap-y-3 border-b border-rule pb-3">
+              {studentName && (
+                <TitleField label="Student">
+                  <span className="font-medium">{studentName}</span>
+                </TitleField>
+              )}
+              <TitleField label="BA · College" tone="ba">
+                <DegreeSelect config={store.config} degree="sas" onChange={switchMajors} />
+              </TitleField>
+              <TitleField label="BSE · Engineering">
+                <DegreeSelect config={store.config} degree="seas" onChange={switchMajors} />
+              </TitleField>
+              <TitleField label="Class of">
+                <span className="tag !text-[0.8125rem]">{gradYear}</span>
+              </TitleField>
+              <TitleField label="Curriculum">{curriculum === 'ncc' ? 'New College Curriculum' : 'Old core'}</TitleField>
+              {admin && (
+                <TitleField label="Audit under">
+                  <div className="seg" role="tablist" aria-label="Audit policy">
+                    {(['confirmed', 'proposal'] as const).map((p) => (
+                      <button key={p} role="tab" aria-selected={store.auditPolicy === p} onClick={() => store.setAuditPolicy(p)} className="!py-1">
+                        {p === 'confirmed' ? 'Policy' : 'Proposal'}
+                      </button>
+                    ))}
+                  </div>
+                </TitleField>
+              )}
+              <button type="button" onClick={() => setEditingSetup(true)} className="btn btn-quiet ml-auto !py-2">
+                Edit setup
+              </button>
+            </section>
+          )}
+
           {!planReady ? (
             <PlanSetup
               initial={store.config}
