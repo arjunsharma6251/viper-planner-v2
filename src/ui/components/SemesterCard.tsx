@@ -96,7 +96,7 @@ export function SemesterCard({
       onDragLeave={() => setInsertAt(null)}
       onDrop={handleDrop}
     >
-      <header className="px-3 pt-3">
+      <header className="px-3 pt-3 pb-2.5">
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="font-cond text-[0.9375rem] leading-none font-semibold tracking-[0.04em] text-ink uppercase">
             {seasonLabel}
@@ -119,13 +119,12 @@ export function SemesterCard({
             )}
           </p>
         )}
-        <div className="mt-2 border-b border-rule" aria-hidden />
       </header>
 
       <div
         className={[
           'label grid border-b border-ink px-1 pb-1 !text-[0.625rem] !text-ink-3',
-          summer ? `${ROW_COLUMNS_COMPACT} mt-2 gap-x-1.5 pl-5` : `${ROW_COLUMNS} gap-x-2 pl-6`,
+          summer ? `${ROW_COLUMNS_COMPACT} gap-x-1.5 pl-5` : `${ROW_COLUMNS} gap-x-2 pl-6`,
         ].join(' ')}
         aria-hidden
       >
