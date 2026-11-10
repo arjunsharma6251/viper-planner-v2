@@ -421,10 +421,13 @@ export function renameCourse(
     const catalog = lookupCourse(trimmed)
     Object.assign(c, catalogAttrs(trimmed))
     moveMarks(next, original, trimmed)
+    // The slot's name stays as secondary text; the title is the course's
+    // own (2026-11 beta feedback: a code typed without a title kept the slot
+    // name as its title, so "Tech Elective" looked unfilled).
+    c.slotLabel = c.slotLabel ?? c.title
     c.code = trimmed
     c.originalCode = trimmed
-    // Keep the slot's own label when the catalog has no title for the code.
-    c.title = title || catalog?.title || c.title
+    c.title = title || catalog?.title || trimmed
     c.cu = catalog?.cu || c.cu
     c.isPlaceholder = false
     c.isRenamed = false
@@ -436,7 +439,10 @@ export function renameCourse(
   if (!c.originalCode) c.originalCode = original
   c.isRenamed = trimmed !== c.originalCode
   if (title) c.title = title
-  else if (codeChanged) c.title = lookupCourse(trimmed)?.title ?? c.title
+  // On a slot row, a new code with no catalog title shows the code (the old
+  // title named the slot's previous course); the slot label stays secondary.
+  // Off a slot, the old title is kept, as before.
+  else if (codeChanged) c.title = lookupCourse(trimmed)?.title ?? (c.slotId ? trimmed : c.title)
   recomputeDerived(next)
   const what = codeChanged ? `Renamed ${original} to ${trimmed}` : `Retitled ${trimmed}`
   return { ok: true, message: what, plan: next }

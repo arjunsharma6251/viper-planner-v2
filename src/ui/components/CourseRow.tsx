@@ -112,6 +112,9 @@ export function CourseRow({ course, onOpen, onDragStart, onDragEnd, dragging, se
         ].join(' ')}
       >
         {course.title}
+        {!open && course.slotLabel && course.title === course.code && (
+          <span className={['ml-1.5 text-[0.75rem]', inverted ? 'text-sheet' : 'text-ink-3'].join(' ')}>{course.slotLabel}</span>
+        )}
         {course.fixed && (
           <span className="ml-1.5 inline-block align-[-2px] text-ink-3" title="Fixed VIPER requirement">
             <IconLock size={12} />

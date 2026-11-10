@@ -197,7 +197,7 @@ export function CourseDetailModal({
                   id="course-title"
                   value={titleValue}
                   onChange={(e) => setTitleValue(e.target.value)}
-                  placeholder={open ? 'Optional — catalog title used if known' : undefined}
+                  placeholder={open ? 'Optional — the catalog title, else the code' : undefined}
                   className="field w-full"
                   autoComplete="off"
                 />
