@@ -25,7 +25,8 @@ describe('sample-schedule floor (no incoming credit)', () => {
   it('CHEM/STANDARD + CBE/ENERGY keeps P-Chem in Year 3', () => {
     const plan = seed('CHEM', 'STANDARD', 'CBE', 'ENERGY');
     expect(termOf(plan, 'CHEM 2210')).toBe('fall-y3');
-    for (const code of ['CHEM 2220', 'CHEM 2230', 'CHEM 2510']) expect(termOf(plan, code)).toBe('spring-y3');
+    // CHEM 2220 is replaced by CBE 3530 in this pairing (substitutions.test.ts).
+    for (const code of ['CBE 3530', 'CHEM 2230', 'CHEM 2510']) expect(termOf(plan, code)).toBe('spring-y3');
     expect(plan.loads['spring-y2']).toBeLessThanOrEqual(6.5);
   });
 

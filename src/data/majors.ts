@@ -137,7 +137,8 @@ export const MAJORS: Record<string, Major> = {
       STANDARD: { label: 'Standard BA', default: true, extraCore: [], electiveSlots: [] },
     },
     substitutions: [
-      { from: 'CHEM 2220', to: 'CBE 3530', context: 'CHEM-CBE combo', note: 'CBE 3530 may replace CHEM 2220' },
+      // Reconfirmed by Michelle Hutchings 2026-11-04. The seed plans only CBE 3530.
+      { from: 'CHEM 2220', to: 'CBE 3530', context: 'CHEM-CBE combo', note: 'Also stands in for CHEM 2220 (approved CHEM-CBE substitution).' },
       { from: 'CHEM 2210', to: 'MSE 2210', context: 'CHEM-MSE combo', note: 'MSE 2210 may replace CHEM 2210' },
     ],
     notes: [

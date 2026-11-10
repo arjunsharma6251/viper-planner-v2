@@ -29,6 +29,20 @@ export function collectCoreCourses(
     sasCodes.push(plan.meta.requiredThermo);
   }
 
+  // Pairing substitutions (majors.ts `substitutions`, context "SAS-SEAS combo"):
+  // when the BSE already requires the substitute, the BA course it replaces
+  // is not seeded and the substitute counts for both degrees (2026-11:
+  // CHEM+CBE planned both CHEM 2220 and CBE 3530).
+  const coreNotes: Record<string, string> = {};
+  const pair = `${sasMajor.code}-${seasMajor.code} combo`;
+  for (const sub of sasMajor.substitutions ?? []) {
+    if (sub.context !== pair || !seasCodes.includes(sub.to)) continue;
+    const at = sasCodes.indexOf(sub.from);
+    if (at < 0) continue;
+    sasCodes.splice(at, 1, sub.to);
+    if (sub.note) coreNotes[sub.to] = sub.note;
+  }
+
   const seen = new Map<string, CoreCode>();
   const doubleCounted = new Set<string>();
   for (const code of sasCodes) {
@@ -45,5 +59,6 @@ export function collectCoreCourses(
 
   plan.meta.coreCodes = Array.from(seen.values());
   plan.meta.doubleCounted = doubleCounted;
+  plan.meta.coreNotes = coreNotes;
   return plan;
 }

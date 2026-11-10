@@ -217,6 +217,7 @@ function addCoreCourseToSemester(
   extras: CoreCourseExtras = {},
 ): void {
   const { code, sas, data } = item;
+  const coreNote = plan.meta.coreNotes?.[code];
   const isDouble = plan.meta.doubleCounted!.has(code);
   const category = isDouble ? 'both' : sas ? 'sas' : 'seas';
   const tags: string[] = [];
@@ -235,6 +236,7 @@ function addCoreCourseToSemester(
     tags,
     isDouble,
     isEnergy: data.energy,
+    ...(coreNote ? { note: coreNote } : {}),
     ...(extras.warning ? { warning: extras.warning } : {}),
   });
 }

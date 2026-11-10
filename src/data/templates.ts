@@ -70,6 +70,11 @@ export interface PlanTemplate {
   terms: Partial<Record<SemesterKey, readonly TemplateEntry[]>>
 }
 
+/** The note a major's pairing substitution carries (one wording, majors.ts). */
+function substitutionNote(majorKey: string, from: string): string {
+  return MAJORS[majorKey]?.substitutions?.find((s) => s.from === from)?.note ?? ''
+}
+
 const c = (code: string, category: TemplateCategory, extra: Omit<Extract<TemplateEntry, { code: string }>, 'code' | 'category'> = {}): TemplateEntry => ({
   code,
   category,
@@ -114,7 +119,7 @@ export const PLAN_TEMPLATES: readonly PlanTemplate[] = [
         s('pad'),
       ],
       'spring-y3': [
-        c('CBE 3530', 'both', { note: 'Also stands in for CHEM 2220 (approved CHEM-CBE substitution).' }),
+        c('CBE 3530', 'both', { note: substitutionNote('CHEM', 'CHEM 2220') }),
         c('CBE 3710', 'seas'),
         c('CHEM 2230', 'sas'),
         s('dist-ss'),

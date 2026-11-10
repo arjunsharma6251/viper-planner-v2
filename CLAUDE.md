@@ -172,6 +172,10 @@ Foundations placed in summer count toward policy but NOT in-term. This is the ke
 
 `src/plan/fulfillments.ts` is the one place this is decided. Each course has DERIVED fulfillments (catalog FA / Sector / energy, its slot's Foundation or division, VIPR 1200/1210 = SEAS ethics + Sector VII) and the student's overrides, stored in `plan.fulfillments[courseKey]` as marks: `tag` adds, `!tag` removes a derived one (old plans hold additions only and read the same). `augmentPlan` puts the result on `effectiveFulfills`; the NCC/SEAS audit, the old-core FA/Sector summary, the energy count, the stars and the modal's pre-checked "Counts toward" boxes all read it. Old-core tags are `fa:<id>` / `sec:<id>`. Writing / Kite / Key / Language slots carry a division for placement only — never derived, but the student may tick one.
 
+### Pairing substitutions (2026-11)
+
+`substitutions` on a SAS major with `context: '<SAS>-<SEAS> combo'` apply to that pairing only. When the BSE core already holds the substitute, `collect-core-courses` drops the BA course from the seed and the substitute counts for both degrees, carrying the substitution's `note` (also reused by `templates.ts`). The major audit counts the substitute toward the BA course. Current: CBE 3530 for CHEM 2220 in CHEM+CBE (Michelle, reconfirmed 2026-11-04).
+
 ### Overlap vs double-count
 
 These are different things and the distinction matters:
