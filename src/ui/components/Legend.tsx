@@ -1,5 +1,5 @@
 import { CAP, FIRST_SEMESTER_CAP, FORM_THRESHOLD } from '../load'
-import { IconBolt, IconLock, IconOpenBreaker } from './icons'
+import { IconLock, IconOpenBreaker } from './icons'
 
 /**
  * Every mark the sheet uses, explained once. Rendered inside the
@@ -9,22 +9,7 @@ export function LegendContent() {
   const row = 'grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 py-1.5 text-[0.75rem] text-ink-2'
   return (
     <div>
-          <p className="label !text-[0.625rem] !text-ink-3">Counts</p>
-          <div className={row}>
-            <span className="tag text-center text-penn-blue">×2</span>
-            <span>Double-counts: satisfies two requirements</span>
-          </div>
-          <div className={row}>
-            <span className="tag text-center text-penn-red">×3</span>
-            <span>Triple-counts: three or more requirements</span>
-          </div>
-          <div className={row}>
-            <span className="flex justify-center text-energy">
-              <IconBolt size={13} />
-            </span>
-            <span>VIPER energy-designated course</span>
-          </div>
-          <p className="label mt-3 !text-[0.625rem] !text-ink-3">Courses</p>
+          <p className="label !text-[0.625rem] !text-ink-3">Courses</p>
           <div className={row}>
             <span className="flex justify-center text-ink-3">
               <IconOpenBreaker size={14} />

@@ -130,7 +130,7 @@ export function SemesterCard({
       >
         <span>code</span>
         <span>course</span>
-        {!summer && <span>counts</span>}
+        {!summer && <span />}
         <span className="text-right">CU</span>
       </div>
 

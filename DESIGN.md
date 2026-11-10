@@ -193,7 +193,7 @@ This world replaced the earlier "registrar ledger" identity (display serif, pape
 - One off-white sheet, hairline rules, square corners everywhere, no grain
 - Achromatic text; color only for bus identity (Penn Blue, ink, energy gold) and status (green, amber, Penn Red) with a printed word
 - Three faces with fixed jobs: Barlow Semi Condensed caps, Barlow text, Red Hat Mono readouts
-- One fixed column ruling (tag | title | ties | CU) for every course row
+- One fixed column ruling (tag | title | status | CU) for every course row; the status column speaks only for open slots (2026-11: the ×2 / ×3 / bolt count marks were removed after beta testers could not read them; "Counts toward" in the course sheet is the one place a course's requirements are shown)
 - Labeled meters with printed thresholds (5.5 rated · 6.5 overload · 7.5 trip)
 - Full inversion for selected and dragged rows; a hover "trace" that lights the buses a course feeds
 - Authored single-stroke SVG icons; keyboard shortcuts printed in mono beside their controls
@@ -211,7 +211,7 @@ An achromatic drawing with three bus identities and three status inks, each with
 ### Secondary (status)
 - **Good Green** (`{colors.good}`): satisfied trackers, the "graduates on time" notice, "copied" confirmation; always beside a check glyph or the word.
 - **Caution Amber** (`{colors.caution}`): overload loads (5.5–6.5 CU) in meter fill, readout, and status word; warning-severity alarms.
-- **Problem Red** (`{colors.problem}`, identical to Penn Red): over-cap loads, within-degree double-count marks (×2, ×3), error alarms, the danger button, and the admin sandbox's ruling. Penn Red appears nowhere as decoration.
+- **Problem Red** (`{colors.problem}`, identical to Penn Red): over-cap loads, error alarms, the danger button, and the admin sandbox's ruling. Penn Red appears nowhere as decoration.
 
 ### Neutral
 - **Sheet** (`{colors.sheet}`): the page, every panel, modal, and menu surface.
@@ -260,7 +260,7 @@ The sheet is a centered column with a maximum width of 124rem and fluid gutters 
 
 Below, a two-column grid places the plan (`minmax(0, 1fr)`) beside a 21rem rail with a 32px gutter (`lg:grid-cols-[minmax(0,1fr)_21rem]`, `gap-8`). Year sections stack with 36px between them (`gap-9`); each year opens with a 2px ink rule under its headline and lays three feeder panels in `1fr 1fr minmax(15rem, 0.55fr)` at ≥1280px (summer is the narrow third), two columns at ≥768px, one below. Panels sit 16px apart (`gap-4`).
 
-Inside a panel: 12px horizontal padding, header on 12px top padding, a 6px meter with 12px of threshold numerals below, a column-head row ruled by 1px ink, then rows at a 36px minimum height with 6px vertical padding, each ruled by a hairline. Every course row obeys one column ruling: `4.5rem | minmax(0,1fr) | 2.75rem | 2rem` (tag | title | ties | CU) with 8px column gap and 24px left inset for the grip; summer panels use the compact ruling `4.25rem | minmax(0,1fr) | 2rem` (no ties). The add cell is an 8px-margin dashed rectangle. Rail panels use 8px horizontal padding and 8px row padding; tracker rows are `minmax(0,1fr) | 3.5rem | 3.25rem | 1rem`.
+Inside a panel: 12px horizontal padding, header on 12px top padding, a 6px meter with 12px of threshold numerals below, a column-head row ruled by 1px ink, then rows at a 36px minimum height with 6px vertical padding, each ruled by a hairline. Every course row obeys one column ruling: `4.5rem | minmax(0,1fr) | auto | 2rem` (tag | title | status | CU) with 8px column gap and 24px left inset for the grip; summer panels use the compact ruling `4.25rem | minmax(0,1fr) | 2rem` (no status). The add cell is an 8px-margin dashed rectangle. Rail panels use 8px horizontal padding and 8px row padding; tracker rows are `minmax(0,1fr) | 3.5rem | 3.25rem | 1rem`.
 
 The right edge holds one thing at a time. With the chat drawer open (26rem, fixed, ruled left in ink) the sheet pads to 27rem on the right and the rail drops below the plan as a two-column block. On phones the title block collapses to wordmark and icon controls, the bus strip becomes stacked readouts, and a sticky bottom term bar (Y1–Y4 cells plus an Audit cell in Penn Blue) rules the viewport's foot. Toasts sit bottom-right (24px inset on desktop, above the term bar on phones). Print drops the title block, controls, add cells, and the reference panels, issues a print title block under a 2px ink rule, and keeps panels unbroken.
 

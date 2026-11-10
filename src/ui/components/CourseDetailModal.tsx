@@ -6,7 +6,6 @@ import { pcrUrlFor } from '../../utils/pcr'
 import { Modal } from './Modal'
 import { isOpenSlot } from '../../plan/open-slot'
 import { alternativesFor } from '../../data/seas-catalog'
-import { Ties } from './Ties'
 import { IconCheck, IconExternal } from './icons'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { faTag, secTag } from '../../plan/fulfillments'
@@ -146,7 +145,6 @@ export function CourseDetailModal({
           <span className="tag text-ink-3">
             {here.year} · {here.season}
           </span>
-          {!open && <Ties course={course} />}
           {context.map((c) => (
             <span key={String(c)} className="text-ink-3">
               {c}

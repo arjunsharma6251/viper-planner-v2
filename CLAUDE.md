@@ -104,7 +104,7 @@ Default to checking the old source before re-deriving from first principles. The
 - **NCC math** (`computeNCCWorkload`, `computeSEASGenElectives` in old `06-ncc.jsx`). The policy-vs-in-term split, the Foundation status (`waived`/`summer`/`in-term`), the distribution computation, the strategy toggle behaviors.
 - **Course catalog** (`COURSES`, `MAJORS`, `VIPER_PROGRAM`, `AP_CREDITS`, `GENED_POOL`, `GENED_SLOTS`, `FA_REQUIREMENTS`, `SECTORS`, `ENERGY_COURSES`, `COMMON_DOUBLE_COUNTS` in old `02-data.jsx`). The data itself is months of cross-referencing against Penn's actual course catalog. Don't redo the research.
 - **Penn Course Review URL helper.** PCR is the student's first reference for any course. Every course code needs a clickable PCR link.
-- **Multi-star double-count / overlap indicator.** Gold stars for cross-degree overlap (BA+BSE), red stars for within-degree double-count. Cap at 3. Silent under 2.
+- **Multi-star double-count / overlap indicator.** Gold stars for cross-degree overlap (BA+BSE), red stars for within-degree double-count. Cap at 3. Silent under 2. *(2026-11: no longer drawn on course rows — beta testers and Michelle could not read the ×2/×3 marks. `requirementCount` / `overlapKind` are still computed; the course sheet's "Counts toward" shows what a course counts for, in grid, print and share views alike.)*
 - **`augmentPlan` function.** Takes the raw plan, computes requirement counts, overlap kinds, fulfillment intent. Same pattern in new architecture.
 
 ### Logic to leave behind
@@ -345,7 +345,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 **Reversibility as default.** Every destructive action has an undo. Delete a course → toast "Removed CHEM 2410. Undo." Apply an LLM-suggested change → snapshot first. Reset to template → confirm. The cost of regret should be one click.
 
 **Progressive disclosure.** The default surface shows the headline. Detail lives one click away. Examples:
-- Course row shows code, title, CU, star indicator. Everything else (fulfillments, alternates, rename, delete) is in the detail modal.
+- Course row shows code, title, CU (an open slot shows "choose" on hover). Everything else (fulfillments, alternates, rename, delete) is in the detail modal.
 - Sandbox shows the headline metric and one row per strategy. The mod-level toggles live deeper, in an "advanced" disclosure.
 - Trackers show "5/7 satisfied" by default. Click to expand into which specific requirements are missing.
 

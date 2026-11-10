@@ -2,7 +2,6 @@ import type { DragEvent } from 'react'
 import type { AugmentedCourse } from '../../plan/types'
 import { isOpenSlot } from '../../plan/open-slot'
 import { busesOf, useTrace } from '../trace'
-import { Ties } from './Ties'
 import { IconGrip, IconLock, IconOpenBreaker } from './icons'
 
 export interface CourseRowProps {
@@ -17,13 +16,18 @@ export interface CourseRowProps {
   selected?: boolean
   /** User-picked cluster color (a thin key at the left edge). */
   color?: string
-  /** Narrow ruling for summer panels: tag · title · CU, no ties column. */
+  /** Narrow ruling for summer panels: tag · title · CU, no status column. */
   compact?: boolean
 }
 
-/** The one column ruling every course row on the sheet obeys. */
-export const ROW_COLUMNS = 'grid-cols-[4.5rem_minmax(0,1fr)_2.75rem_2rem]'
-/** Summer panels are narrow: the same ruling without the ties column. */
+/**
+ * The one column ruling every course row on the sheet obeys: code · title ·
+ * status · CU. The status column only speaks for open slots; the old count
+ * marks (×2 / ×3 / bolt) are gone (2026-11 beta feedback: students could not
+ * read them). What a course counts toward lives in its detail sheet.
+ */
+export const ROW_COLUMNS = 'grid-cols-[4.5rem_minmax(0,1fr)_auto_2rem]'
+/** Summer panels are narrow: the same ruling without the status column. */
 export const ROW_COLUMNS_COMPACT = 'grid-cols-[4.25rem_minmax(0,1fr)_2rem]'
 
 /**
@@ -130,7 +134,7 @@ export function CourseRow({ course, onOpen, onDragStart, onDragEnd, dragging, se
           choose
         </span>
       ) : (
-        <Ties course={course} inverted={inverted} />
+        <span aria-hidden />
       )}
 
       <span className={['tag text-right', inverted ? 'text-sheet' : 'text-ink-2'].join(' ')}>
