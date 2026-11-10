@@ -20,8 +20,9 @@ import { MAJORS } from './majors'
  *   lecture with lab). Michelle wrote CHEM 2410 + 2412 / 2420 + 2422; the
  *   department offers the lab only as part of the 1.5 CU 2411/2412 pair.
  * - VIPR 1200 / 1210 / 1300 follow VIPER_PROGRAM.fixedCourses (the program
- *   rule), not each document's rows: the CHEM+MSE PDF had a stray extra
- *   VIPR 1300 in Fall Y2 and the PHYS+MSE document showed none in summers.
+ *   rule), not each document's rows. The CHEM+MSE PDF's Fall Y2 VIPR 1300
+ *   was right (confirmed 2026-11-10; the program rule now includes it); the
+ *   PHYS+MSE document showed none in summers.
  * - Named Foundation courses (COL 0100 / COL 0200) are seeded as open
  *   Kite / Key slots, as in the CHEM+CBE plan.
  * - PHYS+MSE is the Business & Technology concentration ("B&T Elective").

@@ -697,7 +697,7 @@ describe('CSV export', () => {
     // per-semester totals, then the summary block
     expect(csv).toContain('"Total","1.0","","Total","1.5"') // Year 1: CHEM 1012 / MATH 1410 + VIPR 1200
     expect(csv).toContain('"Summary"')
-    expect(csv).toContain('"Total CU","7.0"') // 2 courses + 10 × 0.5 VIPR
+    expect(csv).toContain('"Total CU","7.5"') // 2 courses + 11 × 0.5 VIPR (VIPR 1300 includes Fall Y2)
     expect(csv).toContain('"Energy courses","0/3"')
     expect(csv).toContain('"Double-counted","0"')
   })
