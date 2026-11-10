@@ -118,7 +118,10 @@ export const MAJORS: Record<string, Major> = {
       'CHEM 1022': 'spring-y1', 'CHEM 1102': 'spring-y1',
       'PHYS 0150': 'fall-y2', 'PHYS 0151': 'spring-y2',
       'CHEM 2411': 'fall-y2', 'CHEM 2421': 'spring-y2',
-      'CHEM 2210': 'fall-y3', 'CHEM 2610': 'fall-y3', 'CHEM 2460': 'fall-y3',
+      // Junior and senior Chemistry follow Ananya Srivastav's account of the
+      // department's order (2026-11 beta feedback); Michelle's CHEM+CBE template
+      // keeps its own pairing-specific order. CHEM 2510's term was not covered.
+      'CHEM 2210': 'fall-y3', 'CHEM 2610': 'fall-y3', 'CHEM 2460': 'fall-y4',
       'CHEM 2220': 'spring-y3', 'CHEM 2230': 'spring-y3', 'CHEM 2510': 'spring-y3',
     },
     concentrations: {
