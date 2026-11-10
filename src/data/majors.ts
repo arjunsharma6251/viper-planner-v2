@@ -85,13 +85,22 @@ export const MAJORS: Record<string, Major> = {
           { id: 'phys-lab', label: 'Physics Lab Elective', cu: 1 },
         ],
       },
+      // Computer Techniques follows a Class of 2027 Path@Penn audit (Adithya
+      // Selvakumar, 2026-11): PHYS 4411 in the core; PHYS 1250, PHYS 3351
+      // (both already in sharedCore), PHYS 4401, a Physics Lab Elective and
+      // 3 CU of Computer Techniques Electives. The pools hold the courses that
+      // audit accepted (his lab: ESE 2150; his electives: CIS 1100/1210/1600),
+      // not the department's full list. Whether PHYS 4411 is core for every
+      // concentration is still open.
       CS: {
         label: 'Computer Techniques',
-        extraCore: ['CIS 1100', 'CIS 1200'],
+        extraCore: ['PHYS 4401', 'PHYS 4411'],
+        sampleSchedule: { 'PHYS 4401': 'fall-y4', 'PHYS 4411': 'fall-y4' },
         electiveSlots: [
-          { id: 'cs-phys-1', label: 'CS Elective', cu: 1 },
-          { id: 'cs-phys-2', label: 'CS Elective', cu: 1 },
-          { id: 'phys-lab', label: 'Physics Lab Elective', cu: 1 },
+          { id: 'cs-phys-1', label: 'Computer Techniques Elective', cu: 1, pool: ['CIS 1100', 'CIS 1210', 'CIS 1600'] },
+          { id: 'cs-phys-2', label: 'Computer Techniques Elective', cu: 1, pool: ['CIS 1210', 'CIS 1600', 'CIS 1100'] },
+          { id: 'cs-phys-3', label: 'Computer Techniques Elective', cu: 1, pool: ['CIS 1600', 'CIS 1100', 'CIS 1210'] },
+          { id: 'phys-lab', label: 'Physics Lab Elective', cu: 1, pool: ['PHYS 3364', 'ESE 2150'] },
         ],
       },
     },
