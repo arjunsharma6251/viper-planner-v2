@@ -17,6 +17,7 @@ import { DegreeSelect } from '../components/MajorSelects'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
+import { computeMajorAudit } from '../../plan/major-audit'
 import { computeAdvisorNotes } from '../../plan/advisor-notes'
 import { AdvisorNotes } from '../components/AdvisorNotes'
 import { curriculumModeOf } from '../store/use-plan-store'
@@ -123,6 +124,13 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
         proposalView ? proposalPolicy.targets : undefined,
       )
     : undefined
+  const majorAudits =
+    store.augmented && store.config
+      ? {
+          sas: computeMajorAudit(store.augmented, store.config.sasMajorKey, store.config.sasConcKey, store.config.seasMajorKey),
+          seas: computeMajorAudit(store.augmented, store.config.seasMajorKey, store.config.seasConcKey, store.config.sasMajorKey),
+        }
+      : undefined
   const advisorNotes = store.augmented
     ? computeAdvisorNotes(store.augmented, nccAudit, curriculum, gradYear)
     : []
@@ -371,6 +379,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       ncc={curriculum === 'ncc' ? nccAudit : undefined}
                       seas={nccAudit?.seas}
                       curriculum={curriculum}
+                      majors={majorAudits}
                     />
                     {showCurriculumNotice && (
                       <div className="no-print border-b border-rule px-3 py-3 text-[0.75rem] leading-snug text-ink" role="status">

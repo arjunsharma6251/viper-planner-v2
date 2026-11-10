@@ -203,7 +203,7 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - Major selection (BA + BSE) and concentrations
 - Incoming credit picker (AP/IB/A-level physics + CS, Penn credit exams for CHEM 1012/1022, MATH 1400/1410/2200/2300, BIOL 1101/1102/1121, and waivers). AP Calc, AP Chem, AP Stat, IB/A-level Chem are deliberately NOT offered: they grant no VIPER-usable credit.
 - Graduation year selector
-- Degree audit: ONE right-rail panel — BA / BSE / Energy dropdowns (`Disclosure.tsx`: boxed chevron, readout, accent bar; a section with gaps opens itself, complete ones stay folded), total CU line, Advisor notes dropdown, Reference & legend dropdown. Nothing else lives in the rail; Reset to template is gone (Edit setup → Rebuild covers it).
+- Degree audit: ONE right-rail panel — BA / BSE / Energy dropdowns (BA and BSE each end with "Major · <name>": Core courses and Electives groups, one tick per core course and elective slot with its accepted alternatives / options, from `src/plan/major-audit.ts`; alternatives are the major's own `substitutions` for the BA and `CORE_ALTERNATIVES` for the BSE; an open slot reads "to fill", a slot with no line in the plan "not in plan") (`Disclosure.tsx`: boxed chevron, readout, accent bar; a section with gaps opens itself, complete ones stay folded), total CU line, Advisor notes dropdown, Reference & legend dropdown. Nothing else lives in the rail; Reset to template is gone (Edit setup → Rebuild covers it).
 - Course detail modal (PCR link, tags, swap, rename, delete)
 - Reference & legend, one collapsed dropdown at the bottom of the audit panel (program rules, NCC, common double-counts, legend)
 - LLM chat: plan review + what-if scenarios
@@ -379,7 +379,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 #### Peak-End Rule — invest in moments of delight and closure
 
 - The "share link copied" moment is a *peak*. Make it sing — a brief animation, the link visible, copy confirmed, "send it to your advisor" microcopy.
-- The "your plan is valid, you'll graduate on time" moment when all trackers go green — give it a celebratory but restrained beat (single subtle animation, not confetti).
+- The moment all trackers go green — a restrained beat (single subtle animation, not confetti). **Never claim graduation** (2026-11 beta feedback): the audit's closing note says what it checks and what it does not, and sends the student to Path@Penn.
 - The "import succeeded" or "reset complete" moments — clear visual confirmation, not just silent state change.
 
 #### Recognition over recall

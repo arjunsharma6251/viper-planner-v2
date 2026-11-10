@@ -53,6 +53,7 @@ export const CORE_ALTERNATIVES: Readonly<Record<string, Readonly<Record<string, 
   },
   MSE: {
     'MATH 2400': ['ESE 2030', 'ENM 2030', 'ENM 2400'],
+    'MATH 2410': ['ENM 2510'], // program office: Michelle's CHEM+MSE plan (Oct 2026), "in place of MATH 2410"; not a catalog row
     'PHYS 0150': ['PHYS 0140', 'MEAM 1100'],
     'EAS 2030': ['VIPR 1200', 'VIPR 1210'],
   },
