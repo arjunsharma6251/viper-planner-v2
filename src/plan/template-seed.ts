@@ -1,4 +1,4 @@
-import { AP_CREDITS } from '../data/ap-credits'
+import { findApCredit } from '../data/ap-credits'
 import { lookupCourse } from '../data/courses'
 import { SEMESTER_KEYS, type SemesterKey } from '../data/semesters'
 import type { PlanTemplate, TemplateEntry, TemplateSlotKind } from '../data/templates'
@@ -125,7 +125,7 @@ function courseRow(entry: Extract<TemplateEntry, { code: string }>): PlannedCour
 function creditedCodes(apCreditIds: readonly string[], gradYear: number | null): Set<string> {
   const codes = new Set<string>()
   for (const id of apCreditIds) {
-    const cred = AP_CREDITS.find((c) => c.id === id)
+    const cred = findApCredit(id)
     if (!cred) continue
     const grants = typeof cred.grants === 'function' ? cred.grants(gradYear) : cred.grants
     for (const g of grants) if (/^[A-Z]{2,5} \d{4}$/.test(g)) codes.add(g)

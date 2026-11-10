@@ -148,7 +148,7 @@ export interface ViperProgram {
  * class — for those, `grants` (and `note`) is a function of gradYear.
  */
 /** How incoming credit was earned — drives grouping in setup. */
-export type ApCreditKind = 'ap' | 'ib' | 'alevel' | 'exam' | 'waiver';
+export type ApCreditKind = 'ap' | 'ib' | 'alevel' | 'exam' | 'waiver' | 'transfer';
 
 export interface ApCredit {
   id: string;

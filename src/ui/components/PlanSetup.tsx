@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { MAJORS, SAS_MAJORS, SEAS_MAJORS } from '../../data/majors'
-import { AP_CREDITS, AP_CREDIT_GROUPS, resolveAPCredit } from '../../data/ap-credits'
+import {
+  AP_CREDITS,
+  AP_CREDIT_GROUPS,
+  TRANSFER_PREFIX,
+  findApCredit,
+  normalizeCourseCode,
+  resolveAPCredit,
+  transferCreditId,
+} from '../../data/ap-credits'
 import { defaultCurriculumMode, FIRST_NCC_CLASS, type CurriculumMode, type PlanConfig } from '../store/use-plan-store'
 import { IconCheck, IconChevronLeft, IconChevronRight } from './icons'
 
@@ -397,6 +405,13 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
             <Question title="Any credit coming in?" hint="Tick what applies. Not sure? Skip it — you can add credit later from Edit setup." />
             <div className="stagger grid gap-x-6 gap-y-5 sm:grid-cols-2">
               {AP_CREDIT_GROUPS.map((group, gi) => {
+                if (group.kinds.includes('transfer'))
+                  return (
+                    <fieldset key={group.label} className="min-w-0" style={{ ['--i' as string]: gi }}>
+                      <legend className="label mb-1 !text-[0.625rem] !text-ink-3">{group.label}</legend>
+                      <TransferCredit ids={apCreditIds} onChange={setApCreditIds} />
+                    </fieldset>
+                  )
                 const entries = AP_CREDITS.filter((ap) => group.kinds.includes(ap.kind))
                 if (entries.length === 0) return null
                 return (
@@ -456,7 +471,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
                     'credit',
                     'Incoming credit',
                     apCreditIds.length
-                      ? apCreditIds.map((id) => AP_CREDITS.find((a) => a.id === id)?.label ?? id).join(' · ')
+                      ? apCreditIds.map((id) => findApCredit(id)?.label ?? id).join(' · ')
                       : 'None',
                   ],
                 ] as Array<[Step, string, string]>
@@ -526,6 +541,66 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Credit from another institution: the student names the Penn course the
+ * outside course was accepted as (2026-11 beta feedback, a summer CHEM
+ * course elsewhere). Nothing is offered or pre-granted.
+ */
+function TransferCredit({ ids, onChange }: { ids: string[]; onChange: (next: (ids: string[]) => string[]) => void }) {
+  const [draft, setDraft] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const transfers = ids.filter((id) => id.startsWith(TRANSFER_PREFIX))
+  function add() {
+    const code = normalizeCourseCode(draft)
+    if (!code) {
+      setError('Enter the Penn course code it counts as, like CHEM 2210.')
+      return
+    }
+    const id = transferCreditId(code)
+    onChange((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    setDraft('')
+    setError(null)
+  }
+  return (
+    <div className="border-t border-rule pt-2">
+      {transfers.map((id) => (
+        <div key={id} className="flex items-center gap-2.5 border-b border-rule px-1 py-2 text-[0.8125rem]">
+          <span className="flex-1 text-ink">{findApCredit(id)?.label ?? id}</span>
+          <button
+            type="button"
+            className="label !text-[0.625rem] !text-penn-blue"
+            aria-label={`Remove ${id.slice(TRANSFER_PREFIX.length)}`}
+            onClick={() => onChange((prev) => prev.filter((i) => i !== id))}
+          >
+            remove
+          </button>
+        </div>
+      ))}
+      <div className="flex items-center gap-2 py-2">
+        <input
+          className="field min-w-0 flex-1 font-mono"
+          value={draft}
+          placeholder="Penn course it counts as"
+          aria-label="Penn course code the outside course counts as"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              add()
+            }
+          }}
+        />
+        <button type="button" className="btn" onClick={add}>
+          Add
+        </button>
+      </div>
+      <p className={['text-[0.6875rem] leading-snug', error ? 'text-penn-red' : 'text-ink-3'].join(' ')} role={error ? 'alert' : undefined}>
+        {error ?? 'Only once Penn has approved the outside course. Confirm it shows in Path@Penn.'}
+      </p>
     </div>
   )
 }

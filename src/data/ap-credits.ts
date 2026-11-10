@@ -75,7 +75,42 @@ export const AP_CREDIT_GROUPS: ReadonlyArray<{
   { kinds: ['ap', 'ib', 'alevel'], label: 'AP, IB & A-level exams' },
   { kinds: ['exam'], label: 'Credit exams' },
   { kinds: ['waiver'], label: 'Waivers' },
+  { kinds: ['transfer'], label: 'From another institution' },
 ];
+
+// ---- Credit from another institution (2026-11 beta feedback) ----
+// A summer course elsewhere that Penn accepted as a Penn course. The student
+// names the Penn course it transferred as; nothing is pre-granted. Stored in
+// apCreditIds as "transfer:<CODE>" so share links and saved plans carry it.
+export const TRANSFER_PREFIX = 'transfer:';
+const COURSE_CODE = /^[A-Z]{2,5} \d{4}$/;
+
+/** "chem2210" / " CHEM  2210 " → "CHEM 2210"; null when it is not a course code. */
+export function normalizeCourseCode(raw: string): string | null {
+  const m = raw.trim().toUpperCase().match(/^([A-Z]{2,5})\s*(\d{4})$/);
+  return m ? `${m[1]} ${m[2]}` : null;
+}
+
+export function transferCreditId(code: string): string {
+  return `${TRANSFER_PREFIX}${code}`;
+}
+
+/** Any credit entry by id: the fixed table above, or a transfer credit. */
+export function findApCredit(id: string): ApCredit | undefined {
+  if (id.startsWith(TRANSFER_PREFIX)) {
+    const code = id.slice(TRANSFER_PREFIX.length);
+    if (!COURSE_CODE.test(code)) return undefined;
+    return {
+      id,
+      kind: 'transfer',
+      credit: true,
+      label: `${code} · from another institution`,
+      grants: [code],
+      note: `Counts as ${code} only once Penn has approved the outside course as ${code}. Confirm the credit shows in Path@Penn.`,
+    };
+  }
+  return AP_CREDITS.find((c) => c.id === id);
+}
 
 // Helper: resolve an AP credit entry's `grants` and `note` for a given graduating year.
 export function resolveAPCredit(entry: ApCredit, gradYear?: number | null): ResolvedApCredit {
