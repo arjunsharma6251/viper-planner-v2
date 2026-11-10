@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { AugmentedCourse } from '../../plan/types'
+import type { AugmentedCourse, Mutation } from '../../plan/types'
 import { yearName, type SemesterKey } from '../../data/semesters'
 import { usePlanStore } from '../store/use-plan-store'
 import { PlanSetup } from '../components/PlanSetup'
@@ -18,6 +18,7 @@ import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
 import { computeMajorAudit } from '../../plan/major-audit'
+import { fillTargetsFor, listOpenSlots } from '../../plan/open-slot'
 import { computeAdvisorNotes } from '../../plan/advisor-notes'
 import { AdvisorNotes } from '../components/AdvisorNotes'
 import { curriculumModeOf } from '../store/use-plan-store'
@@ -380,6 +381,9 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       seas={nccAudit?.seas}
                       curriculum={curriculum}
                       majors={majorAudits}
+                      openSlots={listOpenSlots(store.augmented!)}
+                      gradYear={gradYear}
+                      onJumpToSlot={(slot) => setOpenRef({ semKey: slot.semKey, courseId: slot.code })}
                     />
                     {showCurriculumNotice && (
                       <div className="no-print border-b border-rule px-3 py-3 text-[0.75rem] leading-snug text-ink" role="status">
@@ -523,6 +527,15 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             curriculum={curriculum}
             onClose={() => setAddTo(null)}
             onAdd={(draft) => applyToast({ kind: 'add_course', semester: addTo, course: draft })}
+            fillTargets={(code) => (store.augmented ? fillTargetsFor(store.augmented, code) : [])}
+            onFill={(target, draft) => {
+              const mutations: Mutation[] = [
+                { kind: 'rename_course', courseId: target.code, newCode: draft.code, ...(draft.title ? { newTitle: draft.title } : {}) },
+              ]
+              if (target.semKey !== addTo) mutations.push({ kind: 'move_course', from: target.semKey, to: addTo, courseId: draft.code })
+              const result = store.applyAll(mutations)
+              toast(result.ok ? `Filled ${target.label} with ${draft.code}` : result.message)
+            }}
           />
         )}
       </div>

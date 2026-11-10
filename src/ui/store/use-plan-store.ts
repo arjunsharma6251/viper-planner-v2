@@ -201,6 +201,8 @@ export interface PlanStore {
   /** Discard edits, re-seed from the major template (confirm first in UI). */
   resetToTemplate: () => void
   apply: (mutation: Mutation) => MutationResult
+  /** Several mutations as one edit (one undo step); all or nothing. */
+  applyAll: (mutations: readonly Mutation[]) => MutationResult
   undo: () => boolean
   canUndo: boolean
   shareLink: () => string
@@ -292,6 +294,20 @@ export function usePlanStore(): PlanStore {
       const current = planRef.current
       if (!current) return { ok: false, message: 'No plan yet', plan: createEmptyPlan() }
       const result = applyMutation(current, mutation)
+      if (result.ok) {
+        snapshot(current)
+        setPlan(result.plan)
+      }
+      return result
+    },
+    [snapshot],
+  )
+
+  const applyAll = useCallback(
+    (mutations: readonly Mutation[]): MutationResult => {
+      const current = planRef.current
+      if (!current) return { ok: false, message: 'No plan yet', plan: createEmptyPlan() }
+      const result = applyMutations(current, mutations)
       if (result.ok) {
         snapshot(current)
         setPlan(result.plan)
@@ -473,6 +489,7 @@ export function usePlanStore(): PlanStore {
     setAuditPolicy,
     resetToTemplate,
     apply,
+    applyAll,
     undo,
     canUndo: undoSize > 0,
     shareLink,

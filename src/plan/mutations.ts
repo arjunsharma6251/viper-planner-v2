@@ -414,7 +414,8 @@ export function renameCourse(
   const next = clonePlan(plan)
   const c = courseAt(next, loc)
   const codeChanged = trimmed !== c.code
-  if (c.isPlaceholder) {
+  // Scheduler elective lines are open slots without the flag (code "— <slot>").
+  if (c.isPlaceholder || c.code.trim().startsWith('—')) {
     // Naming an open slot: same shape as swapElective, minus the pool.
     if (trimmed.startsWith('—')) return fail(plan, 'Enter a course code to fill this slot.')
     const catalog = lookupCourse(trimmed)

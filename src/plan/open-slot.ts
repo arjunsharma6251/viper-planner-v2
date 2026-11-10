@@ -1,6 +1,9 @@
 import type { SemesterKey } from '../data/semesters'
 import { recomputeDerived } from './mutations'
-import type { AugmentedCourse, Plan } from './types'
+import type { AugmentedCourse, AugmentedPlan, FulfillmentTag, Plan } from './types'
+import { ALL_SEMESTER_KEYS } from '../data/semesters'
+import { lookupCourse } from '../data/courses'
+import { FOUNDATION_IDS, derivedFulfillments } from './fulfillments'
 
 /**
  * A slot the student still has to fill: either a scheduler placeholder or
@@ -47,4 +50,62 @@ export function uniquifyOpenSlots(plan: Plan): Plan {
     plan.fulfillments = next
   }
   return recomputeDerived(plan)
+}
+
+/** An open slot in the plan, located. */
+export interface OpenSlotRef {
+  semKey: SemesterKey
+  /** The slot's plan key (its placeholder code) — what open/rename/move act on. */
+  code: string
+  /** What the slot is for ("Sector IV: …", "Tech Elective"). */
+  label: string
+}
+
+/** Every open slot in the plan, in term order (2026-11: "to fill" list in the audit). */
+export function listOpenSlots(plan: AugmentedPlan): OpenSlotRef[] {
+  const out: OpenSlotRef[] = []
+  for (const semKey of ALL_SEMESTER_KEYS) {
+    for (const c of plan.semesters[semKey] ?? []) {
+      if (isOpenSlot(c)) out.push({ semKey, code: c.code, label: c.slotLabel ?? c.title })
+    }
+  }
+  return out
+}
+
+/** The requirement tags an open slot stands for (not incidental implications). */
+function slotRequirementTags(slot: AugmentedCourse): FulfillmentTag[] {
+  return slot.effectiveFulfills.filter(
+    (t) =>
+      t.startsWith('fa:') ||
+      t.startsWith('sec:') ||
+      (FOUNDATION_IDS as readonly string[]).includes(t) ||
+      (t.startsWith('ncc-distrib') && !!slot.intent?.distribution) ||
+      (t === 'viper-energy' && !!slot.isEnergy) ||
+      (t.startsWith('seas-') && !!slot.intent?.seas?.length),
+  )
+}
+
+/**
+ * Open slots a course would fill (2026-11 beta feedback: students added a
+ * course as a new row next to the open slot it satisfies). A slot matches
+ * when the course is one of its listed options, or when the catalog says
+ * the course carries the requirement the slot holds (an FA, a Sector, a
+ * distribution division, energy). Courses without catalog data match only
+ * by listed option.
+ */
+export function fillTargetsFor(plan: AugmentedPlan, code: string): OpenSlotRef[] {
+  const entry = lookupCourse(code)
+  const tags = entry
+    ? derivedFulfillments({ code, title: entry.title, cu: entry.cu, fa: entry.fa ?? null, sec: entry.sec ?? null, isEnergy: !!entry.energy })
+    : []
+  const out: OpenSlotRef[] = []
+  for (const semKey of ALL_SEMESTER_KEYS) {
+    for (const c of plan.semesters[semKey] ?? []) {
+      if (!isOpenSlot(c)) continue
+      const byPool = (c.pool ?? []).includes(code)
+      const byTag = slotRequirementTags(c).some((t) => tags.includes(t))
+      if (byPool || byTag) out.push({ semKey, code: c.code, label: c.slotLabel ?? c.title })
+    }
+  }
+  return out
 }

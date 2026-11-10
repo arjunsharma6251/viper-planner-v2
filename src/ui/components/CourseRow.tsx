@@ -124,15 +124,8 @@ export function CourseRow({ course, onOpen, onDragStart, onDragEnd, dragging, se
       </span>
 
       {compact ? null : open ? (
-        <span
-          className={[
-            'label !text-[0.625rem] opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100',
-            '!text-penn-blue',
-          ].join(' ')}
-          aria-hidden
-        >
-          choose
-        </span>
+        // Always visible (2026-11 beta feedback: open slots went unnoticed).
+        <span className="label whitespace-nowrap !text-[0.625rem] !text-caution">to fill</span>
       ) : (
         <span aria-hidden />
       )}

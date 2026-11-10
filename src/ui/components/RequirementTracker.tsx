@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react'
 import type { AugmentedCourse, AugmentedPlan, PlanSummary } from '../../plan/types'
 import type { AuditCourseRef, NccAudit, SeasElectiveAudit } from '../../plan/ncc-audit'
 import type { MajorAudit, MajorAuditRow } from '../../plan/major-audit'
+import type { OpenSlotRef } from '../../plan/open-slot'
+import { semesterLabel } from '../../data/semesters'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { VIPER_PROGRAM } from '../../data/viper-program'
 import { Disclosure } from './Disclosure'
@@ -177,6 +179,51 @@ function MajorSection({ audit }: { audit: MajorAudit }) {
   )
 }
 
+/**
+ * Every open slot, in term order, each a jump to its course sheet (2026-11
+ * beta feedback: students did not notice open slots). Lives inside the one
+ * audit panel, above the degree sections.
+ */
+function OpenSlotList({ slots, gradYear, onJump }: { slots: OpenSlotRef[]; gradYear: number | null; onJump: (slot: OpenSlotRef) => void }) {
+  const [open, setOpen] = useState(true)
+  if (slots.length === 0) return null
+  return (
+    <div className="border-b border-rule">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="grid w-full grid-cols-[minmax(0,1fr)_auto_1rem] items-center gap-x-2 py-2.5 pr-2 pl-3 text-left transition-colors duration-100 hover:bg-tint-blue"
+      >
+        <span className="label !text-ink">Open slots to fill</span>
+        <span className="tag text-caution">{slots.length}</span>
+        <span className={['flex justify-end text-ink-3 transition-transform duration-150', open ? 'rotate-180 text-ink' : ''].join(' ')} aria-hidden>
+          <IconChevronDown size={12} />
+        </span>
+      </button>
+      {open && (
+        <ul className="no-print mr-2 mb-2 ml-3 text-[0.75rem]">
+          {slots.map((s) => {
+            const where = semesterLabel(s.semKey, gradYear ?? undefined)
+            return (
+              <li key={`${s.semKey}-${s.code}`}>
+                <button
+                  type="button"
+                  onClick={() => onJump(s)}
+                  className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 border-b border-rule px-1 py-1.5 text-left transition-colors duration-100 last:border-b-0 hover:bg-tint-blue"
+                >
+                  <span className="truncate text-ink">{s.label}</span>
+                  <span className="tag whitespace-nowrap text-ink-3">{where.short}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function fillLabel(by: string | null | undefined, fallback = 'nothing planned'): ReactNode {
   if (!by) return <Quiet>{fallback}</Quiet>
   if (by.startsWith('open slot')) return <Quiet>open slot</Quiet>
@@ -195,6 +242,9 @@ export function RequirementTracker({
   seas,
   curriculum = 'legacy',
   majors,
+  openSlots = [],
+  gradYear = null,
+  onJumpToSlot,
 }: {
   plan: AugmentedPlan
   summary: PlanSummary
@@ -205,6 +255,10 @@ export function RequirementTracker({
   curriculum?: 'legacy' | 'ncc'
   /** The BA and BSE majors' own core courses and elective slots. */
   majors?: { sas: MajorAudit | null; seas: MajorAudit | null }
+  /** Open slots in the plan, listed first with a jump to each. */
+  openSlots?: OpenSlotRef[]
+  gradYear?: number | null
+  onJumpToSlot?: (slot: OpenSlotRef) => void
 }) {
   const legacy = curriculum === 'legacy'
   const courses = Object.values(plan.semesters).flat()
@@ -245,6 +299,7 @@ export function RequirementTracker({
 
   return (
     <>
+      {onJumpToSlot && <OpenSlotList slots={openSlots} gradYear={gradYear} onJump={onJumpToSlot} />}
       <Disclosure
         title="BA · College"
         summary={readout(baLeft, baTotal)}
