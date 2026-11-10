@@ -11,6 +11,7 @@ import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
 import { CourseDetailModal } from '../components/CourseDetailModal'
 import { AddCourseModal } from '../components/AddCourseModal'
+import { PlanMenu } from '../components/PlanMenu'
 import { ToastProvider } from '../components/Toasts'
 import { useToast } from '../components/use-toast'
 import { DegreeSelect } from '../components/MajorSelects'
@@ -65,6 +66,8 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   const [view, setView] = useState<'grid' | 'focus'>('grid')
   const [focusSem, setFocusSem] = useState<SemesterKey>('fall-y1')
   const [editingSetup, setEditingSetup] = useState(false)
+  /** "New plan" from the plan menu: setup runs again for a separate saved plan. */
+  const [creatingPlan, setCreatingPlan] = useState(false)
   const [lit, setLitState] = useState<ReadonlySet<Bus>>(() => new Set())
   const shareRef = useRef<HTMLButtonElement>(null)
 
@@ -165,7 +168,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
     return result
   }
 
-  const planReady = !!store.plan && !!store.augmented && !editingSetup
+  const planReady = !!store.plan && !!store.augmented && !editingSetup && !creatingPlan
 
   function switchMajors(next: NonNullable<typeof store.config>) {
     if (!window.confirm('Switching majors rebuilds your starting plan from the scheduler template. Manual edits will be replaced. Continue?'))
@@ -275,6 +278,33 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           {/* ── Title block: whose plan this is. Full width, wraps, never crops. ── */}
           {store.config && planReady && (
             <section aria-label="Student plan" className="no-print mb-6 flex flex-wrap items-end gap-x-8 gap-y-3 border-b border-rule pb-3">
+              <TitleField label="Plan">
+                <PlanMenu
+                  plans={store.plans}
+                  activeId={store.activePlanId}
+                  viewingShared={store.viewingShared}
+                  onSwitch={(id) => {
+                    setOpenRef(null)
+                    store.switchPlan(id)
+                  }}
+                  onNew={() => setCreatingPlan(true)}
+                  onDuplicate={(id) => {
+                    store.duplicatePlan(id)
+                    toast('Duplicated. You are now editing the copy.')
+                  }}
+                  onRename={(id, name) => store.renamePlan(id, name)}
+                  onDelete={(id) => {
+                    const name = store.plans.find((p) => p.id === id)?.name ?? 'plan'
+                    setOpenRef(null)
+                    const undo = store.deletePlan(id)
+                    if (undo) toast(`Deleted “${name}”.`, undo)
+                  }}
+                  onSaveShared={() => {
+                    store.saveSharedPlan()
+                    toast('Saved to your plans.')
+                  }}
+                />
+              </TitleField>
               {studentName && (
                 <TitleField label="Student">
                   <span className="font-medium">{studentName}</span>
@@ -309,10 +339,32 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
           {!planReady ? (
             <PlanSetup
-              initial={store.config}
-              onCancel={store.plan ? () => setEditingSetup(false) : undefined}
+              key={creatingPlan ? 'new-plan' : 'edit-setup'}
+              initial={creatingPlan ? null : store.config}
+              onCancel={
+                store.plan
+                  ? () => {
+                      setEditingSetup(false)
+                      setCreatingPlan(false)
+                    }
+                  : undefined
+              }
               onDone={(config) => {
-                if (store.plan && !window.confirm('Build a fresh plan from this setup? Your current edits will be replaced.'))
+                if (creatingPlan) {
+                  if (store.createPlan(config, proposalView ? proposalPolicy : undefined)) {
+                    setCreatingPlan(false)
+                    toast('New plan built. Your other plans are in the plan menu.')
+                  } else {
+                    toast('Could not build a plan for that combination.')
+                  }
+                  return
+                }
+                if (
+                  store.plan &&
+                  !window.confirm(
+                    'Build a fresh plan from this setup? Your current edits will be replaced. (To keep them, cancel and use Plan → Duplicate first.)',
+                  )
+                )
                   return
                 if (store.setup(config, proposalView ? proposalPolicy : undefined)) {
                   setEditingSetup(false)

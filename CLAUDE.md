@@ -35,7 +35,7 @@ The maintainer is Arjun Sharma (VIPER '28, CHEM BA + CBE BSE). When the doc says
 |---|---|---|
 | Framework | React + Vite + TypeScript | Familiar, fast builds, types catch LLM tool-call mistakes |
 | Hosting | Vercel | Easy preview deploys, edge functions if needed later for LLM proxy |
-| State persistence | LocalStorage only | Pilot scale; backend deferred |
+| State persistence | LocalStorage only — a plan library (2026-11, `src/utils/plan-library.ts`, key `viper-planner:library:v1`): several saved plans, each a full AppState with its own setup | Pilot scale; backend deferred |
 | Cross-device sharing | URL fragment (existing share-link model) | Works without backend |
 | Auth | None for v1 | PennKey OAuth deferred — see "Auth: why not now" below |
 | LLM integration | Tool-calling from day one (Anthropic API) | "What if" requires modify-and-readback; tools are the right shape |
@@ -214,6 +214,7 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - An open Sector / FA / Foundation / division slot's sheet lists the common double-counts that fill it (2026-11, `doubleCountPicksFor` in `src/plan/open-slot.ts`), so newcomers meet them where they choose a course
 - LLM chat: plan review + what-if scenarios
 - Export: JSON, CSV, share link
+- Plan menu (title strip, "Plan"): switch saved plans, New plan… (setup runs again; the current plan is kept), Duplicate, Rename, Delete (undo from the toast). Every saved plan autosaves. The single-plan key `viper-planner:state:v8` from before is migrated once into the library and left in place.
 - Print view
 
 ### Admin mode (URL-gated)
@@ -454,7 +455,7 @@ Concretely:
 - **Transitions between modes don't lose state.** Switch from Grid to List view → same plan, same selection, same scroll position remembered.
 - **Single source of truth for every piece of state.** Don't have "current selection" stored in two places that can desync.
 - **LLM tool calls and direct user actions go through the same mutation API.** Whether the student drags or the LLM calls `move_course`, the path through the code is identical. No drift between the two.
-- **The share link contains the entire app state**, not a pointer to it. Open the link → exact same view, no fetch.
+- **The share link contains the entire app state**, not a pointer to it. Open the link → exact same view, no fetch. **It never overwrites a saved plan** (2026-11): a link opens as an unsaved view ("Shared plan · not saved"); viewing writes nothing, the first edit or "Save to my plans" adds it to the library as a new plan and drops the URL fragment.
 
 ### Anti-patterns to avoid
 
