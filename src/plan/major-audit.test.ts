@@ -58,3 +58,28 @@ describe('major audit', () => {
     for (const r of open) expect(r.openCode).toMatch(/^—/)
   })
 })
+
+describe('CBE Energy Lab Elective: CHEM 2411 + 2421 complete it (Ananya, 2026-11)', () => {
+  // PHYS + CBE does not plan CHEM 2421 (the seed trims the Advanced Chem slot),
+  // so its Lab Elective is honestly open; CHEM + CBE plans both courses.
+  for (const sas of ['CHEM'] as const) {
+    it(`${sas} + CBE/ENERGY seeds no open Lab Elective and the audit shows it satisfied`, () => {
+      const plan = seedPlan(cfg(sas, sas === 'CHEM' ? 'STANDARD' : 'NONE', 'CBE', 'ENERGY'))!
+      const courses = Object.values(plan.semesters).flat()
+      expect(courses.filter((c) => c.slotId === 'cbe-lab')).toEqual([])
+      const row = computeMajorAudit(augmentPlan(plan)!, 'CBE', 'ENERGY', sas)!.electives.find((r) => r.id === 'cbe-lab')!
+      expect(row).toMatchObject({ done: true, by: 'CHEM 2411 + CHEM 2421' })
+    })
+  }
+  it('removing CHEM 2421 reopens it', () => {
+    const plan = seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'ENERGY'))!
+    const next = removeCourse(plan, termOf(plan, 'CHEM 2421'), 'CHEM 2421').plan
+    const row = computeMajorAudit(augmentPlan(next)!, 'CBE', 'ENERGY', 'CHEM')!.electives.find((r) => r.id === 'cbe-lab')!
+    expect(row.done).toBe(false)
+  })
+  it('PHARMA is unchanged until the program office confirms', () => {
+    const plan = seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'PHARMA'))!
+    const row = computeMajorAudit(augmentPlan(plan)!, 'CBE', 'PHARMA', 'CHEM')!.electives.find((r) => r.id === 'cbe-lab')!
+    expect(row.by).not.toBe('CHEM 2411 + CHEM 2421')
+  })
+})

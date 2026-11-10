@@ -101,6 +101,9 @@ function placeOneElective(
 
   // Avoid duplicate placement
   if (code && plan.placement[code] && plan.placement[code] !== 'credit') return plan;
+  // A slot completed by a planned course group (e.g. CHEM 2411 + 2421 for the
+  // CBE Lab Elective) gets no line of its own.
+  if (!userChoice && slot.satisfiedBy?.some((group) => group.every((g) => plan.placement[g] !== undefined))) return plan;
 
   // Drag-drop override: if user moved this slot (by slot id) or course (by code), honor it
   const customPlacements = plan.meta.customPlacements || {};

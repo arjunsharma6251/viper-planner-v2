@@ -134,6 +134,7 @@ export interface SchedulerElectiveSlotDef {
   energy?: boolean;
   note?: string;
   suggested?: string;
+  satisfiedBy?: readonly (readonly string[])[];
 }
 
 /** An elective slot annotated with its school of origin (placeElectives). */

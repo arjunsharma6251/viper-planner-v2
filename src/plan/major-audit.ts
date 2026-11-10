@@ -47,7 +47,13 @@ function isOpen(c: Pick<AugmentedCourse, 'isPlaceholder' | 'code'>): boolean {
   return !!c.isPlaceholder || c.code.trim().startsWith('—')
 }
 
-/** A course's lines that count on this major's side of the dual degree. */
+/**
+ * A course's lines that sit on this major's side of the dual degree. Used only
+ * to match a slot by id (the SAS and SEAS "no concentration" slots share ids);
+ * a course from the other degree may still satisfy a core course, a pool
+ * option or a course group, as the seed already assumes (a pool course in
+ * the other degree's core fills the slot).
+ */
 function onSide(c: AugmentedCourse, school: 'SAS' | 'SEAS'): boolean {
   if (!c.category || c.category === 'both') return true
   return school === 'SAS' ? c.category === 'sas' : c.category === 'seas'
@@ -89,7 +95,7 @@ export function computeMajorAudit(
   const school = major.school
   const located: { course: AugmentedCourse; sem: SemesterKey }[] = []
   for (const [sem, list] of Object.entries(plan.semesters) as [SemesterKey, AugmentedCourse[]][]) {
-    for (const course of list) if (onSide(course, school)) located.push({ course, sem })
+    for (const course of list) located.push({ course, sem })
   }
   const planned = located.filter((l) => !isOpen(l.course))
   const consumed = new Set<AugmentedCourse>()
@@ -118,7 +124,7 @@ export function computeMajorAudit(
   // when a pool course is already in the other degree's core.
   const bySlot = new Map<string, string>()
   for (const slot of slots) {
-    const hit = planned.find((l) => !consumed.has(l.course) && l.course.slotId === slot.id)
+    const hit = planned.find((l) => !consumed.has(l.course) && l.course.slotId === slot.id && onSide(l.course, school))
     if (hit) {
       consumed.add(hit.course)
       bySlot.set(slot.id, hit.course.code)
@@ -135,7 +141,7 @@ export function computeMajorAudit(
       }
     }
     if (!by) by = take(slot.pool ?? [])
-    const open = by ? undefined : located.find((l) => l.course.slotId === slot.id && isOpen(l.course))
+    const open = by ? undefined : located.find((l) => l.course.slotId === slot.id && isOpen(l.course) && onSide(l.course, school))
     return {
       id: slot.id,
       kind: 'elective',

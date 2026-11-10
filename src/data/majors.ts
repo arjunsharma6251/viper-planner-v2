@@ -380,7 +380,10 @@ export const MAJORS: Record<string, Major> = {
         extraCore: [],
         electiveSlots: [
           { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2421', 'CHEM 2210', 'MSE 2210'] },
-          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, note: 'CHEM 2411 + 2421 sequence covers this' },
+          // Ananya Srivastav (2026-11) confirmed CHEM 2411 + 2421 complete it. Kept to
+          // the Energy concentration, where the data already said so; PHARMA and
+          // POLYMER wait for the program office.
+          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, note: 'CHEM 2411 + 2421 sequence covers this', satisfiedBy: [['CHEM 2411', 'CHEM 2421']] },
           { id: 'cbe-elec', label: 'CBE Elective (3000+)', cu: 1 },
           { id: 'cbe-eng', label: 'Engineering Elective', cu: 1 },
           { id: 'cbe-msen-1', label: 'Math/NatSci/Eng Elective', cu: 1 },
