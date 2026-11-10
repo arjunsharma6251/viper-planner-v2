@@ -79,6 +79,11 @@ export function placeCoreCourses(plan: SchedulerPlan): SchedulerPlan {
   // Phase 1: Honor sample schedule entries — but SHIFT FORWARD if AP credits
   // have freed up earlier semesters and prereqs are met.
   // Only shifts when shiftForward is enabled (default true).
+  // Port fix (2026-11, beta feedback): the old code shifted every course whose
+  // prereqs happened to be placed early, even with no incoming credit, which
+  // seeded P-Chem in Year 2 and Senior Design in Year 3. A course now moves
+  // ahead of its sample-schedule term only when incoming credit sits on its
+  // prerequisite chain (creditFreedPath).
   const shiftForward = plan.meta.shiftForward !== false;
   const remaining: CoreItem[] = [];
   for (const item of toPlace) {
@@ -93,7 +98,7 @@ export function placeCoreCourses(plan: SchedulerPlan): SchedulerPlan {
     // Determine the target semester: try shifting earlier if possible.
     // For user-dropped courses, respect their drop location — don't shift.
     let targetSem = pref;
-    if (shiftForward && !isUserDrop) {
+    if (shiftForward && !isUserDrop && creditFreedPath(item.code, plan.placement)) {
       const earliestIdx = earliestAllowedIdx(item.data, plan.placement);
       if (earliestIdx !== null && earliestIdx < prefIdx) {
         for (let i = earliestIdx; i < prefIdx; i++) {
@@ -181,6 +186,25 @@ export function placeCoreCourses(plan: SchedulerPlan): SchedulerPlan {
   }
 
   return plan;
+}
+
+/**
+ * True when incoming credit appears anywhere on a course's prerequisite chain
+ * (transitively, via the catalog). Only then may Phase 1 seed the course ahead
+ * of its sample-schedule term: the credit is what freed the earlier path.
+ */
+export function creditFreedPath(
+  code: string,
+  placement: SchedulerPlan['placement'],
+  seen: Set<string> = new Set(),
+): boolean {
+  for (const p of courseEntry(code).prereqs ?? []) {
+    if (seen.has(p)) continue;
+    seen.add(p);
+    if (placement[p] === 'credit') return true;
+    if (creditFreedPath(p, placement, seen)) return true;
+  }
+  return false;
 }
 
 /**
