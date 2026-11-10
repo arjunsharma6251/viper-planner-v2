@@ -19,6 +19,7 @@ import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
 import { computeMajorAudit } from '../../plan/major-audit'
 import { fillTargetsFor, listOpenSlots } from '../../plan/open-slot'
+import { completedTermKeys } from '../../plan/completed-terms'
 import { computeAdvisorNotes } from '../../plan/advisor-notes'
 import { AdvisorNotes } from '../components/AdvisorNotes'
 import { curriculumModeOf } from '../store/use-plan-store'
@@ -333,6 +334,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       gradYear={gradYear}
                       colorOverrides={store.colorOverrides}
                       selected={openRef}
+                      completedTerms={new Set(completedTermKeys(store.config?.completedTerms))}
                       onOpenCourse={(course, semKey) => setOpenRef({ courseId: course.originalCode ?? course.code, semKey })}
                       onAddCourse={setAddTo}
                       onMove={(from, to, courseId, targetIndex) => {

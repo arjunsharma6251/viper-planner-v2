@@ -28,6 +28,8 @@ import { CONFIRMED_VIPER_MODS, DEFAULT_VIPER_MODS, STANDARD_DISTRIBUTION_TARGETS
 import { findTemplate } from '../../data/templates'
 import { planFromTemplate, topUpRequirements, type SeedPolicy } from '../../plan/template-seed'
 import { uniquifyOpenSlots } from '../../plan/open-slot'
+import { applyCompletedTerms, type CompletedTerms } from '../../plan/completed-terms'
+import { ALL_SEMESTER_KEYS } from '../../data/semesters'
 import { installNccModule } from '../../ncc/scheduler-module'
 import type { PlanToolContext } from '../../llm/tools'
 
@@ -44,6 +46,8 @@ export interface PlanConfig {
   curriculumMode?: CurriculumMode
   /** The student's name, shown on the sheet and in print. Optional. */
   studentName?: string
+  /** Terms already finished → course codes taken; the seed plans only the rest. */
+  completedTerms?: CompletedTerms
 }
 
 /**
@@ -88,6 +92,13 @@ export const CONFIRMED_POLICY: SeedPolicy = {
  * admin seeding under the sandbox passes a proposal.
  */
 export function seedPlan(config: PlanConfig, policy: SeedPolicy = CONFIRMED_POLICY): Plan | null {
+  const seeded = seedFresh(config, policy)
+  // A current student's finished terms replace what the seed drew there;
+  // the rest of the plan covers what is left (src/plan/completed-terms.ts).
+  return seeded ? applyCompletedTerms(seeded, config.completedTerms) : null
+}
+
+function seedFresh(config: PlanConfig, policy: SeedPolicy): Plan | null {
   const mode = curriculumModeOf(config)
   const meta = {
     sasMajor: config.sasMajorKey,
@@ -141,6 +152,15 @@ export function seedPlan(config: PlanConfig, policy: SeedPolicy = CONFIRMED_POLI
   })
 }
 
+function completedFromState(raw: NonNullable<AppState['completedTerms']>): CompletedTerms {
+  const out: Record<string, string[]> = {}
+  for (const k of ALL_SEMESTER_KEYS) {
+    const v = raw[k]
+    if (Array.isArray(v)) out[k] = v.filter((x): x is string => typeof x === 'string')
+  }
+  return out as CompletedTerms
+}
+
 function configFromState(state: AppState): PlanConfig | null {
   if (!state.sasMajorKey || !state.seasMajorKey) return null
   return {
@@ -151,6 +171,7 @@ function configFromState(state: AppState): PlanConfig | null {
     apCreditIds: state.apCreditIds ?? [],
     gradYear: state.gradYear ?? null,
     ...(state.studentName ? { studentName: state.studentName } : {}),
+    ...(state.completedTerms ? { completedTerms: completedFromState(state.completedTerms) } : {}),
     ...(state.curriculumMode === 'ncc' || state.curriculumMode === 'legacy'
       ? { curriculumMode: state.curriculumMode }
       : {}),
@@ -253,6 +274,7 @@ export function usePlanStore(): PlanStore {
       apCreditIds: c?.apCreditIds,
       gradYear: c?.gradYear,
       studentName: c?.studentName,
+      completedTerms: c?.completedTerms as AppState['completedTerms'],
       // Only an explicit choice is saved; otherwise the class default applies.
       curriculumMode: c?.curriculumMode,
       planCurriculumMode: p?.meta.curriculumMode,

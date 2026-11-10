@@ -114,15 +114,18 @@ export function doubleCountPicksFor(slot: AugmentedCourse, exclude: ReadonlySet<
   return COMMON_DOUBLE_COUNTS.filter((dc) => !exclude.has(dc.code) && catalogTags(dc.code).some((t) => want.includes(t)))
 }
 
-export function fillTargetsFor(plan: AugmentedPlan, code: string): OpenSlotRef[] {
+/** True when `code` would fill this open slot (a listed option, or the requirement it holds). */
+export function slotFilledBy(slot: AugmentedCourse, code: string): boolean {
+  if ((slot.pool ?? []).includes(code)) return true
   const tags = catalogTags(code)
+  return slotRequirementTags(slot).some((t) => tags.includes(t))
+}
+
+export function fillTargetsFor(plan: AugmentedPlan, code: string): OpenSlotRef[] {
   const out: OpenSlotRef[] = []
   for (const semKey of ALL_SEMESTER_KEYS) {
     for (const c of plan.semesters[semKey] ?? []) {
-      if (!isOpenSlot(c)) continue
-      const byPool = (c.pool ?? []).includes(code)
-      const byTag = slotRequirementTags(c).some((t) => tags.includes(t))
-      if (byPool || byTag) out.push({ semKey, code: c.code, label: c.slotLabel ?? c.title })
+      if (isOpenSlot(c) && slotFilledBy(c, code)) out.push({ semKey, code: c.code, label: c.slotLabel ?? c.title })
     }
   }
   return out

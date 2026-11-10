@@ -11,6 +11,9 @@ import {
 } from '../../data/ap-credits'
 import { defaultCurriculumMode, FIRST_NCC_CLASS, type CurriculumMode, type PlanConfig } from '../store/use-plan-store'
 import { IconCheck, IconChevronLeft, IconChevronRight } from './icons'
+import { ALL_SEMESTER_KEYS, semesterLabel, type SemesterKey } from '../../data/semesters'
+import { lookupCourse } from '../../data/courses'
+import type { CompletedTerms } from '../../plan/completed-terms'
 
 export interface PlanSetupProps {
   onDone: (config: PlanConfig) => void
@@ -22,8 +25,32 @@ export interface PlanSetupProps {
 
 const GRAD_YEARS = [2027, 2028, 2029, 2030, 2031]
 
-type Step = 'name' | 'class' | 'curriculum' | 'sas' | 'seas' | 'credit' | 'review'
-const STEPS: Step[] = ['name', 'class', 'curriculum', 'sas', 'seas', 'credit', 'review']
+type Step = 'name' | 'class' | 'curriculum' | 'sas' | 'seas' | 'credit' | 'taken' | 'review'
+const STEPS: Step[] = ['name', 'class', 'curriculum', 'sas', 'seas', 'credit', 'taken', 'review']
+
+/** One finished term as typed in setup. */
+interface TakenRow {
+  key: SemesterKey
+  text: string
+}
+
+/** "CHEM 1012, math1400; XYZ" → codes plus the pieces that are not codes. */
+function parseCodes(text: string): { codes: string[]; bad: string[] } {
+  const codes: string[] = []
+  const bad: string[] = []
+  for (const piece of text.split(/[,;\n]+/)) {
+    if (!piece.trim()) continue
+    const code = normalizeCourseCode(piece)
+    if (code) {
+      if (!codes.includes(code)) codes.push(code)
+    } else bad.push(piece.trim())
+  }
+  return { codes, bad }
+}
+
+function takenFromConfig(c: CompletedTerms | undefined): TakenRow[] {
+  return ALL_SEMESTER_KEYS.filter((k) => c?.[k] !== undefined).map((k) => ({ key: k, text: (c?.[k] ?? []).join(', ') }))
+}
 
 const CURRICULUM_LABEL: Record<CurriculumMode, string> = {
   ncc: 'New College Curriculum',
@@ -105,6 +132,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
   const [seasConcKey, setSeasConcKey] = useState<string | null>(initial?.seasConcKey ?? null)
   const [apCreditIds, setApCreditIds] = useState<string[]>(initial?.apCreditIds ?? [])
   const [curriculumOverride, setCurriculumOverride] = useState<CurriculumMode | null>(initial?.curriculumMode ?? null)
+  const [taken, setTaken] = useState<TakenRow[]>(() => takenFromConfig(initial?.completedTerms))
 
   // Editing an existing plan starts at the review, where every step is a
   // click away; a first-time student starts at the first question.
@@ -137,6 +165,7 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
     sas: sasMajorKey !== null,
     seas: seasMajorKey !== null,
     credit: true,
+    taken: taken.every((r) => parseCodes(r.text).bad.length === 0),
     review: gradYear !== null && sasMajorKey !== null && seasMajorKey !== null,
   }
   const nextStep = STEPS[stepIndex + 1]
@@ -151,6 +180,9 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
       apCreditIds,
       gradYear,
       ...(studentName.trim() ? { studentName: studentName.trim() } : {}),
+      ...(taken.length > 0
+        ? { completedTerms: Object.fromEntries(taken.map((r) => [r.key, parseCodes(r.text).codes])) as CompletedTerms }
+        : {}),
       // Only a choice that differs from the class default is stored, so the
       // plan keeps following the default if the class changes later.
       ...(curriculumOverride && curriculumOverride !== classDefault ? { curriculumMode: curriculumOverride } : {}),
@@ -190,6 +222,11 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
       step: 'credit',
       label: 'Credit',
       value: stepIndex > STEPS.indexOf('credit') ? (apCreditIds.length ? `${apCreditIds.length} incoming` : 'None') : null,
+    },
+    {
+      step: 'taken',
+      label: 'Finished',
+      value: stepIndex > STEPS.indexOf('taken') ? (taken.length ? `${taken.length} term${taken.length > 1 ? 's' : ''}` : 'None') : null,
     },
   ]
 
@@ -453,6 +490,16 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
           </>
         )}
 
+        {step === 'taken' && (
+          <>
+            <Question
+              title="Already partway through?"
+              hint="Enter the terms you have finished and what you took in each. Your plan keeps them as they were and covers only what is left. Just starting? Skip this."
+            />
+            <TakenTerms rows={taken} onChange={setTaken} gradYear={gradYear} />
+          </>
+        )}
+
         {step === 'review' && gradYear && sasMajorKey && seasMajorKey && (
           <>
             <Question
@@ -472,6 +519,13 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
                     'Incoming credit',
                     apCreditIds.length
                       ? apCreditIds.map((id) => findApCredit(id)?.label ?? id).join(' · ')
+                      : 'None',
+                  ],
+                  [
+                    'taken',
+                    'Finished terms',
+                    taken.length
+                      ? taken.map((r) => `${semesterLabel(r.key, gradYear).season} (${parseCodes(r.text).codes.length})`).join(' · ')
                       : 'None',
                   ],
                 ] as Array<[Step, string, string]>
@@ -518,8 +572,13 @@ export function PlanSetup({ onDone, initial, onCancel }: PlanSetupProps) {
               Enter
             </span>
           )}
-          {step === 'credit' && apCreditIds.length === 0 && (
+          {step === 'taken' && taken.length === 0 && (
             <button type="button" onClick={() => go('review')} className="btn btn-quiet">
+              Skip
+            </button>
+          )}
+          {step === 'credit' && apCreditIds.length === 0 && (
+            <button type="button" onClick={() => go('taken')} className="btn btn-quiet">
               Skip
             </button>
           )}
@@ -601,6 +660,75 @@ function TransferCredit({ ids, onChange }: { ids: string[]; onChange: (next: (id
       <p className={['text-[0.6875rem] leading-snug', error ? 'text-penn-red' : 'text-ink-3'].join(' ')} role={error ? 'alert' : undefined}>
         {error ?? 'Only once Penn has approved the outside course. Confirm it shows in Path@Penn.'}
       </p>
+    </div>
+  )
+}
+
+/**
+ * Finished terms, added in calendar order (2026-11 beta feedback, Austin).
+ * Each term takes a comma-separated list of the Penn codes taken; VIPR
+ * program courses are kept automatically and need not be typed.
+ */
+function TakenTerms({
+  rows,
+  onChange,
+  gradYear,
+}: {
+  rows: TakenRow[]
+  onChange: (next: TakenRow[]) => void
+  gradYear: number | null
+}) {
+  const next = ALL_SEMESTER_KEYS[rows.length]
+  const label = (k: SemesterKey) => {
+    const l = semesterLabel(k, gradYear)
+    return gradYear ? `${l.year} · ${l.season}` : `${l.year} ${l.season}`
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      {rows.map((r, i) => {
+        const { codes, bad } = parseCodes(r.text)
+        const id = `taken-${r.key}`
+        return (
+          <div key={r.key} className="border-t border-rule pt-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <label htmlFor={id} className="label !text-ink">
+                {label(r.key)}
+              </label>
+              {i === rows.length - 1 && (
+                <button type="button" className="btn btn-quiet !py-1 !text-[0.75rem]" onClick={() => onChange(rows.slice(0, -1))}>
+                  Remove term
+                </button>
+              )}
+            </div>
+            <input
+              id={id}
+              className="field mt-1.5 w-full font-mono"
+              value={r.text}
+              placeholder="e.g. CHEM 1012, CHEM 1101, MATH 1400, WRIT 0130"
+              autoComplete="off"
+              onChange={(e) => onChange(rows.map((x) => (x.key === r.key ? { ...x, text: e.target.value } : x)))}
+            />
+            {codes.length > 0 && (
+              <p className="mt-1.5 text-[0.75rem] leading-snug text-ink-2">
+                {codes.map((c) => (lookupCourse(c) ? c : `${c} (not in our catalog, kept as typed)`)).join(' · ')}
+              </p>
+            )}
+            {bad.length > 0 && (
+              <p className="mt-1 text-[0.75rem] text-penn-red" role="alert">
+                Not a course code: {bad.join(', ')}. Use Penn codes like CHEM 1012.
+              </p>
+            )}
+          </div>
+        )
+      })}
+      {next && (
+        <button type="button" className="btn self-start" onClick={() => onChange([...rows, { key: next, text: '' }])}>
+          + Add {label(next)}
+        </button>
+      )}
+      {rows.length > 0 && (
+        <p className="text-[0.75rem] leading-snug text-ink-3">VIPR program courses stay in place on their own; no need to list them.</p>
+      )}
     </div>
   )
 }

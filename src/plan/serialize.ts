@@ -33,6 +33,8 @@ export interface AppState {
   gradYear?: number | null
   /** Added 2026-10: the student's name for the sheet (optional). */
   studentName?: string
+  /** Added 2026-11: finished terms → course codes taken (current students). */
+  completedTerms?: Partial<Record<string, string[]>>
   shiftForward?: boolean
   genedDistribution?: string
   curriculumMode?: string

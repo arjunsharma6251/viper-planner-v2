@@ -13,6 +13,8 @@ export interface ScheduleGridProps {
   colorOverrides?: Record<string, string>
   /** The course whose detail modal is open. */
   selected?: { semKey: SemesterKey; courseId: string } | null
+  /** Terms the student has finished. */
+  completedTerms?: ReadonlySet<SemesterKey>
 }
 
 /**
@@ -28,6 +30,7 @@ export function ScheduleGrid({
   onMove,
   colorOverrides,
   selected,
+  completedTerms,
 }: ScheduleGridProps) {
   const [dragging, setDragging] = useState<DragPayload | null>(null)
   const years = [1, 2, 3, 4] as const
@@ -49,6 +52,7 @@ export function ScheduleGrid({
           onDragChange={setDragging}
           colorOverrides={colorOverrides}
           selectedId={selected?.semKey === semKey ? selected.courseId : null}
+          completed={completedTerms?.has(semKey) ?? false}
         />
       </div>
     )
