@@ -139,13 +139,14 @@ export const MAJORS: Record<string, Major> = {
     substitutions: [
       // Reconfirmed by Michelle Hutchings 2026-11-04. The seed plans only CBE 3530.
       { from: 'CHEM 2220', to: 'CBE 3530', context: 'CHEM-CBE combo', note: 'Also stands in for CHEM 2220 (approved CHEM-CBE substitution).' },
-      { from: 'CHEM 2210', to: 'MSE 2210', context: 'CHEM-MSE combo', note: 'MSE 2210 may replace CHEM 2210' },
     ],
     notes: [
       'CHEM major auto-completes Sector VI (Physical World).',
       'AP Chemistry (EAS 0091) is NOT accepted — take Penn CHEM 1012 placement exam or CHEM 1012 at Penn.',
       'Complete the introductory sequences by end of sophomore year.',
-      'Common VIPER substitutions: MSE 2210 → CHEM 2210 (CHEM-MSE), CBE 3530 → CHEM 2220 (CHEM-CBE).',
+      'Approved VIPER substitution: CBE 3530 → CHEM 2220 (CHEM-CBE).',
+      // Program office, 2026-11-04: the MSE 2210 → CHEM 2210 substitution is no longer approved.
+      'MSE 2210 no longer substitutes for CHEM 2210 (CHEM-MSE); plan both.',
     ],
   },
 
