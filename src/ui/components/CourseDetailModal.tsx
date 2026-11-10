@@ -4,7 +4,7 @@ import type { SemesterKey } from '../../data/semesters'
 import { ALL_SEMESTER_KEYS, semesterLabel } from '../../data/semesters'
 import { pcrUrlFor } from '../../utils/pcr'
 import { Modal } from './Modal'
-import { isOpenSlot } from '../../plan/open-slot'
+import { doubleCountPicksFor, isOpenSlot } from '../../plan/open-slot'
 import { alternativesFor } from '../../data/seas-catalog'
 import { IconCheck, IconExternal } from './icons'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
@@ -61,6 +61,8 @@ const CLUSTER_COLORS = ['#011F5B', '#990000', '#1e7e34', '#b8860b', '#0f6b66', '
 
 export interface CourseDetailModalProps {
   course: AugmentedCourse
+  /** Codes already in the plan (left out of the double-count picks). */
+  plannedCodes?: ReadonlySet<string>
   semKey: SemesterKey
   gradYear: number | null
   color?: string
@@ -100,10 +102,12 @@ export function CourseDetailModal({
   onMoveTo,
   onDelete,
   onSetColor,
+  plannedCodes,
 }: CourseDetailModalProps) {
   const alternatives = alternativesFor(seasMajorKey, course.originalCode ?? course.code)
   const pool = course.pool ?? course.suggests ?? []
   const open = isOpenSlot(course)
+  const doubleCounts = open ? doubleCountPicksFor(course, plannedCodes) : []
   const locked = course.category === 'viper' && course.fixed === true
   const courseId = course.originalCode ?? course.code
   const pcr = pcrUrlFor(course)
@@ -295,6 +299,33 @@ export function CourseDetailModal({
             ))}
           </div>
         </div>
+
+        {/* ── Common double-counts for an open Sector / Foundation / division slot ── */}
+        {open && doubleCounts.length > 0 && (
+          <div className="border-t border-rule pt-4">
+            <Heading>Common double-counts for this slot</Heading>
+            <p className="-mt-0.5 mb-2.5 text-[0.75rem] leading-snug text-ink-3">
+              Courses VIPER students often use to cover this and something else at once. Check PCR before committing.
+            </p>
+            <div className="border-t border-rule">
+              {doubleCounts.map((dc) => (
+                <button
+                  key={dc.code}
+                  type="button"
+                  onClick={() => {
+                    onRename(courseId, dc.code)
+                    onClose()
+                  }}
+                  className={pickRow}
+                >
+                  <span className="tag text-ink">{dc.code}</span>
+                  <span className="text-ink-2">{dc.fulfills.join(' · ')}</span>
+                  <span className="label !text-[0.625rem] !text-penn-blue">choose</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Alternatives / picks ── */}
         {alternatives.length > 0 && (

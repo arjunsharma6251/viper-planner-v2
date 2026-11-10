@@ -4,6 +4,8 @@ import type { AugmentedCourse, AugmentedPlan, FulfillmentTag, Plan } from './typ
 import { ALL_SEMESTER_KEYS } from '../data/semesters'
 import { lookupCourse } from '../data/courses'
 import { FOUNDATION_IDS, derivedFulfillments } from './fulfillments'
+import { COMMON_DOUBLE_COUNTS } from '../data/common-double-counts'
+import type { DoubleCountRef } from '../data/types'
 
 /**
  * A slot the student still has to fill: either a scheduler placeholder or
@@ -73,7 +75,7 @@ export function listOpenSlots(plan: AugmentedPlan): OpenSlotRef[] {
 }
 
 /** The requirement tags an open slot stands for (not incidental implications). */
-function slotRequirementTags(slot: AugmentedCourse): FulfillmentTag[] {
+export function slotRequirementTags(slot: AugmentedCourse): FulfillmentTag[] {
   return slot.effectiveFulfills.filter(
     (t) =>
       t.startsWith('fa:') ||
@@ -93,11 +95,27 @@ function slotRequirementTags(slot: AugmentedCourse): FulfillmentTag[] {
  * distribution division, energy). Courses without catalog data match only
  * by listed option.
  */
-export function fillTargetsFor(plan: AugmentedPlan, code: string): OpenSlotRef[] {
+/** A course's derived requirement tags from the catalog alone ([] when uncatalogued). */
+function catalogTags(code: string): FulfillmentTag[] {
   const entry = lookupCourse(code)
-  const tags = entry
+  return entry
     ? derivedFulfillments({ code, title: entry.title, cu: entry.cu, fa: entry.fa ?? null, sec: entry.sec ?? null, isEnergy: !!entry.energy })
     : []
+}
+
+/**
+ * Common double-counts (src/data/common-double-counts.ts) that would fill this
+ * open slot, for the slot's course sheet (2026-11 beta feedback: the list sat
+ * in the collapsed Reference panel where newcomers never found it).
+ */
+export function doubleCountPicksFor(slot: AugmentedCourse, exclude: ReadonlySet<string> = new Set()): DoubleCountRef[] {
+  const want = slotRequirementTags(slot)
+  if (want.length === 0) return []
+  return COMMON_DOUBLE_COUNTS.filter((dc) => !exclude.has(dc.code) && catalogTags(dc.code).some((t) => want.includes(t)))
+}
+
+export function fillTargetsFor(plan: AugmentedPlan, code: string): OpenSlotRef[] {
+  const tags = catalogTags(code)
   const out: OpenSlotRef[] = []
   for (const semKey of ALL_SEMESTER_KEYS) {
     for (const c of plan.semesters[semKey] ?? []) {

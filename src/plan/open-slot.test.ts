@@ -56,3 +56,17 @@ describe('open slots', () => {
     expect(filled.isRenamed).toBe(false)
   })
 })
+
+describe('common double-counts on an open slot', () => {
+  it('offers the double-counts that fill the slot, minus planned courses', async () => {
+    const { doubleCountPicksFor } = await import('./open-slot')
+    const aug = augmentPlan(legacySeed())!
+    const all = Object.values(aug.semesters).flat()
+    const sec1 = all.find((c) => c.slotId === 'gened-sec1')!
+    expect(doubleCountPicksFor(sec1).map((d) => d.code)).toEqual(expect.arrayContaining(['SOCI 0006', 'ECON 0100']))
+    expect(doubleCountPicksFor(sec1).map((d) => d.code)).not.toContain('HIST 1708')
+    expect(doubleCountPicksFor(sec1, new Set(['SOCI 0006'])).map((d) => d.code)).not.toContain('SOCI 0006')
+    const writ = all.find((c) => c.slotId === 'gened-writ')!
+    expect(doubleCountPicksFor(writ).map((d) => d.code)).toEqual(['WRIT 0130'])
+  })
+})

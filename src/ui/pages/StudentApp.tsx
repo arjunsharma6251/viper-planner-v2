@@ -491,6 +491,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             semKey={openCourse.semKey}
             gradYear={gradYear}
             color={store.colorOverrides[openCourse.course.originalCode ?? openCourse.course.code]}
+            plannedCodes={new Set(Object.values(store.augmented!.semesters).flat().map((c) => c.code))}
             seasMajorKey={store.config?.seasMajorKey ?? null}
             curriculum={curriculum}
             onClose={() => setOpenRef(null)}

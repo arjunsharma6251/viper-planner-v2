@@ -211,6 +211,7 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - Advisor notes include prerequisite order (2026-11, `prereqOrderNotes` in `src/plan/advisor-notes.ts`): a warning, never a block, when a course sits in an earlier term than a catalogued prerequisite. Silent for same-term pairs, credit, prerequisites not in the plan, courses without catalog data, and pairs a major's own sample schedule orders that way.
 - Course detail modal (PCR link, tags, swap, rename, delete)
 - Reference & legend, one collapsed dropdown at the bottom of the audit panel (program rules, NCC, common double-counts, legend)
+- An open Sector / FA / Foundation / division slot's sheet lists the common double-counts that fill it (2026-11, `doubleCountPicksFor` in `src/plan/open-slot.ts`), so newcomers meet them where they choose a course
 - LLM chat: plan review + what-if scenarios
 - Export: JSON, CSV, share link
 - Print view
