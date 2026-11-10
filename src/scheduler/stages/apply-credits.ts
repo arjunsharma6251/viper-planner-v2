@@ -1,6 +1,6 @@
 // STAGE 1 — ported verbatim from references/old-app/index.html (~1640-1670).
 
-import { AP_CREDITS } from '../../data/ap-credits';
+import { findApCredit } from '../../data/ap-credits';
 import type { SchedulerPlan } from '../types';
 
 export interface ApplyCreditsContext {
@@ -19,7 +19,7 @@ export function applyCredits(
 ): SchedulerPlan {
   const flags = new Set<string>();
   for (const id of apCreditIds) {
-    const cred = AP_CREDITS.find((c) => c.id === id);
+    const cred = findApCredit(id);
     if (!cred) continue;
     // Resolve grants — some entries (e.g. AP Calc BC) are functions of gradYear.
     const grants =

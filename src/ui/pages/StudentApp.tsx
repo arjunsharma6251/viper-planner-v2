@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { AugmentedCourse } from '../../plan/types'
+import type { AugmentedCourse, Mutation } from '../../plan/types'
 import { yearName, type SemesterKey } from '../../data/semesters'
 import { usePlanStore } from '../store/use-plan-store'
 import { PlanSetup } from '../components/PlanSetup'
@@ -11,12 +11,16 @@ import { ShareLinkButton } from '../components/ShareLinkButton'
 import { ExportMenu } from '../components/ExportMenu'
 import { CourseDetailModal } from '../components/CourseDetailModal'
 import { AddCourseModal } from '../components/AddCourseModal'
+import { PlanMenu } from '../components/PlanMenu'
 import { ToastProvider } from '../components/Toasts'
 import { useToast } from '../components/use-toast'
 import { DegreeSelect } from '../components/MajorSelects'
 import { ChatPanel } from '../../llm/chat'
 import { isAdminMode } from '../../utils/mode'
 import { computeNccAudit } from '../../plan/ncc-audit'
+import { computeMajorAudit } from '../../plan/major-audit'
+import { fillTargetsFor, listOpenSlots } from '../../plan/open-slot'
+import { completedTermKeys } from '../../plan/completed-terms'
 import { computeAdvisorNotes } from '../../plan/advisor-notes'
 import { AdvisorNotes } from '../components/AdvisorNotes'
 import { curriculumModeOf } from '../store/use-plan-store'
@@ -62,6 +66,8 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   const [view, setView] = useState<'grid' | 'focus'>('grid')
   const [focusSem, setFocusSem] = useState<SemesterKey>('fall-y1')
   const [editingSetup, setEditingSetup] = useState(false)
+  /** "New plan" from the plan menu: setup runs again for a separate saved plan. */
+  const [creatingPlan, setCreatingPlan] = useState(false)
   const [lit, setLitState] = useState<ReadonlySet<Bus>>(() => new Set())
   const shareRef = useRef<HTMLButtonElement>(null)
 
@@ -123,6 +129,13 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
         proposalView ? proposalPolicy.targets : undefined,
       )
     : undefined
+  const majorAudits =
+    store.augmented && store.config
+      ? {
+          sas: computeMajorAudit(store.augmented, store.config.sasMajorKey, store.config.sasConcKey, store.config.seasMajorKey),
+          seas: computeMajorAudit(store.augmented, store.config.seasMajorKey, store.config.seasConcKey, store.config.sasMajorKey),
+        }
+      : undefined
   const advisorNotes = store.augmented
     ? computeAdvisorNotes(store.augmented, nccAudit, curriculum, gradYear)
     : []
@@ -155,7 +168,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
     return result
   }
 
-  const planReady = !!store.plan && !!store.augmented && !editingSetup
+  const planReady = !!store.plan && !!store.augmented && !editingSetup && !creatingPlan
 
   function switchMajors(next: NonNullable<typeof store.config>) {
     if (!window.confirm('Switching majors rebuilds your starting plan from the scheduler template. Manual edits will be replaced. Continue?'))
@@ -265,6 +278,33 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
           {/* ── Title block: whose plan this is. Full width, wraps, never crops. ── */}
           {store.config && planReady && (
             <section aria-label="Student plan" className="no-print mb-6 flex flex-wrap items-end gap-x-8 gap-y-3 border-b border-rule pb-3">
+              <TitleField label="Plan">
+                <PlanMenu
+                  plans={store.plans}
+                  activeId={store.activePlanId}
+                  viewingShared={store.viewingShared}
+                  onSwitch={(id) => {
+                    setOpenRef(null)
+                    store.switchPlan(id)
+                  }}
+                  onNew={() => setCreatingPlan(true)}
+                  onDuplicate={(id) => {
+                    store.duplicatePlan(id)
+                    toast('Duplicated. You are now editing the copy.')
+                  }}
+                  onRename={(id, name) => store.renamePlan(id, name)}
+                  onDelete={(id) => {
+                    const name = store.plans.find((p) => p.id === id)?.name ?? 'plan'
+                    setOpenRef(null)
+                    const undo = store.deletePlan(id)
+                    if (undo) toast(`Deleted “${name}”.`, undo)
+                  }}
+                  onSaveShared={() => {
+                    store.saveSharedPlan()
+                    toast('Saved to your plans.')
+                  }}
+                />
+              </TitleField>
               {studentName && (
                 <TitleField label="Student">
                   <span className="font-medium">{studentName}</span>
@@ -299,10 +339,32 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
           {!planReady ? (
             <PlanSetup
-              initial={store.config}
-              onCancel={store.plan ? () => setEditingSetup(false) : undefined}
+              key={creatingPlan ? 'new-plan' : 'edit-setup'}
+              initial={creatingPlan ? null : store.config}
+              onCancel={
+                store.plan
+                  ? () => {
+                      setEditingSetup(false)
+                      setCreatingPlan(false)
+                    }
+                  : undefined
+              }
               onDone={(config) => {
-                if (store.plan && !window.confirm('Build a fresh plan from this setup? Your current edits will be replaced.'))
+                if (creatingPlan) {
+                  if (store.createPlan(config, proposalView ? proposalPolicy : undefined)) {
+                    setCreatingPlan(false)
+                    toast('New plan built. Your other plans are in the plan menu.')
+                  } else {
+                    toast('Could not build a plan for that combination.')
+                  }
+                  return
+                }
+                if (
+                  store.plan &&
+                  !window.confirm(
+                    'Build a fresh plan from this setup? Your current edits will be replaced. (To keep them, cancel and use Plan → Duplicate first.)',
+                  )
+                )
                   return
                 if (store.setup(config, proposalView ? proposalPolicy : undefined)) {
                   setEditingSetup(false)
@@ -324,6 +386,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       gradYear={gradYear}
                       colorOverrides={store.colorOverrides}
                       selected={openRef}
+                      completedTerms={new Set(completedTermKeys(store.config?.completedTerms))}
                       onOpenCourse={(course, semKey) => setOpenRef({ courseId: course.originalCode ?? course.code, semKey })}
                       onAddCourse={setAddTo}
                       onMove={(from, to, courseId, targetIndex) => {
@@ -371,6 +434,10 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                       ncc={curriculum === 'ncc' ? nccAudit : undefined}
                       seas={nccAudit?.seas}
                       curriculum={curriculum}
+                      majors={majorAudits}
+                      openSlots={listOpenSlots(store.augmented!)}
+                      gradYear={gradYear}
+                      onJumpToSlot={(slot) => setOpenRef({ semKey: slot.semKey, courseId: slot.code })}
                     />
                     {showCurriculumNotice && (
                       <div className="no-print border-b border-rule px-3 py-3 text-[0.75rem] leading-snug text-ink" role="status">
@@ -478,6 +545,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             semKey={openCourse.semKey}
             gradYear={gradYear}
             color={store.colorOverrides[openCourse.course.originalCode ?? openCourse.course.code]}
+            plannedCodes={new Set(Object.values(store.augmented!.semesters).flat().map((c) => c.code))}
             seasMajorKey={store.config?.seasMajorKey ?? null}
             curriculum={curriculum}
             onClose={() => setOpenRef(null)}
@@ -514,6 +582,15 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
             curriculum={curriculum}
             onClose={() => setAddTo(null)}
             onAdd={(draft) => applyToast({ kind: 'add_course', semester: addTo, course: draft })}
+            fillTargets={(code) => (store.augmented ? fillTargetsFor(store.augmented, code) : [])}
+            onFill={(target, draft) => {
+              const mutations: Mutation[] = [
+                { kind: 'rename_course', courseId: target.code, newCode: draft.code, ...(draft.title ? { newTitle: draft.title } : {}) },
+              ]
+              if (target.semKey !== addTo) mutations.push({ kind: 'move_course', from: target.semKey, to: addTo, courseId: draft.code })
+              const result = store.applyAll(mutations)
+              toast(result.ok ? `Filled ${target.label} with ${draft.code}` : result.message)
+            }}
           />
         )}
       </div>

@@ -383,8 +383,14 @@ describe('renameCourse', () => {
       slotId: 'ncc-kite',
       intent: { foundation: 'ncc-kite' },
     })
+    // Code only, not in the catalog: the code is the title and the slot's
+    // name stays as secondary text (2026-11 beta feedback, Ananya).
     const untitled = renameCourse(plan, '— ncc-kite', 'COL 0100')
-    expect(untitled.plan.semesters['fall-y1'][0]?.title).toBe('Kite Foundation')
+    expect(untitled.plan.semesters['fall-y1'][0]).toMatchObject({ title: 'COL 0100', slotLabel: 'Kite Foundation' })
+    // A catalog code takes the catalog title.
+    plan.semesters['fall-y1'][0]!.slotLabel = undefined
+    const catalogued = renameCourse(plan, '— ncc-kite', 'STSC 1880')
+    expect(catalogued.plan.semesters['fall-y1'][0]).toMatchObject({ title: 'Energy & Society', slotLabel: 'Kite Foundation' })
     expect(renameCourse(plan, '— ncc-kite', '— other').ok).toBe(false)
     expect(renameCourse(plan, '— ncc-kite', '  ').ok).toBe(false)
   })
@@ -691,7 +697,7 @@ describe('CSV export', () => {
     // per-semester totals, then the summary block
     expect(csv).toContain('"Total","1.0","","Total","1.5"') // Year 1: CHEM 1012 / MATH 1410 + VIPR 1200
     expect(csv).toContain('"Summary"')
-    expect(csv).toContain('"Total CU","7.0"') // 2 courses + 10 × 0.5 VIPR
+    expect(csv).toContain('"Total CU","7.5"') // 2 courses + 11 × 0.5 VIPR (VIPR 1300 includes Fall Y2)
     expect(csv).toContain('"Energy courses","0/3"')
     expect(csv).toContain('"Double-counted","0"')
   })
@@ -808,5 +814,14 @@ describe('planFromAppState — curriculum the plan was built under', () => {
     )
     const plan = planFromAppState(state!)
     expect(plan?.meta.curriculumMode).toBeUndefined()
+  })
+})
+
+describe('renameCourse on a filled slot row (2026-11)', () => {
+  it('shows an uncatalogued code as the title and keeps the slot label', () => {
+    const plan = createEmptyPlan()
+    plan.semesters['fall-y3'].push({ code: 'CBE 5050', title: 'Advanced Topics', cu: 1, slotId: 'cbe-conc-3', slotLabel: 'Concentration 3 / Energy' })
+    const res = renameCourse(plan, 'CBE 5050', 'CBE 5999')
+    expect(res.plan.semesters['fall-y3'][0]).toMatchObject({ code: 'CBE 5999', title: 'CBE 5999', slotLabel: 'Concentration 3 / Energy' })
   })
 })

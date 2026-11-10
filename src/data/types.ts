@@ -67,6 +67,13 @@ export interface ElectiveSlot {
   /** Slot counts toward the VIPER energy requirement. */
   energy?: boolean;
   note?: string;
+  /**
+   * Course groups that complete the slot when every course in a group is
+   * planned (e.g. CHEM 2411 + CHEM 2421 for the CBE Lab Elective). Read by
+   * the degree audit; the scheduler does not seed the slot when a group is
+   * already in the plan.
+   */
+  satisfiedBy?: readonly (readonly string[])[];
 }
 
 /**
@@ -141,7 +148,7 @@ export interface ViperProgram {
  * class — for those, `grants` (and `note`) is a function of gradYear.
  */
 /** How incoming credit was earned — drives grouping in setup. */
-export type ApCreditKind = 'ap' | 'ib' | 'alevel' | 'exam' | 'waiver';
+export type ApCreditKind = 'ap' | 'ib' | 'alevel' | 'exam' | 'waiver' | 'transfer';
 
 export interface ApCredit {
   id: string;

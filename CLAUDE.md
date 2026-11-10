@@ -35,7 +35,7 @@ The maintainer is Arjun Sharma (VIPER '28, CHEM BA + CBE BSE). When the doc says
 |---|---|---|
 | Framework | React + Vite + TypeScript | Familiar, fast builds, types catch LLM tool-call mistakes |
 | Hosting | Vercel | Easy preview deploys, edge functions if needed later for LLM proxy |
-| State persistence | LocalStorage only | Pilot scale; backend deferred |
+| State persistence | LocalStorage only — a plan library (2026-11, `src/utils/plan-library.ts`, key `viper-planner:library:v1`): several saved plans, each a full AppState with its own setup | Pilot scale; backend deferred |
 | Cross-device sharing | URL fragment (existing share-link model) | Works without backend |
 | Auth | None for v1 | PennKey OAuth deferred — see "Auth: why not now" below |
 | LLM integration | Tool-calling from day one (Anthropic API) | "What if" requires modify-and-readback; tools are the right shape |
@@ -104,7 +104,7 @@ Default to checking the old source before re-deriving from first principles. The
 - **NCC math** (`computeNCCWorkload`, `computeSEASGenElectives` in old `06-ncc.jsx`). The policy-vs-in-term split, the Foundation status (`waived`/`summer`/`in-term`), the distribution computation, the strategy toggle behaviors.
 - **Course catalog** (`COURSES`, `MAJORS`, `VIPER_PROGRAM`, `AP_CREDITS`, `GENED_POOL`, `GENED_SLOTS`, `FA_REQUIREMENTS`, `SECTORS`, `ENERGY_COURSES`, `COMMON_DOUBLE_COUNTS` in old `02-data.jsx`). The data itself is months of cross-referencing against Penn's actual course catalog. Don't redo the research.
 - **Penn Course Review URL helper.** PCR is the student's first reference for any course. Every course code needs a clickable PCR link.
-- **Multi-star double-count / overlap indicator.** Gold stars for cross-degree overlap (BA+BSE), red stars for within-degree double-count. Cap at 3. Silent under 2.
+- **Multi-star double-count / overlap indicator.** Gold stars for cross-degree overlap (BA+BSE), red stars for within-degree double-count. Cap at 3. Silent under 2. *(2026-11: no longer drawn on course rows — beta testers and Michelle could not read the ×2/×3 marks. `requirementCount` / `overlapKind` are still computed; the course sheet's "Counts toward" shows what a course counts for, in grid, print and share views alike.)*
 - **`augmentPlan` function.** Takes the raw plan, computes requirement counts, overlap kinds, fulfillment intent. Same pattern in new architecture.
 
 ### Logic to leave behind
@@ -141,7 +141,7 @@ The College and Engineering have different gen-ed requirements. SAS uses either 
 - **Approved VIPER overlap (the only one):** VIPR 1200/1210 count as the First-Year Seminar. Every other modification in the sandbox (Key via VIPR 1210, Language waiver, P&D via VIPR 1300, Kite waivers/lab, Kite/Writing/VIPR 1300 double-counts, A&S 3 CU waiver) **needs committee approval** and must not appear as granted in anything a student sees. `CONFIRMED_VIPER_MODS` in `src/ncc/mods.ts` encodes this; student-facing code uses it, the sandbox uses `DEFAULT_VIPER_MODS` (the current proposal).
 - **Curriculum default (2026-10, Arjun):** the Class of 2031 and later default to the NCC; earlier classes default to the old core (`FIRST_NCC_CLASS` / `defaultCurriculumMode()` in the store). Setup asks it as its own step, preselected with the class default; only a choice that differs from the default is stored. Plans saved before this change carry an explicit mode and keep it.
 - **Program-office templates (2026-10):** `src/data/templates.ts` holds Michelle's hand-built plans (CHEM+CBE Energy, CHEM+MSE Energy, PHYS B&T+MSE Energy). In NCC mode a matching combo seeds from the template (`planFromTemplate` in `src/plan/template-seed.ts`), not the scheduler. The templates assume the October memo, so `topUpRequirements` adds the open slots confirmed policy still needs (Language, extra distribution, SEAS SS/H) — the same top-up also runs after scheduler NCC seeds. `template-seed.test.ts` pins both: exact template under the memo, clean audit under confirmed policy.
-- **The NCC scheduler seed** The scheduler's NCC module is `src/ncc/scheduler-module.ts` (ported from the old app, registered via `installNccModule()` at boot and in tests). Student seeds use `CONFIRMED_VIPER_MODS`. `ncc-seed.test.ts` asserts, for all 420 combos: dual minimum, energy, every non-waived Foundation placed, no SS/H shortfall, Fall Y1 ≤ 5.5 CU. It deliberately does NOT assert semester ceilings: under confirmed policy the NCC adds ~12 CU of non-major work and 140/420 combos end up with a semester above 7.5 CU (40/420 under the old core) — that gap is the advocacy case, not a scheduler bug. Three port fixes over the old code, all traceable to the College chart: distribution fillers no longer count the generic placeholder slots in their projection (old code under-provisioned by 3–4 CU); Kite and Language never count within the distribution without a mod; BA CU in `runNCCChecks` is computed from the plan (the summary is not built yet when it runs).
+- **The NCC scheduler seed** The scheduler's NCC module is `src/ncc/scheduler-module.ts` (ported from the old app, registered via `installNccModule()` at boot and in tests). Student seeds use `CONFIRMED_VIPER_MODS`. `ncc-seed.test.ts` asserts, for all 420 combos: dual minimum, energy, every non-waived Foundation placed, no SS/H shortfall, Fall Y1 ≤ 5.5 CU. It deliberately does NOT assert semester ceilings: under confirmed policy the NCC adds ~12 CU of non-major work and 140/420 combos end up with a semester above 7.5 CU (at the scheduler level, before top-up, 2026-11-10 with VIPR 1300 in Fall Y2: 70/420 old core and 20/420 NCC above 7.5 CU) — that gap is the advocacy case, not a scheduler bug. Three port fixes over the old code, all traceable to the College chart: distribution fillers no longer count the generic placeholder slots in their projection (old code under-provisioned by 3–4 CU); Kite and Language never count within the distribution without a mod; BA CU in `runNCCChecks` is computed from the plan (the summary is not built yet when it runs).
 - **SEAS general electives: 7 CU**, unchanged by NCC. 1 is the Writing seminar (the College's Critical Writing), 1 is Engineering ethics (VIPR 1200/1210), and the remaining 5 are SS / H / TBS courses whose split depends on the engineering major. Per-major split and the catalog's "X or Y" core alternatives live in `src/data/seas-catalog.ts`, read from catalog.upenn.edu on 2026-09-11 (CBE/MSE/ESE/CIS: 4 SS-or-H incl. Writing + 2 SS/H/TBS; MEAM: 1 SS + 2 H incl. Writing + 1 SS-or-H + 2 SS/H/TBS). Caveat: those catalog pages describe Fall 2026 entrants; `majors.ts` core lists stay as the entry-year requirement sheets, and alternatives are offered as swaps in the course detail modal, never forced.
 
 For VIPER specifically, the NCC math is heavier than the major requirements can absorb, which is the whole reason for the policy-advocacy work the sandbox supports.
@@ -172,6 +172,10 @@ Foundations placed in summer count toward policy but NOT in-term. This is the ke
 
 `src/plan/fulfillments.ts` is the one place this is decided. Each course has DERIVED fulfillments (catalog FA / Sector / energy, its slot's Foundation or division, VIPR 1200/1210 = SEAS ethics + Sector VII) and the student's overrides, stored in `plan.fulfillments[courseKey]` as marks: `tag` adds, `!tag` removes a derived one (old plans hold additions only and read the same). `augmentPlan` puts the result on `effectiveFulfills`; the NCC/SEAS audit, the old-core FA/Sector summary, the energy count, the stars and the modal's pre-checked "Counts toward" boxes all read it. Old-core tags are `fa:<id>` / `sec:<id>`. Writing / Kite / Key / Language slots carry a division for placement only — never derived, but the student may tick one.
 
+### Pairing substitutions (2026-11)
+
+`substitutions` on a SAS major with `context: '<SAS>-<SEAS> combo'` apply to that pairing only. When the BSE core already holds the substitute, `collect-core-courses` drops the BA course from the seed and the substitute counts for both degrees, carrying the substitution's `note` (also reused by `templates.ts`). The major audit counts the substitute toward the BA course. Current: CBE 3530 for CHEM 2220 in CHEM+CBE (Michelle, reconfirmed 2026-11-04).
+
 ### Overlap vs double-count
 
 These are different things and the distinction matters:
@@ -186,9 +190,10 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - A "credit unit" (CU) at Penn = roughly one semester course
 - Most courses are 1.0 CU
 - Some are 0.5 CU (half-semester, modular, or research)
-- VIPR 1300 is 0.5 CU per term, with a 0.5–1.5 CU range allowed in summer
+- VIPR 1300 is 0.5 CU per term, with a 0.5–1.5 CU range allowed in summer. In-term it runs Fall Y2 → Spring Y4, six terms (Fall Y2 confirmed by Arjun 2026-11-10; it sits beside VIPR 1210)
 - Total degrees: BA 36 CU minimum, BSE 40 CU minimum, dual **46 CU** (`VIPER_PROGRAM.minTotalCU`; incoming credit counts)
 - Per-semester ladder (reviewer-confirmed 2026-09-21, `src/ui/load.ts`): first semester capped at 5.5 CU; later terms capped at 6.5 CU; 7+ CU needs a Max CU Increase request (SRFS Path forms page, `MAX_CU_FORM_URL`). 5.5–6.5 in a later term is the normal dual-degree overload and is not flagged anywhere.
+- **Sample-schedule floor (2026-11):** a core course never seeds earlier than its majors' earliest `sampleSchedule` term unless incoming credit sits on its prerequisite chain (`creditFreedPath` in `src/scheduler/stages/place-core-courses.ts`; the old app's forward shift fired with no credit at all and put P-Chem in Year 2, Senior Design in Year 3). Seeded electives take Fall Y1 only as a last resort, and `fill-to-minimum-cu` trims a Fall Y1 elective first. `sample-term-floor.test.ts` pins this for all 420 combos. Known data conflicts the floor cannot honor: MATH 4100 is FALL-only in `courses.ts` but MATH's schedule says spring-y3; PHYS 0150 is FALL-only but ESE's schedule says spring-y1.
 - **First semester (Fall Y1) is hard-capped at 5.5 CU** — no overload. The scheduler enforces this via `semesterCap()` in `src/scheduler/helpers.ts` (core courses beyond the cap defer to the next term with room; `first-semester-cap.test.ts` asserts it for every combo). The UI shows anything above 5.5 in Fall Y1 as "over first-semester cap" in red.
 - Summers have different thresholds — don't apply the academic-year load classification
 
@@ -200,13 +205,16 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 
 - Plan editing: add, remove, move, reorder, rename, tag fulfillments, color-code courses
 - Major selection (BA + BSE) and concentrations
-- Incoming credit picker (AP/IB/A-level physics + CS, Penn credit exams for CHEM 1012/1022, MATH 1400/1410/2200/2300, BIOL 1101/1102/1121, and waivers). AP Calc, AP Chem, AP Stat, IB/A-level Chem are deliberately NOT offered: they grant no VIPER-usable credit.
+- Incoming credit picker (AP/IB/A-level physics + CS, Penn credit exams for CHEM 1012/1022, MATH 1400/1410/2200/2300, BIOL 1101/1102/1121, and waivers). AP Calc, AP Chem, AP Stat, IB/A-level Chem are deliberately NOT offered: they grant no VIPER-usable credit. A "From another institution" entry (2026-11) lets the student name the Penn course an outside course was approved as; stored as `transfer:<CODE>` in `apCreditIds` and resolved by `findApCredit` (use it, not `AP_CREDITS.find`). Nothing is pre-granted; the note sends them to Path@Penn.
 - Graduation year selector
-- Degree audit: ONE right-rail panel — BA / BSE / Energy dropdowns (`Disclosure.tsx`: boxed chevron, readout, accent bar; a section with gaps opens itself, complete ones stay folded), total CU line, Advisor notes dropdown, Reference & legend dropdown. Nothing else lives in the rail; Reset to template is gone (Edit setup → Rebuild covers it).
+- Degree audit: ONE right-rail panel — BA / BSE / Energy dropdowns (BA and BSE each end with "Major · <name>": Core courses and Electives groups, one tick per core course and elective slot with its accepted alternatives / options, from `src/plan/major-audit.ts`; alternatives are the major's own `substitutions` for the BA and `CORE_ALTERNATIVES` for the BSE; an open slot reads "to fill", a slot with no line in the plan "not in plan") (`Disclosure.tsx`: boxed chevron, readout, accent bar; a section with gaps opens itself, complete ones stay folded), total CU line, Advisor notes dropdown, Reference & legend dropdown. Nothing else lives in the rail; Reset to template is gone (Edit setup → Rebuild covers it). The panel opens with "Open slots to fill" (2026-11): every open slot in term order, each a jump to its course sheet (`listOpenSlots`). Add course offers to fill an open slot instead of adding a second line when the course is in the slot's options or carries its FA / Sector / division / energy (`fillTargetsFor` in `src/plan/open-slot.ts`); filling and moving into the chosen term is one undo step (`store.applyAll`).
+- Advisor notes include prerequisite order (2026-11, `prereqOrderNotes` in `src/plan/advisor-notes.ts`): a warning, never a block, when a course sits in an earlier term than a catalogued prerequisite. Silent for same-term pairs, credit, prerequisites not in the plan, courses without catalog data, and pairs a major's own sample schedule orders that way.
 - Course detail modal (PCR link, tags, swap, rename, delete)
 - Reference & legend, one collapsed dropdown at the bottom of the audit panel (program rules, NCC, common double-counts, legend)
+- An open Sector / FA / Foundation / division slot's sheet lists the common double-counts that fill it (2026-11, `doubleCountPicksFor` in `src/plan/open-slot.ts`), so newcomers meet them where they choose a course
 - LLM chat: plan review + what-if scenarios
 - Export: JSON, CSV, share link
+- Plan menu (title strip, "Plan"): switch saved plans, New plan… (setup runs again; the current plan is kept), Duplicate, Rename, Delete (undo from the toast). Every saved plan autosaves. The single-plan key `viper-planner:state:v8` from before is migrated once into the library and left in place.
 - Print view
 
 ### Admin mode (URL-gated)
@@ -339,7 +347,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 **Reversibility as default.** Every destructive action has an undo. Delete a course → toast "Removed CHEM 2410. Undo." Apply an LLM-suggested change → snapshot first. Reset to template → confirm. The cost of regret should be one click.
 
 **Progressive disclosure.** The default surface shows the headline. Detail lives one click away. Examples:
-- Course row shows code, title, CU, star indicator. Everything else (fulfillments, alternates, rename, delete) is in the detail modal.
+- Course row shows code, title, CU; an open slot always reads "to fill". Everything else (fulfillments, alternates, rename, delete) is in the detail modal.
 - Sandbox shows the headline metric and one row per strategy. The mod-level toggles live deeper, in an "advanced" disclosure.
 - Trackers show "5/7 satisfied" by default. Click to expand into which specific requirements are missing.
 
@@ -358,7 +366,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 
 - At any moment, the visible primary actions should be ≤4. If you're adding a fifth, group some into a menu.
 - The export menu hides JSON/CSV/Print behind a single "Export ▾". The two primary actions (Share link and Add course) stay visible.
-- Onboarding asks one question at a time (class → BA major → BSE major → incoming credit → review), single-choice steps auto-advance, every answer stays one click away in the trail on top, and Edit setup opens at the review. Motion: `.rise` / `.sink` / `.stagger` in `src/index.css`, all off under `prefers-reduced-motion`.
+- Onboarding asks one question at a time (class → BA major → BSE major → incoming credit → finished terms → review; "finished terms" (2026-11) is optional: a current student adds terms in calendar order with the codes taken, stored as `completedTerms` in config / AppState, and `applyCompletedTerms` (`src/plan/completed-terms.ts`) lays them in after the seed — VIPR rows stay, entered codes take the seed's own line or fill an open slot, untaken seeded lines move to the earliest remaining term offered; finished terms read "finished" on the sheet), single-choice steps auto-advance, every answer stays one click away in the trail on top, and Edit setup opens at the review. Motion: `.rise` / `.sink` / `.stagger` in `src/index.css`, all off under `prefers-reduced-motion`.
 - The course detail modal is one sheet, no tabs: editable code + title first, then move/remove, then "Counts toward" checkboxes, then catalog alternatives / picks, then color. Don't add tabs back.
 
 #### Miller's Number — chunk by 5-7
@@ -378,7 +386,7 @@ The general rule: **a UI is good when the user doesn't notice it.** Decisions be
 #### Peak-End Rule — invest in moments of delight and closure
 
 - The "share link copied" moment is a *peak*. Make it sing — a brief animation, the link visible, copy confirmed, "send it to your advisor" microcopy.
-- The "your plan is valid, you'll graduate on time" moment when all trackers go green — give it a celebratory but restrained beat (single subtle animation, not confetti).
+- The moment all trackers go green — a restrained beat (single subtle animation, not confetti). **Never claim graduation** (2026-11 beta feedback): the audit's closing note says what it checks and what it does not, and sends the student to Path@Penn.
 - The "import succeeded" or "reset complete" moments — clear visual confirmation, not just silent state change.
 
 #### Recognition over recall
@@ -447,7 +455,7 @@ Concretely:
 - **Transitions between modes don't lose state.** Switch from Grid to List view → same plan, same selection, same scroll position remembered.
 - **Single source of truth for every piece of state.** Don't have "current selection" stored in two places that can desync.
 - **LLM tool calls and direct user actions go through the same mutation API.** Whether the student drags or the LLM calls `move_course`, the path through the code is identical. No drift between the two.
-- **The share link contains the entire app state**, not a pointer to it. Open the link → exact same view, no fetch.
+- **The share link contains the entire app state**, not a pointer to it. Open the link → exact same view, no fetch. **It never overwrites a saved plan** (2026-11): a link opens as an unsaved view ("Shared plan · not saved"); viewing writes nothing, the first edit or "Save to my plans" adds it to the library as a new plan and drops the URL fragment.
 
 ### Anti-patterns to avoid
 

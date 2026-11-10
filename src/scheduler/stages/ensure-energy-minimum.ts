@@ -37,13 +37,19 @@ export function ensureEnergyMinimum(plan: SchedulerPlan): SchedulerPlan {
       const data = courseEntry(code);
       const slot = findLightestFitting(data, plan, 2, maxLoad);
       if (!slot) continue;
+      // A suggestion, not a requirement (2026-11 beta feedback: "why is CBE
+      // 3250 in my plan?"). It sits in a swappable slot whose picks are the
+      // other fallback energy courses.
       addCourse(plan, slot, {
         ...data,
         category: 'seas',
         tags: ['SEAS', 'ENERGY', 'VIPER-req'],
         isElective: true,
         isEnergy: true,
-        note: "Added to satisfy VIPER's 3-energy-course requirement.",
+        slotId: `viper-energy-${count + 1}`,
+        slotLabel: 'VIPER energy course · suggested pick',
+        pool: fillerCandidates,
+        note: "A suggested pick toward VIPER's 3 energy courses. Any VIPER energy course works: swap it for another below, or replace it with one you prefer.",
       });
       count++;
     }

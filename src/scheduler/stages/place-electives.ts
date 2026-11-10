@@ -101,6 +101,9 @@ function placeOneElective(
 
   // Avoid duplicate placement
   if (code && plan.placement[code] && plan.placement[code] !== 'credit') return plan;
+  // A slot completed by a planned course group (e.g. CHEM 2411 + 2421 for the
+  // CBE Lab Elective) gets no line of its own.
+  if (!userChoice && slot.satisfiedBy?.some((group) => group.every((g) => plan.placement[g] !== undefined))) return plan;
 
   // Drag-drop override: if user moved this slot (by slot id) or course (by code), honor it
   const customPlacements = plan.meta.customPlacements || {};
@@ -139,8 +142,14 @@ function placeOneElective(
       return (plan.loads[a.k] || 0) - (plan.loads[b.k] || 0);
     });
 
+  // Fall Y1 is the last resort for a seeded elective (2026-11 beta feedback:
+  // with the forward shift gated on incoming credit, Fall Y1 became the
+  // lightest term and drew "CBE Elective (3000+)" into the first semester).
+  // It still takes one when every later term is full, under its 5.5 CU cap —
+  // banning it outright pushed 45 more combos above 7.5 CU in Year 2.
+  const firstPass = [...tryOrder.filter((x) => x.k !== 'fall-y1'), ...tryOrder.filter((x) => x.k === 'fall-y1')];
   let placedSem: SemesterKey | null = null;
-  for (const { k } of tryOrder) {
+  for (const { k } of firstPass) {
     if (!canPlaceInSemester(data, k)) continue;
     if ((plan.loads[k] || 0) + data.cu <= semesterCap(k, TARGET_MAX)) {
       placedSem = k;

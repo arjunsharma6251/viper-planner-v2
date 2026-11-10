@@ -27,6 +27,8 @@ export interface SemesterCardProps {
   colorOverrides?: Record<string, string>
   /** Course id whose detail modal is open (inverts that row). */
   selectedId?: string | null
+  /** A term the student has finished (entered in setup). */
+  completed?: boolean
 }
 
 const TONE_TEXT: Record<LoadTone, string> = {
@@ -52,6 +54,7 @@ export function SemesterCard({
   onDragChange,
   colorOverrides,
   selectedId,
+  completed = false,
 }: SemesterCardProps) {
   const summer = isSummerSem(semKey)
   const [insertAt, setInsertAt] = useState<number | null>(null)
@@ -100,6 +103,7 @@ export function SemesterCard({
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="font-serif text-[1.0625rem] leading-none font-semibold text-ink">
             {seasonLabel}
+            {completed && <span className="label ml-2 align-middle !text-[0.5625rem] !text-good">finished</span>}
           </h3>
           <span className={['tag whitespace-nowrap', TONE_TEXT[status.tone]].join(' ')}>{load.toFixed(1)} CU</span>
         </div>
@@ -130,7 +134,7 @@ export function SemesterCard({
       >
         <span>code</span>
         <span>course</span>
-        {!summer && <span>counts</span>}
+        {!summer && <span />}
         <span className="text-right">CU</span>
       </div>
 

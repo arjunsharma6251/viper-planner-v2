@@ -85,13 +85,22 @@ export const MAJORS: Record<string, Major> = {
           { id: 'phys-lab', label: 'Physics Lab Elective', cu: 1 },
         ],
       },
+      // Computer Techniques follows a Class of 2027 Path@Penn audit (Adithya
+      // Selvakumar, 2026-11): PHYS 4411 in the core; PHYS 1250, PHYS 3351
+      // (both already in sharedCore), PHYS 4401, a Physics Lab Elective and
+      // 3 CU of Computer Techniques Electives. The pools hold the courses that
+      // audit accepted (his lab: ESE 2150; his electives: CIS 1100/1210/1600),
+      // not the department's full list. Whether PHYS 4411 is core for every
+      // concentration is still open.
       CS: {
         label: 'Computer Techniques',
-        extraCore: ['CIS 1100', 'CIS 1200'],
+        extraCore: ['PHYS 4401', 'PHYS 4411'],
+        sampleSchedule: { 'PHYS 4401': 'fall-y4', 'PHYS 4411': 'fall-y4' },
         electiveSlots: [
-          { id: 'cs-phys-1', label: 'CS Elective', cu: 1 },
-          { id: 'cs-phys-2', label: 'CS Elective', cu: 1 },
-          { id: 'phys-lab', label: 'Physics Lab Elective', cu: 1 },
+          { id: 'cs-phys-1', label: 'Computer Techniques Elective', cu: 1, pool: ['CIS 1100', 'CIS 1210', 'CIS 1600'] },
+          { id: 'cs-phys-2', label: 'Computer Techniques Elective', cu: 1, pool: ['CIS 1210', 'CIS 1600', 'CIS 1100'] },
+          { id: 'cs-phys-3', label: 'Computer Techniques Elective', cu: 1, pool: ['CIS 1600', 'CIS 1100', 'CIS 1210'] },
+          { id: 'phys-lab', label: 'Physics Lab Elective', cu: 1, pool: ['PHYS 3364', 'ESE 2150'] },
         ],
       },
     },
@@ -118,21 +127,26 @@ export const MAJORS: Record<string, Major> = {
       'CHEM 1022': 'spring-y1', 'CHEM 1102': 'spring-y1',
       'PHYS 0150': 'fall-y2', 'PHYS 0151': 'spring-y2',
       'CHEM 2411': 'fall-y2', 'CHEM 2421': 'spring-y2',
-      'CHEM 2210': 'fall-y3', 'CHEM 2610': 'fall-y3', 'CHEM 2460': 'fall-y3',
+      // Junior and senior Chemistry follow Ananya Srivastav's account of the
+      // department's order (2026-11 beta feedback); Michelle's CHEM+CBE template
+      // keeps its own pairing-specific order. CHEM 2510's term was not covered.
+      'CHEM 2210': 'fall-y3', 'CHEM 2610': 'fall-y3', 'CHEM 2460': 'fall-y4',
       'CHEM 2220': 'spring-y3', 'CHEM 2230': 'spring-y3', 'CHEM 2510': 'spring-y3',
     },
     concentrations: {
       STANDARD: { label: 'Standard BA', default: true, extraCore: [], electiveSlots: [] },
     },
     substitutions: [
-      { from: 'CHEM 2220', to: 'CBE 3530', context: 'CHEM-CBE combo', note: 'CBE 3530 may replace CHEM 2220' },
-      { from: 'CHEM 2210', to: 'MSE 2210', context: 'CHEM-MSE combo', note: 'MSE 2210 may replace CHEM 2210' },
+      // Reconfirmed by Michelle Hutchings 2026-11-04. The seed plans only CBE 3530.
+      { from: 'CHEM 2220', to: 'CBE 3530', context: 'CHEM-CBE combo', note: 'Also stands in for CHEM 2220 (approved CHEM-CBE substitution).' },
     ],
     notes: [
       'CHEM major auto-completes Sector VI (Physical World).',
       'AP Chemistry (EAS 0091) is NOT accepted — take Penn CHEM 1012 placement exam or CHEM 1012 at Penn.',
       'Complete the introductory sequences by end of sophomore year.',
-      'Common VIPER substitutions: MSE 2210 → CHEM 2210 (CHEM-MSE), CBE 3530 → CHEM 2220 (CHEM-CBE).',
+      'Approved VIPER substitution: CBE 3530 → CHEM 2220 (CHEM-CBE).',
+      // Program office, 2026-11-04: the MSE 2210 → CHEM 2210 substitution is no longer approved.
+      'MSE 2210 no longer substitutes for CHEM 2210 (CHEM-MSE); plan both.',
     ],
   },
 
@@ -366,7 +380,10 @@ export const MAJORS: Record<string, Major> = {
         extraCore: [],
         electiveSlots: [
           { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2421', 'CHEM 2210', 'MSE 2210'] },
-          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, note: 'CHEM 2411 + 2421 sequence covers this' },
+          // Ananya Srivastav (2026-11) confirmed CHEM 2411 + 2421 complete it. Kept to
+          // the Energy concentration, where the data already said so; PHARMA and
+          // POLYMER wait for the program office.
+          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, note: 'CHEM 2411 + 2421 sequence covers this', satisfiedBy: [['CHEM 2411', 'CHEM 2421']] },
           { id: 'cbe-elec', label: 'CBE Elective (3000+)', cu: 1 },
           { id: 'cbe-eng', label: 'Engineering Elective', cu: 1 },
           { id: 'cbe-msen-1', label: 'Math/NatSci/Eng Elective', cu: 1 },

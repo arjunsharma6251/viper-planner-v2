@@ -134,6 +134,7 @@ export interface SchedulerElectiveSlotDef {
   energy?: boolean;
   note?: string;
   suggested?: string;
+  satisfiedBy?: readonly (readonly string[])[];
 }
 
 /** An elective slot annotated with its school of origin (placeElectives). */
@@ -274,6 +275,8 @@ export interface SchedulerPlanMeta {
   coreCodes?: CoreCode[];
   /** Stage 4: codes shared by both majors (cross-degree double counts). */
   doubleCounted?: Set<string>;
+  /** Core course → note to show on it (e.g. a pairing substitution it stands in for). */
+  coreNotes?: Record<string, string>;
   /** Stage 5: unified sample-schedule map (earliest preferred semester wins). */
   preferredSem?: Record<string, SemesterKey>;
   /** Stage 5: codes whose placement is user-explicit (drag-drop). */

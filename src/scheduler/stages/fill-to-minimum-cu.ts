@@ -97,6 +97,14 @@ export function fillToMinimumCU(plan: SchedulerPlan): SchedulerPlan {
         heaviestLoad = plan.loads[k];
       }
     }
+    // A seeded elective in Fall Y1 is the first to go (2026-11): Fall Y1
+    // only takes one as a last resort, so when the plan is over the minimum
+    // that is the placement least worth keeping.
+    const firstTermSpare = plan.semesters['fall-y1'].find((c) => c.isElective && isTrimCandidate(c));
+    if (firstTermSpare) {
+      victim = firstTermSpare;
+      victimSem = 'fall-y1';
+    }
     if (!victim || !victimSem) break;
     // Remove it
     plan.semesters[victimSem] = plan.semesters[victimSem].filter((c) => c !== victim);
