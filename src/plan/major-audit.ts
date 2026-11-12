@@ -9,7 +9,7 @@
 // policy: alternatives come from the major's own `substitutions` (BA) and the
 // SEAS catalog's "X or Y" rows (BSE, src/data/seas-catalog.ts).
 
-import { MAJORS } from '../data/majors'
+import { classAlternatives, majorForClass } from '../data/math-sequence'
 import { alternativesFor } from '../data/seas-catalog'
 import type { ElectiveSlot, Major } from '../data/types'
 import type { SemesterKey } from '../data/semesters'
@@ -84,8 +84,14 @@ export function computeMajorAudit(
   majorKey: string | null | undefined,
   concKey: string | null | undefined,
   otherMajorKey: string | null = null,
+  /**
+   * Picks the math sequence (old MATH 2400/2410 for the Class of 2028 and
+   * older). Defaults to the plan's own class year.
+   */
+  classYear?: number | null,
 ): MajorAudit | null {
-  const major = majorKey ? MAJORS[majorKey] : undefined
+  const gradYear = classYear !== undefined ? classYear : ((plan.meta as { gradYear?: number | null } | null)?.gradYear ?? null)
+  const major = majorKey ? majorForClass(majorKey, otherMajorKey, gradYear) : undefined
   if (!major || !majorKey) return null
   const concEntries = Object.entries(major.concentrations)
   const conc =
@@ -113,7 +119,9 @@ export function computeMajorAudit(
 
   const coreCodes = [...major.sharedCore, ...(conc?.extraCore ?? [])]
   const core: MajorAuditRow[] = coreCodes.map((code) => {
-    const options = coreAlternatives(major, majorKey, code, otherMajorKey)
+    const options = [
+      ...new Set([...coreAlternatives(major, majorKey, code, otherMajorKey), ...classAlternatives(majorKey, otherMajorKey, gradYear, code)]),
+    ]
     // Incoming credit for the course or an accepted alternative covers it.
     const by = credited(code) || options.some(credited) ? 'credit' : take([code, ...options])
     return { id: code, kind: 'core', label: code, done: by !== null, by, options, openIn: null, openCode: null }

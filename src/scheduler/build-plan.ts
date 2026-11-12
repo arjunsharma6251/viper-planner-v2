@@ -2,7 +2,7 @@
 // references/old-app/index.html (~2663-2745). The stage order is the
 // algorithm; do not reorder.
 
-import { MAJORS } from '../data/majors';
+import { majorForClass } from '../data/math-sequence';
 import { emptyPlan, getNccModule, resolveConcentration } from './helpers';
 import { applyCredits } from './stages/apply-credits';
 import { placeVIPER } from './stages/place-viper';
@@ -43,8 +43,10 @@ export function buildPlan(opts: BuildPlanOptions): SchedulerPlan | null {
     genedDistribution = 'frontload', // 'frontload' (VIPER default) | 'penn' (back-loaded, single-degree style)
     gradYear, // Used for graduating-class-dependent credit policies (e.g. AP Calc BC)
   } = opts;
-  const sasMajor = MAJORS[sasMajorKey];
-  const seasMajor = MAJORS[seasMajorKey];
+  // The class's math sequence (src/data/math-sequence.ts): old MATH 2400/2410
+  // for the Class of 2028 and older, the catalog's new courses after.
+  const sasMajor = majorForClass(sasMajorKey, seasMajorKey, gradYear);
+  const seasMajor = majorForClass(seasMajorKey, sasMajorKey, gradYear);
   if (!sasMajor || sasMajor.school !== 'SAS') return null;
   if (!seasMajor || seasMajor.school !== 'SEAS') return null;
 

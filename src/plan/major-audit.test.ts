@@ -28,23 +28,20 @@ describe('major audit', () => {
     expect(after.left).toBe(before.left + 1)
   })
 
-  it('every core course is planned in every fresh seed, both curricula', async () => {
+  it('every core course is planned in every fresh seed, both curricula and both math sequences', async () => {
     const { MAJORS } = await import('../data/majors')
     const gaps: string[] = []
-    for (const mode of ['legacy', 'ncc'] as const)
-      for (const [s, sm] of Object.entries(MAJORS).filter(([, m]) => m.school === 'SAS'))
-        for (const sc of Object.keys(sm.concentrations))
-          for (const [e, em] of Object.entries(MAJORS).filter(([, m]) => m.school === 'SEAS'))
-            for (const ec of Object.keys(em.concentrations)) {
-              const aug = augmentPlan(seedPlan(cfg(s, sc, e, ec, mode)))!
-              for (const a of [computeMajorAudit(aug, s, sc, e)!, computeMajorAudit(aug, e, ec, s)!])
-                for (const r of a.core) if (!r.done) gaps.push(`${mode} ${s}/${sc}+${e}/${ec}: ${r.id}`)
-            }
-    // Known, waiting on Michelle (2026-11-12): her PHYS (B&T) + MSE template
-    // plans MATH 2400/2410 for both degrees, but the catalog's MSE core now
-    // asks for ESE 2030 + ENM 2510 and does not list MATH 2400/2410 in their
-    // place. The audit shows the gap rather than guessing.
-    expect(gaps).toEqual(['ncc PHYS/BIZ+MSE/ENERGY: ESE 2030', 'ncc PHYS/BIZ+MSE/ENERGY: ENM 2510'])
+    for (const gradYear of [2028, 2031])
+      for (const mode of ['legacy', 'ncc'] as const)
+        for (const [s, sm] of Object.entries(MAJORS).filter(([, m]) => m.school === 'SAS'))
+          for (const sc of Object.keys(sm.concentrations))
+            for (const [e, em] of Object.entries(MAJORS).filter(([, m]) => m.school === 'SEAS'))
+              for (const ec of Object.keys(em.concentrations)) {
+                const aug = augmentPlan(seedPlan({ ...cfg(s, sc, e, ec, mode), gradYear }))!
+                for (const a of [computeMajorAudit(aug, s, sc, e)!, computeMajorAudit(aug, e, ec, s)!])
+                  for (const r of a.core) if (!r.done) gaps.push(`${gradYear} ${mode} ${s}/${sc}+${e}/${ec}: ${r.id}`)
+              }
+    expect(gaps).toEqual([])
   })
 
   it('counts an accepted alternative and lists the options', () => {
