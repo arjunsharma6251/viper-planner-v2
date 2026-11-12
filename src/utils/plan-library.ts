@@ -117,6 +117,25 @@ export function restorePlan(lib: PlanLibrary, removed: SavedPlan, index: number,
   return { ...lib, plans, activeId: wasActive ? removed.id : lib.activeId }
 }
 
+/**
+ * Combine this tab's library with what another tab stored since (2026-11-12,
+ * "making sure everything saves": with the planner open in two tabs, each
+ * wrote its whole library and erased plans the other had made or edited).
+ * Per plan, the later `updatedAt` wins; a plan only the other tab has is
+ * kept unless this tab deleted it. The active plan stays this tab's own.
+ */
+export function mergeLibraries(mine: PlanLibrary, stored: PlanLibrary, deletedHere: ReadonlySet<string> = new Set()): PlanLibrary {
+  const theirs = new Map(stored.plans.map((p) => [p.id, p]))
+  const plans = mine.plans.map((p) => {
+    const other = theirs.get(p.id)
+    return other && other.updatedAt > p.updatedAt ? other : p
+  })
+  const have = new Set(plans.map((p) => p.id))
+  for (const p of stored.plans) if (!have.has(p.id) && !deletedHere.has(p.id)) plans.push(p)
+  const activeId = plans.some((p) => p.id === mine.activeId) ? mine.activeId : (plans[0]?.id ?? null)
+  return { ...mine, activeId, plans }
+}
+
 // ---- Storage ----
 
 function isLibrary(v: unknown): v is PlanLibrary {
@@ -129,20 +148,23 @@ function isLibrary(v: unknown): v is PlanLibrary {
  * The saved library. The first time, the single saved plan from before
  * becomes the library's first entry (migration); its old key is kept.
  */
-export function loadLibrary(): PlanLibrary {
-  const raw = safeGetItem(LIBRARY_KEY)
-  if (raw !== null) {
-    try {
-      const parsed: unknown = JSON.parse(raw)
-      if (isLibrary(parsed)) {
-        const plans = parsed.plans.filter((p) => p && typeof p.id === 'string' && p.state && typeof p.state === 'object')
-        const activeId = plans.some((p) => p.id === parsed.activeId) ? parsed.activeId : (plans[0]?.id ?? null)
-        return { version: 1, activeId, plans }
-      }
-    } catch {
-      // corrupt: fall through to migration / empty
-    }
+/** The stored library as written, or null when there is none (or it is corrupt). */
+export function readStoredLibrary(raw: string | null = safeGetItem(LIBRARY_KEY)): PlanLibrary | null {
+  if (raw === null) return null
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (!isLibrary(parsed)) return null
+    const plans = parsed.plans.filter((p) => p && typeof p.id === 'string' && p.state && typeof p.state === 'object')
+    const activeId = plans.some((p) => p.id === parsed.activeId) ? parsed.activeId : (plans[0]?.id ?? null)
+    return { version: 1, activeId, plans }
+  } catch {
+    return null
   }
+}
+
+export function loadLibrary(): PlanLibrary {
+  const stored = readStoredLibrary()
+  if (stored) return stored
   const legacy = loadAppState()
   if (legacy && (legacy.userPlan || legacy.sasMajorKey)) {
     const migrated = addPlan(emptyLibrary(), legacy).lib

@@ -1,9 +1,8 @@
 // SEAS curriculum facts read from the Penn catalog (catalog.upenn.edu,
-// undergraduate/programs/<major>-bse, retrieved 2026-09-11). The catalog
-// pages are "intended as a guide for students entering in the Fall of 2026
-// and later"; earlier cohorts (VIPER '28 entered Fall 2024) follow the
-// requirement sheet of their entry year, so treat alternatives as "accepted
-// by the department" rather than as a rewrite of the core lists in majors.ts.
+// undergraduate/programs/<major>-bse, retrieved 2026-09-11, re-read
+// 2026-11-12). The catalog pages are "intended as a guide for students
+// entering in the Fall of 2026 and later"; since 2026-11-12 majors.ts uses
+// them for every class (Michelle: use the catalog's plan of study).
 
 /**
  * The 7 CU of SEAS general electives, per major. Every major requires one
@@ -37,45 +36,57 @@ export const SEAS_GEN_ED: Readonly<Record<string, SeasGenEdSpec>> = {
 /**
  * Core courses with catalog-listed alternatives ("X or Y" rows), per SEAS
  * major. Keyed by the code used in majors.ts sharedCore, listing the codes
- * the department accepts in its place. Surfaced in the course detail
- * modal so a student can swap without inventing a code.
+ * the department accepts in its place. Surfaced in the course detail modal
+ * so a student can swap without inventing a code, ticked by the major audit,
+ * and used by the seed: when the other degree's core already holds an
+ * alternative, the BSE course is not seeded twice (collect-core-courses).
+ *
+ * Re-read 2026-11-12 from each program's Requirements list, when majors.ts
+ * moved to the catalog's plan of study. One addition the rows do not spell
+ * out for every major: the lab version of a lab-less course (PHYS 0150 for
+ * PHYS 0140, PHYS 0151 for PHYS 0141, CHEM 2411 for CHEM 2410) — the same
+ * lecture with its lab, which CBE's and ESE's rows list explicitly.
  */
 export const CORE_ALTERNATIVES: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
   CBE: {
-    'MATH 2400': ['ESE 2030', 'ENM 2030', 'ENM 2400'], // linear algebra requirement
-    'MATH 2410': ['MATH 2300', 'ENM 2510'], // ODE / PDE requirement
-    'PHYS 0150': ['PHYS 0140', 'PHYS 0170', 'MEAM 1100'],
-    'PHYS 0151': ['PHYS 0141', 'PHYS 0171', 'ESE 1120'],
+    'ESE 2030': ['ENM 2030'], // linear algebra
+    'MATH 2300': ['ENM 2510'], // differential equations
+    'PHYS 0140': ['PHYS 0150', 'PHYS 0170', 'MEAM 1100'],
+    'PHYS 0141': ['PHYS 0151', 'PHYS 0171', 'ESE 1120'],
     'CHEM 1012': ['CHEM 1151'],
     'CHEM 1022': ['CHEM 1161'],
-    'CHEM 2411': ['CHEM 2410'],
+    'CHEM 2410': ['CHEM 2411'],
     'EAS 2030': ['CBE 3200', 'VIPR 1200', 'VIPR 1210'],
   },
   MSE: {
-    'MATH 2400': ['ESE 2030', 'ENM 2030', 'ENM 2400'],
-    'MATH 2410': ['ENM 2510'], // program office: Michelle's CHEM+MSE plan (Oct 2026), "in place of MATH 2410"; not a catalog row
-    'PHYS 0150': ['PHYS 0140', 'MEAM 1100'],
+    'ESE 2030': ['ENM 2030', 'ENM 2400'],
+    'PHYS 0140': ['MEAM 1100', 'PHYS 0150'],
+    'PHYS 0141': ['PHYS 0151'],
     'EAS 2030': ['VIPR 1200', 'VIPR 1210'],
   },
   MEAM: {
-    'MATH 2400': ['ESE 2030', 'ENM 2030'],
-    'PHYS 0150': ['MEAM 1100'], // with MEAM 1470 lab
+    'ESE 2030': ['ENM 2030'],
+    'PHYS 0150': ['MEAM 1100'], // the catalog's first option: MEAM 1100 with the MEAM 1470 lab
     'PHYS 0151': ['ESE 1120'],
     'CHEM 1012': ['BIOL 1121'],
     'ENGR 1050': ['CIS 1100', 'CIS 1200'],
     'EAS 2030': ['VIPR 1200', 'VIPR 1210'],
   },
   ESE: {
+    'ESE 2030': ['ENM 2030'],
     'PHYS 0150': ['MEAM 1100', 'PHYS 0140', 'PHYS 0170'],
     'CHEM 1012': ['EAS 0091', 'BIOL 1101', 'BIOL 1121'],
+    'CIS 1100': ['CIS 1210', 'CIS 2400'], // "2 CU from CIS 1100, 1200, 1210, 2400"
+    'CIS 1200': ['CIS 1210', 'CIS 2400'],
+    'ESE 2910': ['ESE 3190', 'ESE 3360', 'ESE 3500', 'ESE 4210', 'BE 4700'], // design course in place of ESE 2900 & 2910
     'EAS 2030': ['LAWM 5060', 'VIPR 1200', 'VIPR 1210'],
   },
   CIS: {
     'MATH 1410': ['MATH 1610'],
-    'MATH 2400': ['ESE 2030', 'ENM 2030', 'ENM 2400'],
+    'ESE 2030': ['ENM 2030', 'ENM 2400'],
     'CIS 2610': ['ESE 3010', 'STAT 4300'],
     'PHYS 0150': ['MEAM 1100', 'PHYS 0170'],
-    'PHYS 0151': ['PHYS 0171'],
+    'PHYS 0151': ['PHYS 0171', 'ESE 1120'],
     'CIS 4000': ['CIS 4100'],
     'CIS 4010': ['CIS 4110'],
     'EAS 2030': ['CIS 4230', 'CIS 5230', 'LAWM 5060', 'VIPR 1200', 'VIPR 1210'],

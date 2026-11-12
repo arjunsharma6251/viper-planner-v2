@@ -11,14 +11,18 @@
 import type { ModDefinition, ModPreset, ViperModKey, ViperMods, ViperModsInput } from './types'
 
 /**
- * What is actually approved today (Arjun, 2026-09-11): VIPR 1200/1210 count
- * as the First-Year Seminar. Every other modification is a proposal that
- * needs committee approval. Student-facing audits use THIS set; the admin
- * sandbox starts from DEFAULT_VIPER_MODS (the current proposal) and toggles.
+ * What is actually approved today. VIPR 1200/1210 count as the First-Year
+ * Seminar (Arjun, 2026-09-11). Key is substituted by VIPR 1210 (Michelle,
+ * 2026-11-12: VIPER students do not take a Key course; VIPR 1210's research
+ * work stands in for the quantitative requirement, a course they already
+ * take, so no added CU). Every other modification is a proposal that needs
+ * committee approval; the Language waiver is off the table (2026-11-12).
+ * Student-facing audits use THIS set; the admin sandbox starts from
+ * DEFAULT_VIPER_MODS (the current proposal) and toggles.
  */
 export const CONFIRMED_VIPER_MODS: ViperMods = {
   fysWaiver: true,
-  keyWaiver: false,
+  keyWaiver: true,
   langWaiver: false,
   pdWaiver: false,
   kiteFullWaiver: false,
@@ -42,7 +46,7 @@ export const CONFIRMED_VIPER_MODS: ViperMods = {
  */
 export const MEMO_VIPER_MODS: ViperMods = {
   fysWaiver: true,
-  keyWaiver: false,
+  keyWaiver: true, // confirmed 2026-11-12 (was an alternative in the memo)
   langWaiver: true,
   pdWaiver: false,
   kiteFullWaiver: false,
@@ -61,13 +65,23 @@ export const MEMO_VIPER_MODS: ViperMods = {
 /** Distribution targets under the October 2026 memo: 12 + 2 + 1. */
 export const MEMO_DISTRIBUTION_TARGETS = { N: 12, SS: 2, H: 1 } as const
 
-/** Distribution targets under confirmed policy: 12 + 5 + 3. */
+/**
+ * The College's standard distribution: 12 + 5 + 3. The unreduced baseline
+ * the admin sandbox measures against (CLAUDE.md non-negotiable #4).
+ */
 export const STANDARD_DISTRIBUTION_TARGETS = { N: 12, SS: 5, H: 3 } as const
+
+/**
+ * Distribution targets VIPER students are held to (Michelle, 2026-11-12):
+ * 12 + 3 + 2. The 3 and the 2 go to Social Sciences and Humanities in
+ * either order; Perspectives and Difference may count inside them.
+ */
+export const CONFIRMED_DISTRIBUTION_TARGETS = { N: 12, SS: 3, H: 2 } as const
 
 export const DEFAULT_VIPER_MODS: ViperMods = {
   // — Foundation waivers via VIPR courses —
   fysWaiver:          true,   // VIPR 1200 satisfies First-Year Seminar
-  keyWaiver:          false,  // [Walking back] May meeting: VIPR 1210 → Key under reconsideration
+  keyWaiver:          false,  // May proposal as written. (Confirmed 2026-11-12 via VIPR 1210 — see CONFIRMED_VIPER_MODS; this preset stays the historical record)
 
   // — Full Foundation waivers —
   langWaiver:         true,   // Language Foundation waivable (0 CU)
@@ -105,16 +119,16 @@ export const MOD_DEFINITIONS: Record<ViperModKey, ModDefinition> = {
     saves: 1,
   },
   keyWaiver: {
-    label: 'Key waived for VIPER',
-    desc: 'Oct 2026 memo: Key waived given VIPER students\' quantitative coursework (MATH 1400/1410, ENGR 1050, linear algebra and differential equations), VIPR 1200/1210/1300 and two summers of research. (VIPR 1200/1210 are Natural Sciences — this does not help SS/H targets.)',
+    label: 'Key substituted by VIPR 1210',
+    desc: 'Confirmed Nov 2026: VIPER students do not take Key; VIPR 1210 (energy research) stands in for it, a course they already take, so no added CU. (VIPR 1210 is Natural Sciences — this does not help SS/H targets.)',
     category: 'Foundation waivers',
-    ask: 'medium',
+    ask: 'confirmed',
     proposed: true,
     saves: 1,
   },
   langWaiver: {
     label: 'Language waivable',
-    desc: 'If curriculum cannot fit in 4 years, language requirement waived.',
+    desc: 'Declined Nov 2026: the Language waiver is off the table; students who need it take up to 2 CU in term. Kept only to show what it would have saved.',
     category: 'Foundation waivers',
     ask: 'high',
     proposed: true,

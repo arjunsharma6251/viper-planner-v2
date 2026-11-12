@@ -123,3 +123,19 @@ export function resolveAPCredit(entry: ApCredit, gradYear?: number | null): Reso
     note:   typeof entry.note   === 'function' ? entry.note(gradYear)   : entry.note,
   };
 }
+
+/**
+ * Course codes the student's incoming credit covers (the grants that name a
+ * course, not the LANG_FL-style flags). The seed records these as 'credit'
+ * placements; a saved plan re-derives them on load from `apCreditIds`.
+ */
+export function creditedCourseCodes(apCreditIds: readonly string[] | undefined, gradYear: number | null | undefined): Set<string> {
+  const codes = new Set<string>()
+  for (const id of apCreditIds ?? []) {
+    const cred = findApCredit(id)
+    if (!cred) continue
+    const grants = typeof cred.grants === 'function' ? cred.grants(gradYear ?? null) : cred.grants
+    for (const g of grants) if (/^[A-Z]{2,5} \d{4}$/.test(g)) codes.add(g)
+  }
+  return codes
+}

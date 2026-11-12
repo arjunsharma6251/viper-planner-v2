@@ -43,7 +43,8 @@ describe('program-office templates', () => {
 
   it('old core never uses a template', () => {
     const plan = seedPlan(configFor(PLAN_TEMPLATES[0]!, { curriculumMode: 'legacy' }))!
-    expect(codes(plan)).not.toContain('ESE 2030')
+    const slotIds = Object.values(plan.semesters).flat().map((c) => c.slotId ?? '')
+    expect(slotIds.some((id) => id.startsWith('ncc-'))).toBe(false)
   })
 
   for (const t of PLAN_TEMPLATES) {

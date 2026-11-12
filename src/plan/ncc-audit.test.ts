@@ -54,6 +54,13 @@ describe('computeNccAudit — confirmed policy only', () => {
     expect(a.plannedFoundations).toBe(1)
   })
 
+  it('VIPR 1210 stands in for Key (approved substitution, 2026-11-12)', () => {
+    const a = computeNccAudit(plan({ 'fall-y2': [course({ code: 'VIPR 1210', cu: 0.5 })] }))
+    const key = a.foundations.find((f) => f.id === 'ncc-key')
+    expect(key?.state).toBe('approved-overlap')
+    expect(key?.by).toContain('VIPR 1210')
+  })
+
   it('ignores sandbox proposals unless explicitly passed', () => {
     const p = plan({ 'fall-y1': [course({ code: 'VIPR 1200', cu: 0.5 })] })
     const student = computeNccAudit(p)
@@ -77,7 +84,7 @@ describe('computeNccAudit — confirmed policy only', () => {
     ])
   })
 
-  it('assigns the 5 and 3 CU targets to whichever division is fuller', () => {
+  it('assigns the 3 and 2 CU targets to whichever division is fuller', () => {
     const ss = (n: number) =>
       Array.from({ length: n }, (_, i) =>
         course({ code: `SOCI ${1000 + i}`, intent: { distribution: 'SS' } }),
@@ -88,13 +95,13 @@ describe('computeNccAudit — confirmed policy only', () => {
       )
     const ssHeavy = computeNccAudit(plan({ 'fall-y2': [...ss(4), ...h(1)] }))
     expect(ssHeavy.divisions.map((d) => [d.id, d.target])).toEqual([
-      ['SS', 5],
-      ['H', 3],
+      ['SS', 3],
+      ['H', 2],
     ])
     const hHeavy = computeNccAudit(plan({ 'fall-y2': [...ss(1), ...h(4)] }))
     expect(hHeavy.divisions.map((d) => [d.id, d.target])).toEqual([
-      ['SS', 3],
-      ['H', 5],
+      ['SS', 2],
+      ['H', 3],
     ])
   })
 
@@ -176,11 +183,11 @@ describe('computeNccAudit — confirmed policy only', () => {
       }),
     )
     // Fixed: SS 1 (Sector I), H 2 (II + III). Flexible 2 (IV + CCA) fill the
-    // larger gap first: H is fuller so it takes the 5-target; gaps H 3, SS 2 →
-    // H, then SS. Result SS 2/3, H 3/5. Sector V (natural science) is ignored.
+    // gaps against 3 + 2 and close both: SS 3/3, H 2/2 (6 planned, 5
+    // needed). Sector V (natural science) is ignored.
     expect(a.divisions.map((d) => [d.id, d.planned, d.target])).toEqual([
-      ['SS', 2, 3],
-      ['H', 3, 5],
+      ['SS', 3, 3],
+      ['H', 2, 2],
     ])
     // Five sector/FA courses fill "SS or H" (3) then "SS/H/TBS" (2).
     expect(a.seas.find((r) => r.id === 'seas-ssh')?.planned).toBe(3)

@@ -6,6 +6,8 @@ export interface PlanMenuProps {
   plans: PlanListing[]
   activeId: string | null
   viewingShared: boolean
+  /** This browser refused the last save (private window, storage full or blocked). */
+  saveFailed?: boolean
   onSwitch: (id: string) => void
   onNew: () => void
   onDuplicate: (id: string) => void
@@ -19,7 +21,7 @@ export interface PlanMenuProps {
  * versions or major combinations, start a new one (setup runs again),
  * duplicate, rename, delete (undo from the toast). Everything autosaves.
  */
-export function PlanMenu({ plans, activeId, viewingShared, onSwitch, onNew, onDuplicate, onRename, onDelete, onSaveShared }: PlanMenuProps) {
+export function PlanMenu({ plans, activeId, viewingShared, saveFailed = false, onSwitch, onNew, onDuplicate, onRename, onDelete, onSaveShared }: PlanMenuProps) {
   const [open, setOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [draft, setDraft] = useState('')
@@ -67,8 +69,19 @@ export function PlanMenu({ plans, activeId, viewingShared, onSwitch, onNew, onDu
         <span className="truncate font-medium">{label}</span>
         <IconChevronDown size={10} />
       </button>
+      {saveFailed && !viewingShared && (
+        <span role="status" className="ml-2 text-[0.75rem] text-penn-red">
+          Not saved in this browser
+        </span>
+      )}
       {open && (
         <div role="menu" className="settle absolute top-full left-0 z-40 mt-1 w-72 border border-ink bg-sheet shadow-[var(--shadow-pop)]">
+          {saveFailed && (
+            <p className="border-b border-ink px-3 py-2.5 text-[0.75rem] leading-snug text-ink-2">
+              This browser is not keeping your changes (a private window, or storage is full or blocked). Copy the
+              share link or export JSON to keep this plan.
+            </p>
+          )}
           {viewingShared && (
             <div className="border-b border-ink px-3 py-2.5">
               <p className="text-[0.75rem] leading-snug text-ink-2">

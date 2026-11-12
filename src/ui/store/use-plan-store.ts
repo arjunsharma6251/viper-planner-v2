@@ -24,7 +24,10 @@ import {
   defaultPlanName,
   deletePlan as deleteFromLibrary,
   duplicatePlan as duplicateInLibrary,
+  LIBRARY_KEY,
   loadLibrary,
+  mergeLibraries,
+  readStoredLibrary,
   renamePlan as renameInLibrary,
   restorePlan,
   saveLibrary,
@@ -37,7 +40,7 @@ import { lookupCourse } from '../../data/courses'
 import { MAJORS } from '../../data/majors'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { pcrUrlFor } from '../../utils/pcr'
-import { CONFIRMED_VIPER_MODS, DEFAULT_VIPER_MODS, STANDARD_DISTRIBUTION_TARGETS } from '../../ncc/mods'
+import { CONFIRMED_DISTRIBUTION_TARGETS, CONFIRMED_VIPER_MODS, DEFAULT_VIPER_MODS } from '../../ncc/mods'
 import { findTemplate } from '../../data/templates'
 import { planFromTemplate, topUpRequirements, type SeedPolicy } from '../../plan/template-seed'
 import { uniquifyOpenSlots } from '../../plan/open-slot'
@@ -94,7 +97,7 @@ const AUDIT_POLICY_KEY = 'viper-planner:admin-audit-policy'
 /** The policy every student seed and audit uses. */
 export const CONFIRMED_POLICY: SeedPolicy = {
   mods: { ...CONFIRMED_VIPER_MODS },
-  targets: { ...STANDARD_DISTRIBUTION_TARGETS },
+  targets: { ...CONFIRMED_DISTRIBUTION_TARGETS },
 }
 
 /**
@@ -174,7 +177,7 @@ function completedFromState(raw: NonNullable<AppState['completedTerms']>): Compl
   return out as CompletedTerms
 }
 
-function configFromState(state: AppState): PlanConfig | null {
+export function configFromState(state: AppState): PlanConfig | null {
   if (!state.sasMajorKey || !state.seasMajorKey) return null
   return {
     sasMajorKey: state.sasMajorKey,
@@ -188,6 +191,40 @@ function configFromState(state: AppState): PlanConfig | null {
     ...(state.curriculumMode === 'ncc' || state.curriculumMode === 'legacy'
       ? { curriculumMode: state.curriculumMode }
       : {}),
+  }
+}
+
+/**
+ * Everything one saved plan holds, as stored in the library, the share link
+ * and the JSON export. The inverse of `configFromState` + `planFromAppState`
+ * (save-roundtrip.test.ts pins that nothing is lost).
+ */
+export function appStateOf(
+  c: PlanConfig | null,
+  p: Plan | null,
+  extras: {
+    viperMods: Record<string, boolean>
+    distributionTargets: DistributionTargets
+    colorOverrides: Record<string, string>
+  },
+): AppState {
+  return {
+    sasMajorKey: c?.sasMajorKey,
+    sasConcKey: c?.sasConcKey ?? undefined,
+    seasMajorKey: c?.seasMajorKey,
+    seasConcKey: c?.seasConcKey ?? undefined,
+    apCreditIds: c?.apCreditIds,
+    gradYear: c?.gradYear,
+    studentName: c?.studentName,
+    completedTerms: c?.completedTerms as AppState['completedTerms'],
+    // Only an explicit choice is saved; otherwise the class default applies.
+    curriculumMode: c?.curriculumMode,
+    planCurriculumMode: p?.meta.curriculumMode,
+    viperMods: extras.viperMods,
+    distributionTargets: extras.distributionTargets,
+    userPlan: p ? { semesters: p.semesters as Record<string, PlannedCourse[]> } : null,
+    userPlanFulfillments: p?.fulfillments,
+    userColorOverrides: extras.colorOverrides,
   }
 }
 
@@ -282,6 +319,8 @@ export interface PlanStore {
   activePlanId: string | null
   /** Viewing a share link that is not saved yet. */
   viewingShared: boolean
+  /** The last write to this browser's storage failed (private mode, full, blocked). */
+  saveFailed: boolean
   switchPlan: (id: string) => void
   /** Seed a new plan from a fresh setup and make it active (the current one is kept). */
   createPlan: (config: PlanConfig, policy?: SeedPolicy) => boolean
@@ -329,34 +368,41 @@ export function usePlanStore(): PlanStore {
     configRef.current = config
   }, [plan, config])
 
-  const toAppState = useCallback((): AppState => {
-    const c = configRef.current
-    const p = planRef.current
-    return {
-      sasMajorKey: c?.sasMajorKey,
-      sasConcKey: c?.sasConcKey ?? undefined,
-      seasMajorKey: c?.seasMajorKey,
-      seasConcKey: c?.seasConcKey ?? undefined,
-      apCreditIds: c?.apCreditIds,
-      gradYear: c?.gradYear,
-      studentName: c?.studentName,
-      completedTerms: c?.completedTerms as AppState['completedTerms'],
-      // Only an explicit choice is saved; otherwise the class default applies.
-      curriculumMode: c?.curriculumMode,
-      planCurriculumMode: p?.meta.curriculumMode,
-      viperMods,
-      distributionTargets,
-      userPlan: p ? { semesters: p.semesters as Record<string, PlannedCourse[]> } : null,
-      userPlanFulfillments: p?.fulfillments,
-      userColorOverrides: colorOverrides,
-    }
-  }, [viperMods, distributionTargets, colorOverrides])
+  const toAppState = useCallback(
+    (): AppState => appStateOf(configRef.current, planRef.current, { viperMods, distributionTargets, colorOverrides }),
+    [viperMods, distributionTargets, colorOverrides],
+  )
 
-  /** Commit a library change: state, ref and storage together. */
+  // Plans this tab deleted, so a merge with another tab's write doesn't bring them back.
+  const deletedHere = useRef(new Set<string>())
+  const [saveFailed, setSaveFailed] = useState(false)
+
+  /**
+   * Commit a library change: state, ref and storage together. Merged with
+   * whatever another open tab stored since, so neither tab erases the
+   * other's plans (2026-11-12).
+   */
   const commitLibrary = useCallback((next: PlanLibrary) => {
-    libraryRef.current = next
-    saveLibrary(next)
-    setLibrary(next)
+    const stored = readStoredLibrary()
+    const merged = stored ? mergeLibraries(next, stored, deletedHere.current) : next
+    libraryRef.current = merged
+    setSaveFailed(!saveLibrary(merged))
+    setLibrary(merged)
+  }, [])
+
+  // Another tab saved: pick up its plans (list, names) without touching the
+  // plan open here.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== LIBRARY_KEY) return
+      const stored = readStoredLibrary(e.newValue)
+      if (!stored) return
+      const merged = mergeLibraries(libraryRef.current, stored, deletedHere.current)
+      libraryRef.current = merged
+      setLibrary(merged)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   // Persistence is a side effect, never a step the user waits on. The active
@@ -595,12 +641,14 @@ export function usePlanStore(): PlanStore {
     (id: string): (() => void) | null => {
       const res = deleteFromLibrary(libraryRef.current, id)
       if (!res) return null
+      deletedHere.current.add(id)
       commitLibrary(res.lib)
       if (res.wasActive) {
         setActiveId(res.lib.activeId)
         load(activePlan(res.lib)?.state ?? null)
       }
       return () => {
+        deletedHere.current.delete(res.removed.id)
         const back = restorePlan(libraryRef.current, res.removed, res.index, res.wasActive)
         commitLibrary(back)
         if (res.wasActive) {
@@ -720,6 +768,7 @@ export function usePlanStore(): PlanStore {
     plans,
     activePlanId: activeId,
     viewingShared,
+    saveFailed,
     switchPlan,
     createPlan,
     duplicatePlan,

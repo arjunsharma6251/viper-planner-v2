@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  LIBRARY_KEY, addPlan, defaultPlanName, deletePlan, duplicatePlan, emptyLibrary, loadLibrary, renamePlan, restorePlan, saveLibrary, switchPlan, updatePlan,
+  LIBRARY_KEY, addPlan, defaultPlanName, deletePlan, duplicatePlan, emptyLibrary, loadLibrary, mergeLibraries, readStoredLibrary, renamePlan, restorePlan, saveLibrary, switchPlan, updatePlan,
 } from './plan-library'
 import { STORAGE_KEYS } from './storage'
 import type { AppState } from '../plan/serialize'
@@ -80,5 +80,47 @@ describe('plan library', () => {
     const lib = addPlan(emptyLibrary(), chemCbe).lib
     expect(saveLibrary(lib)).toBe(true)
     expect(loadLibrary()).toEqual(lib)
+  })
+})
+
+describe('two open tabs (2026-11-12, making sure everything saves)', () => {
+  const at = (lib: ReturnType<typeof emptyLibrary>, id: string, iso: string) => ({
+    ...lib,
+    plans: lib.plans.map((p) => (p.id === id ? { ...p, updatedAt: iso } : p)),
+  })
+
+  it('keeps a plan the other tab created', () => {
+    const base = addPlan(emptyLibrary(), chemCbe)
+    const tabB = addPlan(base.lib, physEse) // B adds a plan and stores it
+    const tabA = updatePlan(base.lib, base.id, { ...chemCbe, studentName: 'A' }) // A never saw it
+    const merged = mergeLibraries(tabA, tabB.lib)
+    expect(merged.plans.map((p) => p.id).sort()).toEqual([base.id, tabB.id].sort())
+    expect(merged.activeId).toBe(base.id) // A stays on its own plan
+  })
+
+  it('keeps the newer edit of a plan both tabs hold', () => {
+    const base = addPlan(addPlan(emptyLibrary(), chemCbe).lib, physEse)
+    const [x, y] = base.lib.plans
+    // B edited X later; A only edited Y and still holds an older X.
+    const tabB = at(updatePlan(base.lib, x!.id, { ...chemCbe, studentName: 'from B' }), x!.id, '2099-01-01T12:00:00.000Z')
+    const tabA = at(at(updatePlan(base.lib, y!.id, { ...physEse, studentName: 'from A' }), y!.id, '2099-01-01T12:01:00.000Z'), x!.id, '2099-01-01T11:00:00.000Z')
+    const merged = mergeLibraries(tabA, tabB)
+    expect(merged.plans.find((p) => p.id === x!.id)?.state.studentName).toBe('from B')
+    expect(merged.plans.find((p) => p.id === y!.id)?.state.studentName).toBe('from A')
+  })
+
+  it('does not bring back a plan this tab deleted', () => {
+    const base = addPlan(addPlan(emptyLibrary(), chemCbe).lib, physEse)
+    const gone = base.lib.plans[0]!.id
+    const mine = deletePlan(base.lib, gone)!.lib
+    const merged = mergeLibraries(mine, base.lib, new Set([gone]))
+    expect(merged.plans.some((p) => p.id === gone)).toBe(false)
+  })
+
+  it('reads the stored library, or null when missing or corrupt', () => {
+    expect(readStoredLibrary()).toBeNull()
+    saveLibrary(addPlan(emptyLibrary(), chemCbe).lib)
+    expect(readStoredLibrary()?.plans).toHaveLength(1)
+    expect(readStoredLibrary('{not json')).toBeNull()
   })
 })

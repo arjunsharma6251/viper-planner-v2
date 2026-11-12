@@ -221,7 +221,11 @@ export function augmentPlan(
   // Build a `placement` lookup (course code → semKey) so legacy helpers
   // like electivesForSlot can introspect what's already placed.
   // (CLAUDE.md common trap #3: this map MUST exist on the result.)
+  // Incoming credit ('credit') is carried over: the major audit and the
+  // prerequisite notes read it (2026-11-12 — dropped here before, so AP
+  // credit never ticked a core course).
   const placement: Record<string, string> = {}
+  for (const [code, where] of Object.entries(userPlan?.placement ?? {})) if (where === 'credit') placement[code] = 'credit'
   for (const [k, courses] of Object.entries(semesters)) {
     for (const c of courses) {
       const code = c.originalCode || c.code

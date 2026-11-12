@@ -53,14 +53,15 @@ export function ReferencePanels() {
             Difference, Language (0–2 CU), Critical Writing. 1 CU each except Language.
           </li>
           <li>
-            <span className="text-ink">Distribution 12 + 5 + 3:</span> the 12 is your major's division (Natural
-            Sciences) and is covered by major work. The 5 and 3 go to Social Sciences and Humanities in either
-            order.
+            <span className="text-ink">Distribution for VIPER, 12 + 3 + 2:</span> the 12 is your major's
+            division (Natural Sciences) and is covered by major work. The 3 and 2 go to Social Sciences and
+            Humanities in either order. (The College's standard is 12 + 5 + 3.)
           </li>
           <li>First-Year Seminar and Perspectives and Difference may also count within the distribution.</li>
           <li>
-            <span className="text-ink">Approved VIPER overlap:</span> VIPR 1200 / 1210 count as the First-Year
-            Seminar. Any other waiver or double-count needs approval. Ask before you plan on it.
+            <span className="text-ink">Approved for VIPER:</span> VIPR 1200 / 1210 count as the First-Year
+            Seminar, and VIPR 1210 stands in for Key, so you don&apos;t take a Key course. Language can&apos;t be
+            waived. Any other waiver or double-count needs approval. Ask before you plan on it.
           </li>
           <li>
             <span className="text-ink">SEAS general electives, 7 CU:</span> Writing seminar, Engineering ethics

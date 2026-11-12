@@ -1,4 +1,4 @@
-import { findApCredit } from '../data/ap-credits'
+import { creditedCourseCodes } from '../data/ap-credits'
 import { lookupCourse } from '../data/courses'
 import { SEMESTER_KEYS, type SemesterKey } from '../data/semesters'
 import type { PlanTemplate, TemplateEntry, TemplateSlotKind } from '../data/templates'
@@ -121,18 +121,6 @@ function courseRow(entry: Extract<TemplateEntry, { code: string }>): PlannedCour
   }
 }
 
-/** Course codes the student's incoming credit covers (AP_CREDITS grants). */
-function creditedCodes(apCreditIds: readonly string[], gradYear: number | null): Set<string> {
-  const codes = new Set<string>()
-  for (const id of apCreditIds) {
-    const cred = findApCredit(id)
-    if (!cred) continue
-    const grants = typeof cred.grants === 'function' ? cred.grants(gradYear) : cred.grants
-    for (const g of grants) if (/^[A-Z]{2,5} \d{4}$/.test(g)) codes.add(g)
-  }
-  return codes
-}
-
 /**
  * Lay a template out as a user plan: its courses, VIPER's fixed program
  * courses, incoming credit removed (and recorded as 'credit'), then any
@@ -155,7 +143,7 @@ export function planFromTemplate(template: PlanTemplate, opts: TemplateSeedOptio
       fixed: v.fixed !== false,
     })
   }
-  const credited = creditedCodes(opts.apCreditIds, opts.gradYear)
+  const credited = creditedCourseCodes(opts.apCreditIds, opts.gradYear)
   for (const k of Object.keys(plan.semesters) as SemesterKey[]) {
     plan.semesters[k] = plan.semesters[k].filter((c) => !credited.has(c.code))
   }

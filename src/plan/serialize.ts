@@ -7,6 +7,7 @@
 import { semesterLabel, type SemesterKey } from '../data/semesters'
 import type { AugmentedPlan, Plan, PlanMeta, PlannedCourse } from './types'
 import type { FulfillmentMark } from './fulfillments'
+import { creditedCourseCodes } from '../data/ap-credits'
 import { createEmptyPlan, recomputeDerived } from './mutations'
 import { uniquifyOpenSlots } from './open-slot'
 
@@ -107,6 +108,10 @@ export function planFromAppState(state: AppState): Plan | null {
     if (!Array.isArray(courses)) continue
     target[k] = courses.map((c) => ({ ...c }))
   }
+  // Incoming credit is not stored on the plan, only as apCreditIds; the seed
+  // recorded it as 'credit' placements, so restore them (2026-11-12: after a
+  // reload the major audit showed AP-covered courses as unmet).
+  for (const code of creditedCourseCodes(state.apCreditIds, state.gradYear)) plan.placement[code] = 'credit'
   if (state.userPlanFulfillments) {
     plan.fulfillments = Object.fromEntries(
       Object.entries(state.userPlanFulfillments).map(([k, v]) => [k, [...v]]),
