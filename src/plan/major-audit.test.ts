@@ -40,15 +40,31 @@ describe('major audit', () => {
               for (const a of [computeMajorAudit(aug, s, sc, e)!, computeMajorAudit(aug, e, ec, s)!])
                 for (const r of a.core) if (!r.done) gaps.push(`${mode} ${s}/${sc}+${e}/${ec}: ${r.id}`)
             }
-    expect(gaps).toEqual([])
+    // Known, waiting on Michelle (2026-11-12): her PHYS (B&T) + MSE template
+    // plans MATH 2400/2410 for both degrees, but the catalog's MSE core now
+    // asks for ESE 2030 + ENM 2510 and does not list MATH 2400/2410 in their
+    // place. The audit shows the gap rather than guessing.
+    expect(gaps).toEqual(['ncc PHYS/BIZ+MSE/ENERGY: ESE 2030', 'ncc PHYS/BIZ+MSE/ENERGY: ENM 2510'])
   })
 
   it('counts an accepted alternative and lists the options', () => {
-    // Michelle's CHEM+CBE template plans ESE 2030 in place of MATH 2400.
-    const aug = augmentPlan(seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'ENERGY', 'ncc')))!
-    const row = computeMajorAudit(aug, 'CBE', 'ENERGY', 'CHEM')!.core.find((r) => r.id === 'MATH 2400')!
-    expect(row).toMatchObject({ done: true, by: 'ESE 2030' })
-    expect(row.options).toContain('ESE 2030')
+    // The CHEM BA's PHYS 0150 / CHEM 2411 stand in for CBE's PHYS 0140 / CHEM 2410.
+    for (const mode of ['legacy', 'ncc'] as const) {
+      const aug = augmentPlan(seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'ENERGY', mode)))!
+      const core = computeMajorAudit(aug, 'CBE', 'ENERGY', 'CHEM')!.core
+      expect(core.find((r) => r.id === 'PHYS 0140')).toMatchObject({ done: true, by: 'PHYS 0150' })
+      expect(core.find((r) => r.id === 'CHEM 2410')).toMatchObject({ done: true, by: 'CHEM 2411' })
+      expect(core.find((r) => r.id === 'PHYS 0140')!.options).toContain('PHYS 0150')
+    }
+  })
+
+  it('does not seed a BSE course the BA core already covers', () => {
+    const plan = seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'PHARMA'))!
+    const codes = Object.values(plan.semesters).flat().map((c) => c.code)
+    expect(codes).toContain('PHYS 0150')
+    expect(codes).toContain('CHEM 2411')
+    expect(codes).not.toContain('PHYS 0140')
+    expect(codes).not.toContain('CHEM 2410')
   })
 
   it('marks an open elective slot as to fill, with where it is', () => {
@@ -59,7 +75,7 @@ describe('major audit', () => {
   })
 })
 
-describe('CBE Energy Lab Elective: CHEM 2411 + 2421 complete it (Ananya, 2026-11)', () => {
+describe('CBE Lab Elective: CHEM 2411 + 2421 complete it (Ananya, 2026-11; catalog, every concentration, 2026-11-12)', () => {
   // PHYS + CBE does not plan CHEM 2421 (the seed trims the Advanced Chem slot),
   // so its Lab Elective is honestly open; CHEM + CBE plans both courses.
   for (const sas of ['CHEM'] as const) {
@@ -71,15 +87,17 @@ describe('CBE Energy Lab Elective: CHEM 2411 + 2421 complete it (Ananya, 2026-11
       expect(row).toMatchObject({ done: true, by: 'CHEM 2411 + CHEM 2421' })
     })
   }
-  it('removing CHEM 2421 reopens it', () => {
+  it('removing CHEM 2421 no longer counts the sequence', () => {
     const plan = seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'ENERGY'))!
     const next = removeCourse(plan, termOf(plan, 'CHEM 2421'), 'CHEM 2421').plan
     const row = computeMajorAudit(augmentPlan(next)!, 'CBE', 'ENERGY', 'CHEM')!.electives.find((r) => r.id === 'cbe-lab')!
-    expect(row.done).toBe(false)
-  })
-  it('PHARMA is unchanged until the program office confirms', () => {
-    const plan = seedPlan(cfg('CHEM', 'STANDARD', 'CBE', 'PHARMA'))!
-    const row = computeMajorAudit(augmentPlan(plan)!, 'CBE', 'PHARMA', 'CHEM')!.electives.find((r) => r.id === 'cbe-lab')!
     expect(row.by).not.toBe('CHEM 2411 + CHEM 2421')
   })
+  for (const conc of ['PHARMA', 'POLYMER'] as const) {
+    it(`${conc} counts it too (the catalog's list is program-wide)`, () => {
+      const plan = seedPlan(cfg('CHEM', 'STANDARD', 'CBE', conc))!
+      const row = computeMajorAudit(augmentPlan(plan)!, 'CBE', conc, 'CHEM')!.electives.find((r) => r.id === 'cbe-lab')!
+      expect(row).toMatchObject({ done: true, by: 'CHEM 2411 + CHEM 2421' })
+    })
+  }
 })

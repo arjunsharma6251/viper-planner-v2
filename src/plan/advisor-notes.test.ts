@@ -108,7 +108,7 @@ describe('prerequisite order (warning, never a block)', () => {
     expect(notesFor(at('CHEM 2610', 'fall-y2'))).toEqual([])
     expect(notesFor({ ...at('XYZ 1234', 'fall-y1'), ...at('CHEM 2210', 'fall-y3') })).toEqual([])
   })
-  it('is silent where a major sample schedule orders the pair the same way (MSE 2210 before MATH 2410)', () => {
+  it('is silent for MSE 2210 before MATH 2410 (the catalog dropped that prerequisite, 2026-11-12)', () => {
     expect(notesFor({ ...at('MSE 2210', 'fall-y2'), ...at('MATH 2410', 'spring-y2') })).toEqual([])
   })
   it('appears in computeAdvisorNotes', () => {

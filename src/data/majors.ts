@@ -261,29 +261,29 @@ export const MAJORS: Record<string, Major> = {
 
   MSE: {
     school: 'SEAS', code: 'MSE', fullName: 'Materials Science & Engineering', minCU: 37,
+    // Core and sample schedule: the catalog's plan of study (catalog.upenn.edu,
+    // undergraduate/programs/materials-science-engineering-bse, read 2026-11-12, "students entering in the
+    // Fall of 2026 and later"), applied to every class per Arjun 2026-11-12.
     sharedCore: [
       'MSE 1010', 'MSE 2010', 'MSE 2020', 'MSE 2150',
       'MSE 2200', 'MSE 2210', 'MSE 2600',
       'MSE 3010', 'MSE 3300', 'MSE 3600', 'MSE 3930',
       'MSE 4050', 'MSE 4400', 'MSE 4600', 'MSE 4950', 'MSE 4960',
-      'MATH 1400', 'MATH 1410', 'MATH 2400', 'MATH 2410',
-      'PHYS 0150', 'PHYS 0151',
+      'MATH 1400', 'MATH 1410', 'ESE 2030', 'ENM 2510',
+      'PHYS 0140', 'PHYS 0141',
       'CHEM 1012', 'CHEM 1101', 'CHEM 1022',
       'ENGR 1050',
     ],
     sampleSchedule: {
-      'MSE 1010': 'fall-y1',
-      'MATH 1400': 'fall-y1', 'MATH 1410': 'spring-y1',
-      'CHEM 1012': 'fall-y1', 'CHEM 1101': 'fall-y1', 'CHEM 1022': 'spring-y1',
-      'MSE 2150': 'spring-y1',
-      'ENGR 1050': 'spring-y1',
-      'PHYS 0150': 'fall-y2', 'PHYS 0151': 'spring-y2',
-      'MATH 2400': 'fall-y2', 'MATH 2410': 'spring-y2',
-      'MSE 2010': 'fall-y2', 'MSE 2200': 'fall-y2', 'MSE 2210': 'fall-y2',
-      'MSE 2020': 'spring-y2', 'MSE 2600': 'spring-y2',
+      'MATH 1400': 'fall-y1', 'CHEM 1012': 'fall-y1', 'CHEM 1101': 'fall-y1',
+      'PHYS 0140': 'fall-y1', 'MSE 1010': 'fall-y1',
+      'MATH 1410': 'spring-y1', 'CHEM 1022': 'spring-y1', 'PHYS 0141': 'spring-y1', 'ENGR 1050': 'spring-y1',
+      'ESE 2030': 'fall-y2', 'MSE 2010': 'fall-y2', 'MSE 2200': 'fall-y2', 'MSE 2210': 'fall-y2',
+      'ENM 2510': 'spring-y2', 'MSE 2020': 'spring-y2', 'MSE 2150': 'spring-y2', 'MSE 2600': 'spring-y2',
       'MSE 3010': 'fall-y3', 'MSE 3300': 'fall-y3', 'MSE 3600': 'fall-y3',
-      'MSE 3930': 'spring-y3', 'MSE 4050': 'spring-y3', 'MSE 4400': 'spring-y3',
-      'MSE 4600': 'fall-y4', 'MSE 4950': 'fall-y4', 'MSE 4960': 'spring-y4',
+      'MSE 3930': 'spring-y3',
+      'MSE 4600': 'fall-y4', 'MSE 4950': 'fall-y4',
+      'MSE 4050': 'spring-y4', 'MSE 4400': 'spring-y4', 'MSE 4960': 'spring-y4',
     },
     concentrations: {
       ENERGY: {
@@ -341,32 +341,32 @@ export const MAJORS: Record<string, Major> = {
       'VIPR 1200/1210 may replace EAS 2030 OR count as an engineering elective — choose one.',
       'MSE 2600 satisfies the thermodynamics requirement for MATH+CIS combos.',
       'VIPER-aligned energy electives: MSE 4550, MSE 5450, MSE 5550.',
-      'MATH 2400 may be replaced by ENM 2400 or ESE 2030.',
+      'ESE 2030 may be replaced by ENM 2030 or ENM 2400 (catalog).',
     ],
   },
 
   CBE: {
     school: 'SEAS', code: 'CBE', fullName: 'Chemical & Biomolecular Engineering', minCU: 37,
+    // Core and sample schedule: the catalog's plan of study (catalog.upenn.edu,
+    // undergraduate/programs/chemical-biomolecular-engineering-bse, read 2026-11-12, "students entering in the
+    // Fall of 2026 and later"), applied to every class per Arjun 2026-11-12.
     sharedCore: [
       'CBE 1600', 'CBE 2300', 'CBE 2310',
       'CBE 3500', 'CBE 3510', 'CBE 3530', 'CBE 3600', 'CBE 3710',
       'CBE 4000', 'CBE 4100', 'CBE 4510', 'CBE 4590',
       'ENGR 1050',
-      'MATH 1400', 'MATH 1410', 'MATH 2400', 'MATH 2410',
-      'PHYS 0150', 'PHYS 0151',
+      'MATH 1400', 'MATH 1410', 'ESE 2030', 'MATH 2300',
+      'PHYS 0140', 'PHYS 0141',
       'CHEM 1012', 'CHEM 1101', 'CHEM 1022', 'CHEM 1102',
-      'CHEM 2411',
+      'CHEM 2410',
     ],
     sampleSchedule: {
-      'CBE 1600': 'fall-y1',
-      'MATH 1400': 'fall-y1', 'MATH 1410': 'spring-y1',
-      'CHEM 1012': 'fall-y1', 'CHEM 1101': 'fall-y1',
+      'CBE 1600': 'fall-y1', 'CHEM 1012': 'fall-y1', 'CHEM 1101': 'fall-y1',
+      'MATH 1400': 'fall-y1', 'PHYS 0140': 'fall-y1',
       'CHEM 1022': 'spring-y1', 'CHEM 1102': 'spring-y1',
-      'ENGR 1050': 'spring-y1',
-      'PHYS 0150': 'fall-y2', 'PHYS 0151': 'spring-y2',
-      'MATH 2400': 'fall-y2', 'MATH 2410': 'spring-y2',
-      'CBE 2300': 'fall-y2', 'CHEM 2411': 'fall-y2',
-      'CBE 2310': 'spring-y2', 'CBE 3500': 'spring-y2',
+      'MATH 1410': 'spring-y1', 'PHYS 0141': 'spring-y1',
+      'CBE 2300': 'fall-y2', 'CHEM 2410': 'fall-y2', 'ENGR 1050': 'fall-y2', 'ESE 2030': 'fall-y2',
+      'CBE 2310': 'spring-y2', 'CBE 3500': 'spring-y2', 'MATH 2300': 'spring-y2',
       'CBE 3510': 'fall-y3', 'CBE 3600': 'fall-y3',
       'CBE 3530': 'spring-y3', 'CBE 3710': 'spring-y3',
       'CBE 4000': 'fall-y4', 'CBE 4100': 'fall-y4', 'CBE 4510': 'fall-y4',
@@ -379,11 +379,10 @@ export const MAJORS: Record<string, Major> = {
         note: 'VIPER-recommended concentration.',
         extraCore: [],
         electiveSlots: [
-          { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2421', 'CHEM 2210', 'MSE 2210'] },
-          // Ananya Srivastav (2026-11) confirmed CHEM 2411 + 2421 complete it. Kept to
-          // the Energy concentration, where the data already said so; PHARMA and
-          // POLYMER wait for the program office.
-          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, note: 'CHEM 2411 + 2421 sequence covers this', satisfiedBy: [['CHEM 2411', 'CHEM 2421']] },
+          // Advanced Chemistry and Lab electives: the catalog's CBE requirements
+          // list (2026-11-12), the same for every concentration.
+          { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2420', 'CHEM 2421', 'CHEM 2210', 'MSE 2210'] },
+          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, pool: ['CHEM 2230', 'CBE 4800'], note: 'Or the CHEM 2411 + 2421 sequence', satisfiedBy: [['CHEM 2411', 'CHEM 2421']] },
           { id: 'cbe-elec', label: 'CBE Elective (3000+)', cu: 1 },
           { id: 'cbe-eng', label: 'Engineering Elective', cu: 1 },
           { id: 'cbe-msen-1', label: 'Math/NatSci/Eng Elective', cu: 1 },
@@ -399,8 +398,8 @@ export const MAJORS: Record<string, Major> = {
         label: 'Pharmaceutics & Biotechnology',
         extraCore: [],
         electiveSlots: [
-          { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2421', 'CHEM 2210'] },
-          { id: 'cbe-lab', label: 'Lab Elective', cu: 1 },
+          { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2420', 'CHEM 2421', 'CHEM 2210', 'MSE 2210'] },
+          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, pool: ['CHEM 2230', 'CBE 4800'], note: 'Or the CHEM 2411 + 2421 sequence', satisfiedBy: [['CHEM 2411', 'CHEM 2421']] },
           { id: 'cbe-elec', label: 'CBE Elective (3000+)', cu: 1 },
           { id: 'cbe-eng', label: 'Engineering Elective', cu: 1 },
           { id: 'cbe-msen-1', label: 'Math/NatSci/Eng Elective', cu: 1 },
@@ -416,8 +415,8 @@ export const MAJORS: Record<string, Major> = {
         label: 'Polymers & Soft Matter',
         extraCore: [],
         electiveSlots: [
-          { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1 },
-          { id: 'cbe-lab', label: 'Lab Elective', cu: 1 },
+          { id: 'cbe-adv', label: 'Advanced Chem Elective', cu: 1, pool: ['CHEM 2420', 'CHEM 2421', 'CHEM 2210', 'MSE 2210'] },
+          { id: 'cbe-lab', label: 'Lab Elective', cu: 1, pool: ['CHEM 2230', 'CBE 4800'], note: 'Or the CHEM 2411 + 2421 sequence', satisfiedBy: [['CHEM 2411', 'CHEM 2421']] },
           { id: 'cbe-elec', label: 'CBE Elective (3000+)', cu: 1 },
           { id: 'cbe-eng', label: 'Engineering Elective', cu: 1 },
           { id: 'cbe-msen-1', label: 'Math/NatSci/Eng Elective', cu: 1 },
@@ -440,21 +439,25 @@ export const MAJORS: Record<string, Major> = {
 
   MEAM: {
     school: 'SEAS', code: 'MEAM', fullName: 'Mechanical Engineering & Applied Mechanics', minCU: 37,
+    // Core and sample schedule: the catalog's plan of study (catalog.upenn.edu,
+    // undergraduate/programs/mechanical-engineering-applied-mechanics-bse, read 2026-11-12, "students entering in the
+    // Fall of 2026 and later"), applied to every class per Arjun 2026-11-12.
+    // Physics I: the catalog lists "MEAM 1100 & MEAM 1470, or PHYS 0150"; the
+    // seed keeps PHYS 0150 (one line, and the one every VIPER BA requires).
     sharedCore: [
       'MEAM 2020', 'MEAM 2030', 'MEAM 2100', 'MEAM 2110',
       'MEAM 2470', 'MEAM 2480', 'MEAM 3470', 'MEAM 3480',
       'MEAM 4450', 'MEAM 4460',
-      'MATH 1400', 'MATH 1410', 'MATH 2400', 'ENM 2510',
+      'MATH 1400', 'MATH 1410', 'ESE 2030', 'ENM 2510',
       'PHYS 0150', 'PHYS 0151',
       'CHEM 1012', 'ENGR 1050',
     ],
     sampleSchedule: {
-      'MATH 1400': 'fall-y1', 'MATH 1410': 'spring-y1',
-      'CHEM 1012': 'fall-y1', 'ENGR 1050': 'spring-y1',
-      'PHYS 0150': 'fall-y1', 'PHYS 0151': 'spring-y1',
-      'MEAM 2030': 'fall-y2', 'MEAM 2100': 'fall-y2', 'MEAM 2470': 'fall-y2',
-      'MATH 2400': 'fall-y2', 'ENM 2510': 'spring-y2',
-      'MEAM 2020': 'spring-y2', 'MEAM 2110': 'spring-y2', 'MEAM 2480': 'spring-y2',
+      'PHYS 0150': 'fall-y1', 'MATH 1400': 'fall-y1', 'CHEM 1012': 'fall-y1',
+      'PHYS 0151': 'spring-y1', 'MATH 1410': 'spring-y1',
+      'MEAM 2020': 'fall-y2', 'MEAM 2100': 'fall-y2', 'MEAM 2470': 'fall-y2',
+      'ESE 2030': 'fall-y2', 'ENGR 1050': 'fall-y2',
+      'MEAM 2030': 'spring-y2', 'MEAM 2110': 'spring-y2', 'MEAM 2480': 'spring-y2', 'ENM 2510': 'spring-y2',
       'MEAM 3470': 'fall-y3',
       'MEAM 3480': 'spring-y3',
       'MEAM 4450': 'fall-y4', 'MEAM 4460': 'spring-y4',
@@ -531,25 +534,27 @@ export const MAJORS: Record<string, Major> = {
 
   ESE: {
     school: 'SEAS', code: 'ESE', fullName: 'Electrical Engineering', minCU: 37,
+    // Core and sample schedule: the catalog's plan of study (catalog.upenn.edu,
+    // undergraduate/programs/electrical-engineering-bse, read 2026-11-12, "students entering in the
+    // Fall of 2026 and later"), applied to every class per Arjun 2026-11-12.
     note: 'VIPER students typically pursue the EE BSE track.',
+    // Computing: "2 CU from CIS 1100, 1200, 1210, 2400" (CIS 1100 + CIS 1200
+    // seeded, as in the plan of study). Design: ESE 2900 & 2910, or one of
+    // the catalog's listed design courses.
     sharedCore: [
-      'CIS 1100', 'ESE 1110', 'CIS 1200',
-      'ESE 2150', 'ESE 2180', 'ESE 2240',
+      'ESE 1110', 'ESE 1120', 'ESE 2150', 'ESE 2180', 'ESE 2240',
+      'CIS 1100', 'CIS 1200',
       'ESE 2900', 'ESE 2910', 'ESE 4500', 'ESE 4510',
-      'MATH 1400', 'MATH 1410', 'MATH 2400',
-      'ESE 3010',
-      'PHYS 0150', 'ESE 1120',
+      'MATH 1400', 'MATH 1410', 'ESE 2030', 'ESE 3010',
+      'PHYS 0150',
       'CHEM 1012',
     ],
     sampleSchedule: {
-      'CIS 1100': 'fall-y1', 'ESE 1110': 'fall-y1',
-      'MATH 1400': 'fall-y1', 'CHEM 1012': 'fall-y1',
-      'CIS 1200': 'spring-y1', 'ESE 1120': 'spring-y1',
-      'MATH 1410': 'spring-y1', 'PHYS 0150': 'spring-y1',
-      'ESE 2150': 'fall-y2', 'MATH 2400': 'fall-y2',
-      'ESE 2180': 'spring-y2', 'ESE 2240': 'spring-y2',
-      'ESE 2900': 'fall-y3', 'ESE 3010': 'fall-y3',
-      'ESE 2910': 'spring-y3',
+      'MATH 1400': 'fall-y1', 'PHYS 0150': 'fall-y1', 'ESE 1110': 'fall-y1', 'CIS 1100': 'fall-y1',
+      'MATH 1410': 'spring-y1', 'ESE 1120': 'spring-y1', 'CIS 1200': 'spring-y1', 'CHEM 1012': 'spring-y1',
+      'ESE 2030': 'fall-y2', 'ESE 2150': 'fall-y2', 'ESE 2180': 'fall-y2',
+      'ESE 2240': 'spring-y2', 'ESE 3010': 'spring-y2',
+      'ESE 2900': 'spring-y3', 'ESE 2910': 'spring-y3',
       'ESE 4500': 'fall-y4', 'ESE 4510': 'spring-y4',
     },
     concentrations: {
@@ -648,24 +653,24 @@ export const MAJORS: Record<string, Major> = {
 
   CIS: {
     school: 'SEAS', code: 'CIS', fullName: 'Computer Science', minCU: 37,
+    // Core and sample schedule: the catalog's plan of study (catalog.upenn.edu,
+    // undergraduate/programs/computer-science-bse, read 2026-11-12, "students entering in the
+    // Fall of 2026 and later"), applied to every class per Arjun 2026-11-12.
     sharedCore: [
       'CIS 1100', 'CIS 1200', 'CIS 1210',
       'CIS 1600', 'CIS 2400', 'CIS 2610', 'CIS 2620',
       'CIS 3200', 'CIS 4480', 'CIS 4710',
       'CIS 4000', 'CIS 4010',
-      'MATH 1400', 'MATH 1410', 'MATH 2400',
+      'MATH 1400', 'MATH 1410', 'ESE 2030',
       'PHYS 0150', 'PHYS 0151',
     ],
     sampleSchedule: {
-      'CIS 1100': 'fall-y1', 'CIS 1200': 'fall-y1',
-      'MATH 1400': 'fall-y1',
-      'CIS 1210': 'spring-y1', 'CIS 1600': 'spring-y1',
-      'MATH 1410': 'spring-y1',
-      'CIS 2400': 'fall-y2', 'CIS 2610': 'fall-y2',
-      'MATH 2400': 'fall-y2', 'PHYS 0150': 'fall-y2',
-      'CIS 2620': 'spring-y2', 'CIS 3200': 'spring-y2',
-      'PHYS 0151': 'spring-y2',
-      'CIS 4710': 'fall-y3', 'CIS 4480': 'spring-y3',
+      'CIS 1100': 'fall-y1', 'MATH 1400': 'fall-y1', 'PHYS 0150': 'fall-y1',
+      'CIS 1200': 'spring-y1', 'CIS 1600': 'spring-y1', 'MATH 1410': 'spring-y1', 'PHYS 0151': 'spring-y1',
+      'CIS 1210': 'fall-y2', 'CIS 2620': 'fall-y2', 'ESE 2030': 'fall-y2',
+      'CIS 2400': 'spring-y2', 'CIS 2610': 'spring-y2',
+      'CIS 4480': 'fall-y3', 'CIS 3200': 'fall-y3',
+      'CIS 4710': 'spring-y3',
       'CIS 4000': 'fall-y4', 'CIS 4010': 'spring-y4',
     },
     concentrations: {
@@ -697,7 +702,7 @@ export const MAJORS: Record<string, Major> = {
     notes: [
       'CIS + MATH VIPER combo REQUIRES an additional thermodynamics course.',
       'CIS electives must include a course from each of: Networking, Databases, Distributed Systems, ML/AI, Project.',
-      'MATH 2400 may be replaced by MATH 3120, 3130, 3140, or ESE 2030.',
+      'ESE 2030 may be replaced by ENM 2030 or ENM 2400 (catalog).',
       'At most 1 CU of 1000-level coursework may be used as a CIS Elective.',
     ],
   },

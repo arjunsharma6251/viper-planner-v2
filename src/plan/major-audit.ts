@@ -114,7 +114,8 @@ export function computeMajorAudit(
   const coreCodes = [...major.sharedCore, ...(conc?.extraCore ?? [])]
   const core: MajorAuditRow[] = coreCodes.map((code) => {
     const options = coreAlternatives(major, majorKey, code, otherMajorKey)
-    const by = credited(code) ? 'credit' : take([code, ...options])
+    // Incoming credit for the course or an accepted alternative covers it.
+    const by = credited(code) || options.some(credited) ? 'credit' : take([code, ...options])
     return { id: code, kind: 'core', label: code, done: by !== null, by, options, openIn: null, openCode: null }
   })
 

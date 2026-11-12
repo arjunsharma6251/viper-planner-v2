@@ -78,6 +78,7 @@ describe('everything saves', () => {
     expect(back.plan!.placement['PHYS 0150']).toBe('credit')
     const aug = augmentPlan(back.plan!, { sasMajorKey: config.sasMajorKey, seasMajorKey: config.seasMajorKey, gradYear: config.gradYear })!
     const audit = computeMajorAudit(aug, config.seasMajorKey, config.seasConcKey, config.sasMajorKey)!
-    expect(audit.core.find((r) => r.id === 'PHYS 0150')?.by).toBe('credit')
+    // AP Physics C credit is PHYS 0150, which CBE accepts for its PHYS 0140.
+    expect(audit.core.find((r) => r.id === 'PHYS 0140')?.by).toBe('credit')
   })
 })
