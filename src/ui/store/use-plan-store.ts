@@ -37,7 +37,7 @@ import { lookupCourse } from '../../data/courses'
 import { MAJORS } from '../../data/majors'
 import { FA_REQUIREMENTS, SECTORS } from '../../data/requirements'
 import { pcrUrlFor } from '../../utils/pcr'
-import { CONFIRMED_VIPER_MODS, DEFAULT_VIPER_MODS, STANDARD_DISTRIBUTION_TARGETS } from '../../ncc/mods'
+import { CONFIRMED_DISTRIBUTION_TARGETS, CONFIRMED_VIPER_MODS, DEFAULT_VIPER_MODS } from '../../ncc/mods'
 import { findTemplate } from '../../data/templates'
 import { planFromTemplate, topUpRequirements, type SeedPolicy } from '../../plan/template-seed'
 import { uniquifyOpenSlots } from '../../plan/open-slot'
@@ -94,7 +94,7 @@ const AUDIT_POLICY_KEY = 'viper-planner:admin-audit-policy'
 /** The policy every student seed and audit uses. */
 export const CONFIRMED_POLICY: SeedPolicy = {
   mods: { ...CONFIRMED_VIPER_MODS },
-  targets: { ...STANDARD_DISTRIBUTION_TARGETS },
+  targets: { ...CONFIRMED_DISTRIBUTION_TARGETS },
 }
 
 /**

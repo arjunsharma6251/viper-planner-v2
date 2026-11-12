@@ -1,5 +1,5 @@
 import type { AugmentedCourse, AugmentedPlan, FoundationId } from './types'
-import { CONFIRMED_VIPER_MODS, normalizeViperMods } from '../ncc/mods'
+import { CONFIRMED_DISTRIBUTION_TARGETS, CONFIRMED_VIPER_MODS, normalizeViperMods } from '../ncc/mods'
 import type { DistributionTargets, ViperMods, ViperModsInput } from '../ncc/types'
 import { SEAS_GEN_ED, type SeasGenEdSpec } from '../data/seas-catalog'
 
@@ -10,14 +10,16 @@ import { SEAS_GEN_ED, type SeasGenEdSpec } from '../data/seas-catalog'
  *   Foundations — Kite, Key, First-Year Seminar, Perspectives and
  *     Difference, Language (0–2 CU), Critical Writing. All 1 CU except
  *     Language. FYS and P&D may also count within the distribution.
- *   Distribution — 12 + 5 + 3 across the three divisions. Division I
- *     (12 CU) is the major's own division, Natural Sciences for every
- *     VIPER College major, so it is covered by major work. The 5 and 3 go
- *     to the other two divisions in either order.
+ *   Distribution — the College's standard is 12 + 5 + 3; VIPER students
+ *     are held to 12 + 3 + 2 (Michelle, 2026-11-12). Division I (12 CU) is
+ *     the major's own division, Natural Sciences for every VIPER College
+ *     major, so it is covered by major work. The 3 and 2 go to the other
+ *     two divisions in either order.
  *   SEAS general electives — 7 CU: Writing (the College writing seminar),
  *     Engineering ethics (VIPR 1200/1210), and 5 SS/H/TBS courses whose
  *     split depends on the engineering major.
- *   Approved overlap — VIPR 1200/1210 satisfy the First-Year Seminar.
+ *   Approved overlap — VIPR 1200/1210 satisfy the First-Year Seminar;
+ *     VIPR 1210 substitutes for Key (2026-11-12). Language is never waived.
  *     Nothing else is approved; sandbox proposals never leak in here.
  *
  * "Planned" is the honest word throughout: an open slot counts because the
@@ -93,7 +95,7 @@ const FOUNDATION_ORDER: FoundationId[] = [
   'ncc-writ',
 ]
 
-const STANDARD_TARGETS: Pick<DistributionTargets, 'SS' | 'H'> = { SS: 5, H: 3 }
+const CONFIRMED_TARGETS: Pick<DistributionTargets, 'SS' | 'H'> = CONFIRMED_DISTRIBUTION_TARGETS
 
 function isOpen(c: AugmentedCourse): boolean {
   return !!c.isPlaceholder || c.code.startsWith('—')
@@ -117,9 +119,9 @@ export function computeNccAudit(
   /**
    * SS / H distribution targets, assigned in either order (the larger to
    * whichever division the student is filling more). Defaults to the
-   * confirmed 5 + 3; admin proposal views pass the sandbox's targets.
+   * confirmed 3 + 2; admin proposal views pass the sandbox's targets.
    */
-  targets: Pick<DistributionTargets, 'SS' | 'H'> = STANDARD_TARGETS,
+  targets: Pick<DistributionTargets, 'SS' | 'H'> = CONFIRMED_TARGETS,
 ): NccAudit {
   const mods = normalizeViperMods(viperMods)
   const distTargets: readonly [number, number] = [Math.max(targets.SS, targets.H), Math.min(targets.SS, targets.H)]
@@ -131,6 +133,10 @@ export function computeNccAudit(
     const label = NCC_FOUNDATION_LABELS[id]
     if (id === 'ncc-fys' && mods.fysWaiver && (has('VIPR 1200') || has('VIPR 1210'))) {
       return { id, label, state: 'approved-overlap', by: 'VIPR 1200 / 1210' }
+    }
+    // Approved substitution (2026-11-12): VIPR 1210 stands in for Key.
+    if (id === 'ncc-key' && mods.keyWaiver && has('VIPR 1210')) {
+      return { id, label, state: 'approved-overlap', by: 'VIPR 1210 (approved substitution)' }
     }
     if (id === 'ncc-lang' && apCreditIds.includes('lang-fluency')) {
       return { id, label, state: 'credit', by: 'incoming credit' }
@@ -289,13 +295,14 @@ export function computeNccAudit(
 
 /**
  * The waiver a proposal grants a Foundation, as display text, or null.
- * Confirmed policy grants none of these (CONFIRMED_VIPER_MODS has them all
- * off), so this only fires in an admin proposal view.
+ * Confirmed policy grants none of these (Key's confirmed substitution is
+ * handled above as an approved overlap), so this only fires in an admin
+ * proposal view.
  */
 function proposalWaiver(id: FoundationId, mods: ViperMods, has: (code: string) => boolean): string | null {
   switch (id) {
     case 'ncc-key':
-      return mods.keyWaiver ? 'waived · proposal' : null
+      return null // the VIPR 1210 substitution is confirmed and handled above
     case 'ncc-lang':
       return mods.langWaiver ? 'waived · proposal' : null
     case 'ncc-pad':

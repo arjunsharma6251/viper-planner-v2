@@ -50,7 +50,7 @@ export const STRATEGIES: readonly Strategy[] = [
   {
     id: 'langWaiver',
     label: 'Foreign Language waived',
-    desc: 'Saves up to 2 CU. Language often meets 4×/week with few sections, which collides with single-slot major courses.',
+    desc: 'Declined Nov 2026: off the table. Shown only to measure what it would have saved (up to 2 CU).',
     ask: 'high',
     group: 'memo',
   },
@@ -63,9 +63,9 @@ export const STRATEGIES: readonly Strategy[] = [
   },
   {
     id: 'keyWaiver',
-    label: 'Key waived for VIPER',
-    desc: 'Quantitative coursework (MATH 1400/1410, ENGR 1050, linear algebra, ODEs) + VIPR seminars + research summers. Saves 1 CU.',
-    ask: 'medium',
+    label: 'Key substituted by VIPR 1210',
+    desc: 'Confirmed Nov 2026. VIPR 1210 (energy research) stands in for Key, so no Key course is taken. Saves 1 CU.',
+    ask: 'confirmed',
     group: 'memo',
   },
   {

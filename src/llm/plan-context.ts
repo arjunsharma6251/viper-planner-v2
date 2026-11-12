@@ -19,7 +19,7 @@ export function buildPlanContext(plan: Plan): string {
   )
   lines.push(
     meta.curriculumMode === 'ncc'
-      ? 'College curriculum: New College Curriculum (six Foundations + 12+5+3 distribution; slot ids ncc-*). Confirmed VIPER overlap: VIPR 1200/1210 = First-Year Seminar only.'
+      ? 'College curriculum: New College Curriculum (six Foundations + 12+3+2 distribution for VIPER; slot ids ncc-*). Confirmed for VIPER: VIPR 1200/1210 = First-Year Seminar; VIPR 1210 substitutes for Key; Language is never waived.'
       : 'College curriculum: old core (Foundational Approaches + Sectors; slot ids gened-*).',
   )
 

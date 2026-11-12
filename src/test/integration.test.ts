@@ -64,27 +64,29 @@ describe('seed → augment → mutate (the UI path)', () => {
       .flat()
       .map((c) => c.slotId ?? '')
       .filter((id) => id.startsWith('ncc-'))
-    // Five standalone Foundations (FYS is the approved VIPR overlap) + 7 fillers
-    for (const id of ['ncc-writ', 'ncc-kite', 'ncc-key', 'ncc-pad', 'ncc-lang']) {
+    // Four standalone Foundations: FYS and Key are approved VIPR stand-ins
+    // (VIPR 1200/1210 → FYS; VIPR 1210 → Key, 2026-11-12).
+    for (const id of ['ncc-writ', 'ncc-kite', 'ncc-pad', 'ncc-lang']) {
       expect(slotIds, `Foundation slot ${id}`).toContain(id)
     }
-    expect(slotIds.filter((id) => id.startsWith('ncc-dist-ss-'))).toHaveLength(4)
-    expect(slotIds.filter((id) => id.startsWith('ncc-dist-h-'))).toHaveLength(3)
+    expect(slotIds).not.toContain('ncc-key')
+    expect(slotIds.filter((id) => id.startsWith('ncc-dist-ss-'))).toHaveLength(2) // + P&D = 3
+    expect(slotIds.filter((id) => id.startsWith('ncc-dist-h-'))).toHaveLength(2)
     expect(slotIds).not.toContain('ncc-fys')
 
     const aug = augmentPlan(plan, { sasMajorKey: 'CHEM', seasMajorKey: 'CBE', gradYear: 2028 })!
     const audit = computeNccAudit(aug, CONFIG.apCreditIds, undefined, 'CBE')
     expect(audit.foundations.map((f) => [f.id, f.state])).toEqual([
       ['ncc-kite', 'planned'],
-      ['ncc-key', 'planned'],
+      ['ncc-key', 'approved-overlap'],
       ['ncc-fys', 'approved-overlap'],
       ['ncc-pad', 'planned'],
       ['ncc-lang', 'planned'],
       ['ncc-writ', 'planned'],
     ])
     expect(audit.divisions.map((d) => [d.id, d.planned, d.target])).toEqual([
-      ['SS', 5, 5],
-      ['H', 3, 3],
+      ['SS', 3, 3],
+      ['H', 2, 2],
     ])
   })
 
