@@ -15,7 +15,8 @@ import {
 } from './mutations'
 import { parseAppState, planFromAppState, planToCSV, serializeAppState } from './serialize'
 import type { AppState } from './serialize'
-import { buildShareLink, decodeShareState, encodeShareState } from '../utils/share-link'
+import { buildShareLink, decodeShareState, encodeShareState, encodeShareStateV1 } from '../utils/share-link'
+import { seedPlan } from '../ui/store/use-plan-store'
 import { STORAGE_KEYS, loadAppState, safeGetItem, safeSetItem, saveAppState } from '../utils/storage'
 import type { Plan, PlannedCourse } from './types'
 
@@ -605,12 +606,42 @@ describe('share link', () => {
     expect(decoded).toEqual(state)
   })
 
-  it('uses the old wire format exactly: btoa(unescape(encodeURIComponent(JSON)))', () => {
+  it('still opens links in the old wire format: btoa(unescape(encodeURIComponent(JSON)))', () => {
     // This expression is copied verbatim from the old app's copyShareLink —
     // existing links in the wild were produced by it.
     const oldAppHash = btoa(unescape(encodeURIComponent(JSON.stringify(state))))
-    expect(encodeShareState(state)).toBe(oldAppHash)
+    expect(encodeShareStateV1(state)).toBe(oldAppHash)
     expect(decodeShareState(oldAppHash)).toEqual(state)
+    expect(decodeShareState(`#${oldAppHash}`)).toEqual(state)
+  })
+
+  it('writes the short v2 format (z. + base64url deflate), URL-safe', () => {
+    const hash = encodeShareState(state)
+    expect(hash.startsWith('z.')).toBe(true)
+    expect(hash).toMatch(/^z\.[A-Za-z0-9_-]+$/)
+  })
+
+  it('round-trips catalog fields exactly, including fields a course lacked', () => {
+    // A seeded-looking row (every catalog field present, equal to the catalog),
+    // a row missing catalog fields, and a row whose title the student changed.
+    const rows = [
+      { code: 'CHEM 1012', title: 'General Chemistry I', cu: 1, off: 'F', prereqs: [], coreqs: [], fa: null, sec: 'VI', energy: false, isThermo: false, isWritSem: false, note: null, category: 'both', tags: ['DC'] },
+      { code: 'MATH 1400', title: 'Calculus, Part I', cu: 1 },
+      { code: 'CBE 1600', title: 'My renamed title', cu: 1, note: 'kept' },
+      { code: 'NOTA 9999', title: 'Not in the catalog', cu: 0.5 },
+    ]
+    const s2: AppState = { ...state, userPlan: { semesters: { 'fall-y1': rows as never } } }
+    expect(decodeShareState(encodeShareState(s2))).toEqual(s2)
+  })
+
+  it('is much shorter than the old format for a real seeded plan', () => {
+    const plan = seedPlan({ sasMajorKey: 'CHEM', sasConcKey: 'STANDARD', seasMajorKey: 'CBE', seasConcKey: 'PHARMA', apCreditIds: [], gradYear: 2031 })!
+    const real: AppState = { ...state, userPlan: { semesters: plan.semesters as never } }
+    const v1 = encodeShareStateV1(real).length
+    const v2 = encodeShareState(real).length
+    expect(decodeShareState(encodeShareState(real))).toEqual(real)
+    expect(v2).toBeLessThan(v1 / 8)
+    expect(v2).toBeLessThan(3000) // ~2.7k vs ~21.5k for v1 (2026-11-12)
   })
 
   it('accepts a leading # and rejects garbage without throwing', () => {

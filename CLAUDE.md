@@ -455,7 +455,7 @@ Concretely:
 - **Transitions between modes don't lose state.** Switch from Grid to List view → same plan, same selection, same scroll position remembered.
 - **Single source of truth for every piece of state.** Don't have "current selection" stored in two places that can desync.
 - **LLM tool calls and direct user actions go through the same mutation API.** Whether the student drags or the LLM calls `move_course`, the path through the code is identical. No drift between the two.
-- **The share link contains the entire app state**, not a pointer to it. Open the link → exact same view, no fetch. **It never overwrites a saved plan** (2026-11): a link opens as an unsaved view ("Shared plan · not saved"); viewing writes nothing, the first edit or "Save to my plans" adds it to the library as a new plan and drops the URL fragment.
+- **The share link contains the entire app state**, not a pointer to it. Open the link → exact same view, no fetch. Format (2026-11-12, `src/utils/share-link.ts`): new links are `z.` + base64url of deflate-compressed JSON with catalog-derived course fields dropped (restored from the catalog on open) — ~2.7k characters for a full plan instead of ~21.5k. Old base64 links (the old app's format) still open; never remove that decoder. **It never overwrites a saved plan** (2026-11): a link opens as an unsaved view ("Shared plan · not saved"); viewing writes nothing, the first edit or "Save to my plans" adds it to the library as a new plan and drops the URL fragment.
 
 ### Anti-patterns to avoid
 
