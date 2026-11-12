@@ -1,5 +1,6 @@
 import { creditedCourseCodes } from '../data/ap-credits'
-import { lookupCourse } from '../data/courses'
+import { courseEntry, lookupCourse } from '../data/courses'
+import { mathSwaps } from '../data/math-sequence'
 import { SEMESTER_KEYS, type SemesterKey } from '../data/semesters'
 import type { PlanTemplate, TemplateEntry, TemplateSlotKind } from '../data/templates'
 import { VIPER_PROGRAM } from '../data/viper-program'
@@ -143,6 +144,7 @@ export function planFromTemplate(template: PlanTemplate, opts: TemplateSeedOptio
       fixed: v.fixed !== false,
     })
   }
+  swapTemplateMath(plan, opts.meta.sasMajor, opts.meta.seasMajor, opts.gradYear)
   const credited = creditedCourseCodes(opts.apCreditIds, opts.gradYear)
   for (const k of Object.keys(plan.semesters) as SemesterKey[]) {
     plan.semesters[k] = plan.semesters[k].filter((c) => !credited.has(c.code))
@@ -150,6 +152,29 @@ export function planFromTemplate(template: PlanTemplate, opts: TemplateSeedOptio
   for (const code of credited) plan.placement[code] = 'credit'
   recomputeDerived(plan)
   return topUpRequirements(plan, opts)
+}
+
+/**
+ * The templates use the new math sequence (ESE 2030 + ENM 2510, or the PHYS
+ * BA's MATH 2400 / 2410). Swap to what this class takes (math-sequence.ts):
+ * the old sequence for the Class of 2028 and older, the paired BSE's new
+ * courses for a later Physics BA.
+ */
+function swapTemplateMath(plan: Plan, sas: string | undefined, seas: string | undefined, gradYear: number | null): void {
+  if (!sas || !seas) return
+  const swaps = { ...mathSwaps(seas, sas, gradYear), ...mathSwaps(sas, seas, gradYear) }
+  if (Object.keys(swaps).length === 0) return
+  for (const k of Object.keys(plan.semesters) as SemesterKey[]) {
+    const seen = new Set<string>()
+    plan.semesters[k] = plan.semesters[k].flatMap((c) => {
+      const to = swaps[c.code]
+      if (!to) return [c]
+      if (seen.has(to) || Object.values(plan.semesters).flat().some((o) => o !== c && o.code === to)) return []
+      seen.add(to)
+      const e = courseEntry(to)
+      return [{ ...c, code: to, title: e.title, cu: e.cu, off: e.off, prereqs: e.prereqs, coreqs: e.coreqs, note: null }]
+    })
+  }
 }
 
 // ---- Top-up ----

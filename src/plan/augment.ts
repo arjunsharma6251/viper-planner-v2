@@ -233,5 +233,8 @@ export function augmentPlan(
     }
   }
 
-  return { semesters, loads, summary, placement, meta: ctx, notes: [] }
+  // The plan's class year rides along when the caller didn't pass one: the
+  // major audit picks the math sequence from it (src/data/math-sequence.ts).
+  const meta = { ...ctx, gradYear: ctx.gradYear !== undefined ? ctx.gradYear : (userPlan.meta?.gradYear ?? null) }
+  return { semesters, loads, summary, placement, meta, notes: [] }
 }

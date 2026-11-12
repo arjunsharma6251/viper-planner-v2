@@ -138,8 +138,8 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
   const majorAudits =
     store.augmented && store.config
       ? {
-          sas: computeMajorAudit(store.augmented, store.config.sasMajorKey, store.config.sasConcKey, store.config.seasMajorKey),
-          seas: computeMajorAudit(store.augmented, store.config.seasMajorKey, store.config.seasConcKey, store.config.sasMajorKey),
+          sas: computeMajorAudit(store.augmented, store.config.sasMajorKey, store.config.sasConcKey, store.config.seasMajorKey, store.config.gradYear),
+          seas: computeMajorAudit(store.augmented, store.config.seasMajorKey, store.config.seasConcKey, store.config.sasMajorKey, store.config.gradYear),
         }
       : undefined
   const advisorNotes = store.augmented
