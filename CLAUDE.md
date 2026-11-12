@@ -214,7 +214,7 @@ In the old app this distinction was muddled into a single "DC" tag. Don't repeat
 - An open Sector / FA / Foundation / division slot's sheet lists the common double-counts that fill it (2026-11, `doubleCountPicksFor` in `src/plan/open-slot.ts`), so newcomers meet them where they choose a course
 - LLM chat: plan review + what-if scenarios
 - Export: JSON, CSV, share link
-- Plan menu (title strip, "Plan"): switch saved plans, New plan… (setup runs again; the current plan is kept), Duplicate, Rename, Delete (undo from the toast). Every saved plan autosaves. The single-plan key `viper-planner:state:v8` from before is migrated once into the library and left in place.
+- Plan menu (title strip, "Plan"): switch saved plans, New plan… (setup runs again; the current plan is kept), Duplicate, Rename, Delete (undo from the toast). Every saved plan autosaves. The single-plan key `viper-planner:state:v8` from before is migrated once into the library and left in place. Saving (2026-11-12, "make sure everything saves"): every library write merges with what another open tab stored (`mergeLibraries`: later `updatedAt` wins per plan, a plan only the other tab has is kept unless deleted here), and a `storage` listener refreshes the list. A failed write shows "Not saved in this browser" by the plan name plus one toast. Incoming-credit placements are not stored; `planFromAppState` re-derives them from `apCreditIds` (`creditedCourseCodes`), and `augmentPlan` carries them on `placement`. `save-roundtrip.test.ts` pins library, share link and JSON export round trips.
 - Print view
 
 ### Admin mode (URL-gated)

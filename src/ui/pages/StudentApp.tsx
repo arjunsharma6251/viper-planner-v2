@@ -81,6 +81,12 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
 
   const modalOpen = !!openRef || !!addTo
 
+  // Say so once when this browser stops keeping changes (2026-11-12).
+  const saveFailed = store.saveFailed
+  useEffect(() => {
+    if (saveFailed) toast('Changes are not being saved in this browser. Copy the share link or export JSON to keep them.')
+  }, [saveFailed, toast])
+
   // Keyboard: ⌘Z undo; single keys when nothing is typing and no modal is up.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -283,6 +289,7 @@ function StudentAppInner({ renderExtras }: { renderExtras?: RenderExtras }) {
                   plans={store.plans}
                   activeId={store.activePlanId}
                   viewingShared={store.viewingShared}
+                  saveFailed={store.saveFailed}
                   onSwitch={(id) => {
                     setOpenRef(null)
                     store.switchPlan(id)
